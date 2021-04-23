@@ -112,20 +112,56 @@ $.getJSON(main_url, function(result) {
     });
 }); 
 
+var odds_url = "https://api.lineups.com/mlb/fetch/live_odds";
+$.getJSON(odds_url, function(results) {
+    //console.log(results.results);
+    $.each(results.results, function(i, data) {
+        var away_team = data.away.team_name;
+        var away_bets = data.away.bets.filter(function(ele) {
+            if (ele.bookmaker_name == "FanDuel" && ele.bet_type == "over") {
+                return ele;
+            } 
+        });
+        var over_odds = away_bets[0].over_current_odds;
+        var home_bets = data.home.bets.filter(function(ele) {
+            if (ele.bookmaker_name == "FanDuel" && ele.bet_type == "under") {
+                return ele;
+            } 
+        });
+        var under_odds = home_bets[0].under_current_odds;
+        var over_under = away_bets[0].over_current;
+
+        let obj = game_list.find(x => x.away_team == away_team);
+        obj['over_under'] = over_under;
+        obj['over_odds'] = over_odds;
+        obj['under_odds'] = under_odds;
+    });
+});
+
 console.log(game_list);
 
-const settings = {
-	"async": true,
-	"crossDomain": true,
-	"url": "https://sports-odds-betapi.p.rapidapi.com/v1/sports/line/en",
-	"method": "GET",
-	"headers": {
-		"package": "4a788ec11cd42226e2fdcbd62253379c",
-		"x-rapidapi-key": "fd80fc833bmsh2b174af060c335fp1e8ec1jsneefa0b5408b1",
-		"x-rapidapi-host": "sports-odds-betapi.p.rapidapi.com"
-	}
-};
 
-$.ajax(settings).done(function (response) {
-	console.log(response);
+//backup options for odds data
+
+/* 
+var fanduel_top = 'https://sportsbook.fanduel.com/cache/psbonav/1/UK/top.json';
+$.getJSON(fanduel_top, function(result) {
+    for (var i = 0; i < result.bonavigationnodes.length; i++) {
+        if (result.bonavigationnodes[i].name == 'Baseball') {
+            var filename = result.bonavigationnodes[i].bonavigationnodes[0].bonavigationnodes[0].bonavigationnodes[0].marketgroups[0].idfwmarketgroup;
+            var fanduel = `https://sportsbook.fanduel.com/cache/psmg/UK/${filename}.json`;
+            $.getJSON(fanduel, function(result) {
+                console.log(result);
+                for (var j = 0; j < result.events.length; j++) {
+                    console.log(result.events[j].eventname, result.events[j].markets);
+                } 
+            });
+        }
+    }
 });
+
+var espn = "http://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard";
+$.getJSON(espn, function(result) {
+    console.log(result);
+});
+*/
