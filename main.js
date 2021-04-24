@@ -8,8 +8,21 @@ document.querySelector("#slate").innerHTML = `Games on ${date}`;
 var base_url = "http://statsapi.mlb.com";
 var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${date}&hydrate=lineups`;
 
+var num_of_games = 0;
 var game_list = [];
 
+function getStats(url) {
+    return $.getJSON(url).then(data => {
+        return data;
+    });
+}
+
+getStats(main_url).then(data => {
+    num_of_games = data.dates.games.length;
+    console.log(data);
+});
+
+/*
 $.getJSON(main_url, function(result) {
     //console.log(result);
     $.each(result.dates[0].games, function(i, data) {
@@ -68,7 +81,6 @@ $.getJSON(main_url, function(result) {
                 });
                 game['ump'] = ump;
 
-                /*
                 var bullpens = data.liveData.boxscore.teams;
                 var away_ids = bullpens.away.bullpen;
                 var home_ids = bullpens.home.bullpen;
@@ -87,7 +99,6 @@ $.getJSON(main_url, function(result) {
                 }
                 game['away_bullpen'] = away_ids;
                 game['home_bullpen'] = home_ids;
-                */
 
             });
 
@@ -162,6 +173,7 @@ $.getJSON(fanduel, function(results) {
     });
 });
 
+
 //console.log(game_list);
 
 var container = document.querySelector("#table-container");
@@ -173,15 +185,18 @@ function populateTables() {
         container.appendChild(table);
         var header = document.createElement("tr");
         var row = document.createElement("tr");
-        var titles = ["Teams", "Game Time", "Condition", "Temp", "Actual Line", "Over", "Under"];
+        var titles = ["Teams", "Game Time", "Weather", "Actual Line", "Over", "Under"];
         var teams = `${game.away_team} @ ${game.home_team}`;
         var game_time = game.game_time;
-        var condition = game.weather.condition;
-        var temp = game.weather.temp + "&deg";
+        if (game.weather.condition && game.weather.temp) {
+            var weather = `${game.weather.condition} ${game.weather.temp}&deg`;
+        } else {
+            var weather = "TBD";
+        }
         var over_under = game.over_under;
         var over_line = game.over_line;
         var under_line = game.under_line; 
-        var items = [teams, game_time, condition, temp, over_under, over_line, under_line];
+        var items = [teams, game_time, weather, over_under, over_line, under_line];
         for (var j = 0; j < titles.length; j++) {
             var th = document.createElement("th");
             th.innerHTML = titles[j];
@@ -197,7 +212,7 @@ function populateTables() {
 }
 
 setTimeout(populateTables, 3000);
-
+*/
 
 //backup options for odds data
 
