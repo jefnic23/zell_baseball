@@ -38,25 +38,18 @@ function getMoneyLine(data) {
     return Math.round(line);
 }
 
-// write function to update odds
-
-/* 
-function updateOdds() {
-    getFanduel(odds_url).then(data => {
-
-    });
-}
-*/
-
 function populateTables(game) {
-    // game.status should be "Preview"
-    if (game.status === "Live" && game.market) {
-        //console.log(game);
+    if (game.status === "Preview" && game.market) {
+        console.log(game);
         var table = document.querySelector("#slate > tbody");
         var row = document.createElement("tr");
         var teams = `${game.away_team} @ ${game.home_team}`;
         var game_time = game.game_time;
-        var weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+        if (game.weather != "TBD") {
+            var weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+        } else {
+            var weather = game.weather;
+        }
         var prediction = "TBD"; // need to get this from backend
         var over_under = game.market.currentmatchhandicap;
         var over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
@@ -83,6 +76,10 @@ function populateTables(game) {
         }
         table.appendChild(row);
     }
+}
+
+function notEmpty(obj) {
+    return Object.keys(obj) != 0;
 }
 
 var game_list = [];
@@ -118,32 +115,36 @@ getFanduel(odds_url).then(data => {
     
             getData(base_url, g.link).then(data => {
                 //console.log(data);
-                if (data.gameData.weather) {
+                if (notEmpty(data.gameData.weather)) {
                     game['weather'] = data.gameData.weather;
                 }
-                if (data.liveData.boxscore.officials) {
+                if (notEmpty(data.liveData.boxscore.officials)) {
                     game["ump"] = data.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
                 }
-                if (data.gameData.probablePitchers) {
-                    game["away_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.away.id];
-                    game["home_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.home.id];
+                if (notEmpty(data.gameData.probablePitchers)) {
+                    if (data.gameData.probablePitchers.away) {
+                        game["away_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.away.id];
+                    }
+                    if (data.gameData.probablePitchers.home) {
+                        game["home_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.home.id];
+                    }
                 } 
-                if (data.liveData.boxscore.teams.away.bullpen) {
+                if (notEmpty(data.liveData.boxscore.teams.away.bullpen)) {
                     $.each(data.liveData.boxscore.teams.away.bullpen, (i, id) => {
                         game['away_bullpen'].push(data.gameData.players["ID" + id]);
                     });
                 }
-                if (data.liveData.boxscore.teams.home.bullpen) {
+                if (notEmpty(data.liveData.boxscore.teams.home.bullpen)) {
                     $.each(data.liveData.boxscore.teams.home.bullpen, (i, id) => {
                         game['home_bullpen'].push(data.gameData.players["ID" + id]);
                     });
                 }
-                if (data.liveData.boxscore.teams.away.battingOrder) {
+                if (notEmpty(data.liveData.boxscore.teams.away.battingOrder)) {
                     $.each(data.liveData.boxscore.teams.away.battingOrder, (i, id) => {
                         game['away_lineup'].push(data.gameData.players['ID' + id]);
                     });
                 }
-                if (data.liveData.boxscore.teams.home.battingOrder) {
+                if (notEmpty(data.liveData.boxscore.teams.home.battingOrder)) {
                     $.each(data.liveData.boxscore.teams.home.battingOrder, (i, id) => {
                         game['home_lineup'].push(data.gameData.players['ID' + id]);
                     });
@@ -160,6 +161,27 @@ getFanduel(odds_url).then(data => {
     });
 });
 
-/*
-setInterval(updateOdds(), 15000);
-*/
+setInterval(() => {
+    getFanduel(odds_url).then(data => {
+        //console.log(data);
+        $.each(data.events, (i, e) => {
+            if (e.markets.find(x => x.name === "Total Runs")) {
+                var market = e.markets.find(x => x.name === "Total Runs");
+                var over = market.selections.find(x => x.name === "Over");
+                var under = market.selections.find(x => x.name === "Under");
+                var market_ele = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
+                var over_ele = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
+                var under_ele = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
+                if (market_ele && market_ele.innerHTML != market.currentmatchhandicap) {
+                    market_ele.innerHTML = market.currentmatchhandicap;
+                }
+                if (over_ele && over_ele.innerHTML != getMoneyLine(over)) {
+                    over_ele.innerHTML = getMoneyLine(over);
+                }
+                if (under_ele && under_ele.innerHTML != getMoneyLine(under)) {
+                    under_ele.innerHTML = getMoneyLine(under);
+                }
+            }
+        });
+    });
+}, 10000);
