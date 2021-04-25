@@ -2,145 +2,31 @@ var today = new Date();
 var mm = String(today.getMonth() + 1).padStart(2, '0');
 var dd = String(today.getDate()).padStart(2, '0');
 var yyyy = today.getFullYear();
-var date = `${mm}/${dd}/${yyyy}`;
-document.querySelector("#slate").innerHTML = `Games on ${date}`;
+var main_date = `${mm}/${dd}/${yyyy}`; //used in main_url
+var find_date = `${yyyy}-${mm}-${dd}`; //used when getting games from main_url
+document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 
 var base_url = "http://statsapi.mlb.com";
-var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${date}&hydrate=lineups`;
+var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
+var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
 
-var num_of_games = 0;
-var game_list = [];
-
-function getStats(url) {
+function callApi(url, date) {
     return $.getJSON(url).then(data => {
+        return data.dates.find(x => x.date === date);
+    });
+}
+
+function getData(base, link) {
+    return $.getJSON(base + link).then(data => {
         return data;
     });
 }
 
-getStats(main_url).then(data => {
-    num_of_games = data.dates.games.length;
-    console.log(data);
-});
-
-/*
-$.getJSON(main_url, function(result) {
-    //console.log(result);
-    $.each(result.dates[0].games, function(i, data) {
-        //console.log(data);
-        var game = {};
-        if (data.status.detailedState != "Postponed") {
-            var away_team = data.teams.away.team.name;
-            var home_team = data.teams.home.team.name;
-            game['away_team'] = away_team;
-            game['away_lineup'] = [];
-            game['away_pitcher'] = "TBD";
-            game['home_team'] = home_team;
-            game['home_lineup'] = [];
-            game['home_pitcher'] = "TBD";
-            game['scheduled_innings'] = data.scheduledInnings;
-            game['ump'] = "";
-
-            var game_time = new Date(data.gameDate);
-            game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
-
-            var live_feed = base_url + data.link;
-            $.getJSON(live_feed, function(data) {
-                //console.log(data);
-                game['venue'] = data.gameData.venue;
-                game['weather'] = data.gameData.weather;
-
-                var pitchers = data.gameData.probablePitchers;
-                if (pitchers) {
-                    var away_pitcher = {};
-                    away_pitcher['name'] = pitchers.away.fullName;
-                    var home_pitcher = {};
-                    home_pitcher['name'] = pitchers.home.fullName;
-                    var away_link = base_url + pitchers.away.link;
-                    $.getJSON(away_link, function(data) {
-                        away_pitcher['hand'] = data.people[0].pitchHand.code;
-                    });
-                    var home_link = base_url + pitchers.away.link;
-                    $.getJSON(home_link, function(data) {
-                        home_pitcher['hand'] = data.people[0].pitchHand.code;
-                    });
-                    game['away_pitcher'] = away_pitcher;
-                    game['home_pitcher'] = home_pitcher;
-                }
-
-                var umps = data.liveData.boxscore.officials;
-                var ump = {};
-                $.each(umps, function(i, data) {
-                    if (data.officialType == "Home Plate") {
-                        ump['name'] = data.official.fullName;
-                        var ump_link = base_url + data.official.link;
-                        $.getJSON(ump_link, function(data) {
-                            ump['sz_bottom'] = data.people[0].strikeZoneBottom;
-                            ump['sz_top'] = data.people[0].strikeZoneTop;
-                        });
-                    }
-                });
-                game['ump'] = ump;
-
-                var bullpens = data.liveData.boxscore.teams;
-                var away_ids = bullpens.away.bullpen;
-                var home_ids = bullpens.home.bullpen;
-                console.log(bullpens);
-                for (var i = 0; i < data.players.length; i++) {
-                    for (var j = 0; j < away_ids.length; j++) {
-                        if (data.players[i].id == away_ids[j]) {
-                            away_ids[j] = data.players[i].fullName;
-                        }
-                    }
-                    for (var j = 0; j < home_ids.length; j++) {
-                        if (data.players[i].id == home_ids[j]) {
-                            home_ids[j] = data.players[i].fullName;
-                        }
-                    }
-                }
-                game['away_bullpen'] = away_ids;
-                game['home_bullpen'] = home_ids;
-
-            });
-
-            var lineups = data.lineups;
-            if (lineups) {
-                if (lineups.awayPlayers) {
-                    var away_lineup = lineups.awayPlayers;
-                    for (var j=0; j < away_lineup.length; j++) {
-                        var away_player = base_url + away_lineup[j].link;
-                        $.getJSON(away_player, function(result) {
-                            $.each(result.people, function(i, data) {
-                                var player = {};
-                                var name = data.fullName;
-                                var hand = data.batSide.code;
-                                player['name'] = name;
-                                player['hand'] = hand;
-                                game['away_lineup'].push(player);
-                            });
-                        });
-                    }
-                }
-                if (lineups.homePlayers) {
-                    var home_lineup = lineups.homePlayers;
-                    for (var j=0; j < lineups.homePlayers.length; j++) {
-                        var home_player = base_url + home_lineup[j].link;
-                        $.getJSON(home_player, function(result) {
-                            $.each(result.people, function(i, data) {
-                                var player = {};
-                                var name = data.fullName;
-                                var hand = data.batSide.code;
-                                player['name'] = name;
-                                player['hand'] = hand;
-                                game['home_lineup'].push(player);
-                            });
-                        });
-                    }
-                }
-            }
-        }
-        game_list.push(game);
+function getFanduel(url) {
+    return $.getJSON(url).then(data => {
+        return data;
     });
-}); 
+}
 
 function getMoneyLine(data) {
     var e = 1 + data.currentpriceup / data.currentpricedown;
@@ -152,105 +38,128 @@ function getMoneyLine(data) {
     return Math.round(line);
 }
 
-var fanduel = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
-$.getJSON(fanduel, function(results) {
-    //console.log(results);
-    $.each(results.events, function(i, data) {
-        //console.log(data)
-        var away_team = data.participantname_away;
-        var home_team = data.participantname_home;
-        var runs_market = data.markets.find(x => x.name === "Total Runs");
-        var over_under = runs_market.currentmatchhandicap;
-        var over = runs_market.selections.find(x => x.name === "Over");
-        var under = runs_market.selections.find(x => x.name === "Under");
-        var over_line = getMoneyLine(over);
-        var under_line = getMoneyLine(under);
+// write function to update odds
 
-        let obj = game_list.find(x => x.away_team === away_team);
-        obj['over_under'] = over_under
-        obj['over_line'] = over_line;
-        obj['under_line'] = under_line;
-    });
-});
+/* 
+function updateOdds() {
+    getFanduel(odds_url).then(data => {
 
-
-//console.log(game_list);
-
-var container = document.querySelector("#table-container");
-
-function populateTables() {
-    $.each(game_list, function(i, game) {
-        //console.log(game);
-        var table = document.createElement("table");
-        container.appendChild(table);
-        var header = document.createElement("tr");
-        var row = document.createElement("tr");
-        var titles = ["Teams", "Game Time", "Weather", "Actual Line", "Over", "Under"];
-        var teams = `${game.away_team} @ ${game.home_team}`;
-        var game_time = game.game_time;
-        if (game.weather.condition && game.weather.temp) {
-            var weather = `${game.weather.condition} ${game.weather.temp}&deg`;
-        } else {
-            var weather = "TBD";
-        }
-        var over_under = game.over_under;
-        var over_line = game.over_line;
-        var under_line = game.under_line; 
-        var items = [teams, game_time, weather, over_under, over_line, under_line];
-        for (var j = 0; j < titles.length; j++) {
-            var th = document.createElement("th");
-            th.innerHTML = titles[j];
-            header.appendChild(th);
-    
-            var td = document.createElement("td");
-            td.innerHTML = items[j];
-            row.appendChild(td);
-        }
-        table.appendChild(header);
-        table.appendChild(row);
     });
 }
-
-setTimeout(populateTables, 3000);
 */
 
-//backup options for odds data
-
-/*
-var odds_url = "https://api.lineups.com/mlb/fetch/live_odds";
-$.getJSON(odds_url, function(results) {
-    //console.log(results.results);
-    $.each(results.results, function(i, data) {
-        var away_team = data.away.team_name;
-        var away_bets = data.away.bets.filter(function(ele) {
-            if (ele.bookmaker_name == "FanDuel" && ele.bet_type == "over") {
-                return ele;
-            } 
-        });
-        var over_odds = away_bets[0].over_current_odds;
-        var home_bets = data.home.bets.filter(function(ele) {
-            if (ele.bookmaker_name == "FanDuel" && ele.bet_type == "under") {
-                return ele;
-            } 
-        });
-        var under_odds = home_bets[0].under_current_odds;
-
-        var over_current = away_bets[0].over_current;
-        var under_current = home_bets[0].under_current;
-
-        let obj = game_list.find(x => x.away_team == away_team);
-        if (over_current) {
-            obj['over_under'] = over_current;
-        } else if (under_current) {
-            obj['over_under'] = under_current;
+function populateTables(game) {
+    // game.status should be "Preview"
+    if (game.status === "Live" && game.market) {
+        //console.log(game);
+        var table = document.querySelector("#slate > tbody");
+        var row = document.createElement("tr");
+        var teams = `${game.away_team} @ ${game.home_team}`;
+        var game_time = game.game_time;
+        var weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+        var prediction = "TBD"; // need to get this from backend
+        var over_under = game.market.currentmatchhandicap;
+        var over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+        var under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+        var items = [teams, game_time, weather, prediction, over_under, over_line, under_line];
+        for (var i = 0; i < items.length; i++) {
+            var td = document.createElement("td");
+            if (items[i] === over_under) {
+                td.setAttribute("id", `${game.market.idfoevent}`);
+                td.innerHTML = items[i];
+                row.appendChild(td);
+            } else if (items[i] === over_line) {
+                td.setAttribute("id", `${game.market.selections.find(x => x.name === "Over").idfoselection}`);
+                td.innerHTML = items[i];
+                row.appendChild(td);
+            } else if (items[i] === under_line) {
+                td.setAttribute("id", `${game.market.selections.find(x => x.name === "Under").idfoselection}`);
+                td.innerHTML = items[i];
+                row.appendChild(td);
+            } else {
+                td.innerHTML = items[i];
+                row.appendChild(td);
+            }
         }
-        obj['over_odds'] = over_odds;
-        obj['under_odds'] = under_odds;
+        table.appendChild(row);
+    }
+}
+
+var game_list = [];
+getFanduel(odds_url).then(data => {
+    //console.log(data);
+    var fanduel = [];
+    $.each(data.events, (i, e) => {
+        var date = new Date(e.tsstart);
+        if (date.getDate() == today.getDate()) {
+            fanduel.push(e);
+        }
+    });
+    callApi(main_url, find_date).then(data => {
+        $.each(data.games, (i, g) => {
+            //console.log(g);
+            var game = {};
+            var game_time = new Date(g.gameDate);
+            game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
+            game['status'] = g.status.abstractGameState;
+            game['innings'] = g.scheduledInnings;
+            game['venue'] = g.venue.name;
+            game['weather'] = "TBD";
+            game['ump'] = "TBD";
+            game['away_team'] = g.teams.away.team.name;
+            game['away_pitcher'] = "TBD";
+            game['away_lineup'] = [];
+            game['away_bullpen'] = [];
+            game['home_team'] = g.teams.home.team.name;
+            game['home_pitcher'] = "TBD";
+            game['home_lineup'] = [];
+            game['home_bullpen'] = [];
+            game['market'] = null;
+    
+            getData(base_url, g.link).then(data => {
+                //console.log(data);
+                if (data.gameData.weather) {
+                    game['weather'] = data.gameData.weather;
+                }
+                if (data.liveData.boxscore.officials) {
+                    game["ump"] = data.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
+                }
+                if (data.gameData.probablePitchers) {
+                    game["away_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.away.id];
+                    game["home_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.home.id];
+                } 
+                if (data.liveData.boxscore.teams.away.bullpen) {
+                    $.each(data.liveData.boxscore.teams.away.bullpen, (i, id) => {
+                        game['away_bullpen'].push(data.gameData.players["ID" + id]);
+                    });
+                }
+                if (data.liveData.boxscore.teams.home.bullpen) {
+                    $.each(data.liveData.boxscore.teams.home.bullpen, (i, id) => {
+                        game['home_bullpen'].push(data.gameData.players["ID" + id]);
+                    });
+                }
+                if (data.liveData.boxscore.teams.away.battingOrder) {
+                    $.each(data.liveData.boxscore.teams.away.battingOrder, (i, id) => {
+                        game['away_lineup'].push(data.gameData.players['ID' + id]);
+                    });
+                }
+                if (data.liveData.boxscore.teams.home.battingOrder) {
+                    $.each(data.liveData.boxscore.teams.home.battingOrder, (i, id) => {
+                        game['home_lineup'].push(data.gameData.players['ID' + id]);
+                    });
+                }
+
+                var odds = fanduel.find(x => x.participantname_away === game['away_team'] || x.participantname_home === game['home_team']);
+                if (odds && odds.markets.find(x => x.name === "Total Runs")) {
+                    game['market'] = odds.markets.find(x => x.name === "Total Runs");
+                }
+                populateTables(game);
+                game_list.push(game);
+            });
+        });
     });
 });
 
-var espn = "http://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard";
-$.getJSON(espn, function(result) {
-    console.log(result);
-});
+/*
+setInterval(updateOdds(), 15000);
 */
