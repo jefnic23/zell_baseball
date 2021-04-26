@@ -97,8 +97,7 @@ getFanduel(odds_url).then(data => {
         $.each(data.games, (i, g) => {
             //console.log(g);
             var game = {};
-            var game_time = new Date(g.gameDate);
-            game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
+            game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
             game['status'] = g.status.codedGameState;
             game['innings'] = g.scheduledInnings;
             game['venue'] = g.venue.name;
@@ -153,8 +152,7 @@ getFanduel(odds_url).then(data => {
 
                 var odds = fanduel.find(x => x.participantname_away === game['away_team'] || x.participantname_home === game['home_team']);
                 if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
-                    game_time = new Date(odds.tsstart);
-                    game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
+                    game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
