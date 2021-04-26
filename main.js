@@ -39,21 +39,23 @@ function getMoneyLine(data) {
 }
 
 function populateTables(game) {
-    if (game.status === "Preview" && game.market) {
-        console.log(game);
-        var table = document.querySelector("#slate > tbody");
+    if (game.status === "P" || game.status === "S") {
+        //console.log(game);
+        var table = document.querySelector("table > tbody");
         var row = document.createElement("tr");
         var teams = `${game.away_team} @ ${game.home_team}`;
         var game_time = game.game_time;
+        var weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
         if (game.weather != "TBD") {
-            var weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+            weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
         } else {
-            var weather = game.weather;
+            weather = game.weather;
         }
-        var prediction = "TBD"; // need to get this from backend
-        var over_under = game.market.currentmatchhandicap;
-        var over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-        var under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+        if (game.market) {
+            over_under = game.market.currentmatchhandicap;
+            over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+            under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+        }
         var items = [teams, game_time, weather, prediction, over_under, over_line, under_line];
         for (var i = 0; i < items.length; i++) {
             var td = document.createElement("td");
@@ -82,7 +84,6 @@ function notEmpty(obj) {
     return Object.keys(obj) != 0;
 }
 
-var game_list = [];
 getFanduel(odds_url).then(data => {
     //console.log(data);
     var fanduel = [];
@@ -98,7 +99,7 @@ getFanduel(odds_url).then(data => {
             var game = {};
             var game_time = new Date(g.gameDate);
             game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
-            game['status'] = g.status.abstractGameState;
+            game['status'] = g.status.codedGameState;
             game['innings'] = g.scheduledInnings;
             game['venue'] = g.venue.name;
             game['weather'] = "TBD";
@@ -151,11 +152,12 @@ getFanduel(odds_url).then(data => {
                 }
 
                 var odds = fanduel.find(x => x.participantname_away === game['away_team'] || x.participantname_home === game['home_team']);
-                if (odds && odds.markets.find(x => x.name === "Total Runs")) {
-                    game['market'] = odds.markets.find(x => x.name === "Total Runs");
+                if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
+                    game_time = new Date(odds.tsstart);
+                    game['game_time'] = ((game_time.getHours() + 11) % 12 + 1) + ':' + String(game_time.getMinutes()).padStart(2, '0');
+                    game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
-                game_list.push(game);
             });
         });
     });
@@ -165,13 +167,17 @@ setInterval(() => {
     getFanduel(odds_url).then(data => {
         //console.log(data);
         $.each(data.events, (i, e) => {
-            if (e.markets.find(x => x.name === "Total Runs")) {
-                var market = e.markets.find(x => x.name === "Total Runs");
+            if (e.markets.find(x => x.idfomarkettype === 48555.1)) {
+                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                 var over = market.selections.find(x => x.name === "Over");
                 var under = market.selections.find(x => x.name === "Under");
                 var market_ele = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
                 var over_ele = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
                 var under_ele = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
+                if (new Date() >= new Date(market.tsstart)) {
+                    var row = market.parentNode;
+                    row.parentNode.removeChild(row);
+                }
                 if (market_ele && market_ele.innerHTML != market.currentmatchhandicap) {
                     market_ele.innerHTML = market.currentmatchhandicap;
                 }
@@ -184,4 +190,4 @@ setInterval(() => {
             }
         });
     });
-}, 10000);
+}, 30000);
