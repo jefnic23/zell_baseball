@@ -45,11 +45,9 @@ function populateTables(game) {
         var row = document.createElement("tr");
         var teams = `${game.away_team} @ ${game.home_team}`;
         var game_time = game.game_time;
-        var weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
+        var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
         if (game.weather != "TBD") {
             weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
-        } else {
-            weather = game.weather;
         }
         if (game.market) {
             over_under = game.market.currentmatchhandicap;
