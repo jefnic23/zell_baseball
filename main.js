@@ -9,6 +9,9 @@ document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 var base_url = "http://statsapi.mlb.com";
 var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
+var num_games = 0;
+var num_games_test = 0;
+var active_games = 0;
 
 function callApi(url, date) {
     return $.getJSON(url).then(data => {
@@ -41,7 +44,8 @@ function getMoneyLine(data) {
 function populateTables(game) {
     if (game.status === "P" || game.status === "S") {
         //console.log(game);
-        var table = document.querySelector("table > tbody");
+        active_games++;
+        var table = document.querySelector("#slate");
         var row = document.createElement("tr");
         var teams = `${game.away_team} @ ${game.home_team}`;
         var game_time = game.game_time;
@@ -75,6 +79,10 @@ function populateTables(game) {
             }
         }
         table.appendChild(row);
+        if (active_games === num_games) {
+            document.querySelector("#slate").style.visibility = "visible";
+            document.querySelector(".loader").style.visibility = "hidden";
+        }
     }
 }
 
@@ -92,6 +100,7 @@ getFanduel(odds_url).then(data => {
         }
     });
     callApi(main_url, find_date).then(data => {
+        num_games = data.totalGames;
         $.each(data.games, (i, g) => {
             //console.log(g);
             var game = {};
@@ -154,36 +163,52 @@ getFanduel(odds_url).then(data => {
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
+                num_games_test++;
+                if (num_games_test === num_games && active_games === 0) {
+                    var table = document.querySelector("#slate");
+                    var row = document.createElement("tr");
+                    var td = document.createElement("td");
+                    td.innerHTML = "No games";
+                    td.colSpan = "7";
+                    td.style.textAlign = "center";
+                    row.appendChild(td);
+                    table.appendChild(row);
+                }
             });
         });
     });
 });
 
-setInterval(() => {
-    getFanduel(odds_url).then(data => {
-        //console.log(data);
-        $.each(data.events, (i, e) => {
-            if (e.markets.find(x => x.idfomarkettype === 48555.1)) {
-                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                var over = market.selections.find(x => x.name === "Over");
-                var under = market.selections.find(x => x.name === "Under");
-                var market_ele = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
-                var over_ele = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
-                var under_ele = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
-                if (new Date() >= new Date(market.tsstart)) {
-                    var row = market.parentNode;
-                    row.parentNode.removeChild(row);
+const updateOdds = setInterval(() => {
+    if (num_games_test === num_games && active_games === 0) {
+        console.log('no update');
+        clearInterval(updateOdds);
+    } else {
+        getFanduel(odds_url).then(data => {
+            //console.log(data);
+            $.each(data.events, (i, e) => {
+                if (e.markets.find(x => x.idfomarkettype === 48555.1)) {
+                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+                    var over = market.selections.find(x => x.name === "Over");
+                    var under = market.selections.find(x => x.name === "Under");
+                    var market_ele = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
+                    var over_ele = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
+                    var under_ele = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
+                    if (new Date() >= new Date(market.tsstart)) {
+                        var row = market_ele.parentNode; //market_ele is null? maybe late games are carrying over
+                        row.parentNode.removeChild(row);
+                    }
+                    if (market_ele && market_ele.innerHTML != market.currentmatchhandicap) {
+                        market_ele.innerHTML = market.currentmatchhandicap;
+                    }
+                    if (over_ele && over_ele.innerHTML != getMoneyLine(over)) {
+                        over_ele.innerHTML = getMoneyLine(over);
+                    }
+                    if (under_ele && under_ele.innerHTML != getMoneyLine(under)) {
+                        under_ele.innerHTML = getMoneyLine(under);
+                    }
                 }
-                if (market_ele && market_ele.innerHTML != market.currentmatchhandicap) {
-                    market_ele.innerHTML = market.currentmatchhandicap;
-                }
-                if (over_ele && over_ele.innerHTML != getMoneyLine(over)) {
-                    over_ele.innerHTML = getMoneyLine(over);
-                }
-                if (under_ele && under_ele.innerHTML != getMoneyLine(under)) {
-                    under_ele.innerHTML = getMoneyLine(under);
-                }
-            }
+            });
         });
-    });
+    }
 }, 30000);
