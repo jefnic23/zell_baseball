@@ -8,7 +8,13 @@ thead {
     background-color: #dddddd;
 }
 
-td, th {
+th {
+    border: 1px solid #000000;
+    text-align: center;
+    padding: 8px;
+}
+
+td {
     border: 1px solid #000000;
     text-align: left;
     padding: 8px;
@@ -31,7 +37,29 @@ tr:nth-child(even) {
     animation: spin 2s linear infinite;
   }
   
-  @keyframes spin {
+@keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
+}
+
+.price-up {
+    animation: fadeOut-up 2s forwards;
+    animation-delay: 3s;
+    background-color: rgba(102, 255, 0, 1);
+}
+
+.price-down {
+    animation: fadeOut-down 2s forwards;
+    animation-delay: 3s;
+    background-color: rgba(255, 36, 0, 1);
+}
+
+@keyframes fadeOut-up {
+    from {background-color: rgba(102, 255, 0, 1);}
+    to {background-color: rgba(102, 255, 0, 0);}
+}
+
+@keyframes fadeOut-down {
+    from {background-color: rgba(255, 36, 0, 1);}
+    to {background-color: rgba(255, 36, 0, 0);}
+}

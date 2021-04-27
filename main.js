@@ -9,6 +9,7 @@ document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 var base_url = "http://statsapi.mlb.com";
 var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
+var logo_url = "http://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams";
 var num_games = 0;
 var num_games_test = 0;
 var active_games = 0;
@@ -31,6 +32,14 @@ function getFanduel(url) {
     });
 }
 
+// call once to get logos, then in populate function search the result
+function getLogo(url, tname) {
+    return $.getJSON(url).then(data => {
+        t = data.sports[0].leagues[0].teams.find(x => x.team.displayName === tname);
+        return t.team.logos[2];
+    });
+}
+
 function getMoneyLine(data) {
     var e = 1 + data.currentpriceup / data.currentpricedown;
     if (e >= 2) {
@@ -47,10 +56,11 @@ function populateTables(game) {
         active_games++;
         var table = document.querySelector("#slate");
         var row = document.createElement("tr");
-        var teams = `${game.away_team} @ ${game.home_team}`;
+        // add 2 images for logos, append to td
+        var teams = `${game.away_team_short} @ ${game.home_team_short}`;
         var game_time = game.game_time;
         var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
-        if (game.weather != "TBD") {
+        if (game.weather !== "TBD") {
             weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
         }
         if (game.market) {
@@ -95,11 +105,12 @@ getFanduel(odds_url).then(data => {
     var fanduel = [];
     $.each(data.events, (i, e) => {
         var date = new Date(e.tsstart);
-        if (date.getDate() == today.getDate()) {
+        if (date.getDate() === today.getDate()) {
             fanduel.push(e);
         }
     });
     callApi(main_url, find_date).then(data => {
+        //console.log(data);
         num_games = data.totalGames;
         $.each(data.games, (i, g) => {
             //console.log(g);
@@ -110,60 +121,62 @@ getFanduel(odds_url).then(data => {
             game['venue'] = g.venue.name;
             game['weather'] = "TBD";
             game['ump'] = "TBD";
-            game['away_team'] = g.teams.away.team.name;
+            game['away_team_full'] = g.teams.away.team.name;
             game['away_pitcher'] = "TBD";
             game['away_lineup'] = [];
             game['away_bullpen'] = [];
-            game['home_team'] = g.teams.home.team.name;
+            game['home_team_full'] = g.teams.home.team.name;
             game['home_pitcher'] = "TBD";
             game['home_lineup'] = [];
             game['home_bullpen'] = [];
             game['market'] = null;
     
-            getData(base_url, g.link).then(data => {
-                //console.log(data);
-                if (notEmpty(data.gameData.weather)) {
-                    game['weather'] = data.gameData.weather;
+            getData(base_url, g.link).then(d => {
+                //console.log(d);
+                game['away_team_short'] = d.gameData.teams.away.teamName;
+                game['home_team_short'] = d.gameData.teams.home.teamName;
+                if (notEmpty(d.gameData.weather)) {
+                    game['weather'] = d.gameData.weather;
                 }
-                if (notEmpty(data.liveData.boxscore.officials)) {
-                    game["ump"] = data.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
+                if (notEmpty(d.liveData.boxscore.officials)) {
+                    game["ump"] = d.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
                 }
-                if (notEmpty(data.gameData.probablePitchers)) {
-                    if (data.gameData.probablePitchers.away) {
-                        game["away_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.away.id];
+                if (notEmpty(d.gameData.probablePitchers)) {
+                    if (d.gameData.probablePitchers.away) {
+                        game["away_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.away.id];
                     }
-                    if (data.gameData.probablePitchers.home) {
-                        game["home_pitcher"] = data.gameData.players["ID" + data.gameData.probablePitchers.home.id];
+                    if (d.gameData.probablePitchers.home) {
+                        game["home_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.home.id];
                     }
                 } 
-                if (notEmpty(data.liveData.boxscore.teams.away.bullpen)) {
-                    $.each(data.liveData.boxscore.teams.away.bullpen, (i, id) => {
-                        game['away_bullpen'].push(data.gameData.players["ID" + id]);
+                if (notEmpty(d.liveData.boxscore.teams.away.bullpen)) {
+                    $.each(d.liveData.boxscore.teams.away.bullpen, (i, id) => {
+                        game['away_bullpen'].push(d.gameData.players["ID" + id]);
                     });
                 }
-                if (notEmpty(data.liveData.boxscore.teams.home.bullpen)) {
-                    $.each(data.liveData.boxscore.teams.home.bullpen, (i, id) => {
-                        game['home_bullpen'].push(data.gameData.players["ID" + id]);
+                if (notEmpty(d.liveData.boxscore.teams.home.bullpen)) {
+                    $.each(d.liveData.boxscore.teams.home.bullpen, (i, id) => {
+                        game['home_bullpen'].push(d.gameData.players["ID" + id]);
                     });
                 }
-                if (notEmpty(data.liveData.boxscore.teams.away.battingOrder)) {
-                    $.each(data.liveData.boxscore.teams.away.battingOrder, (i, id) => {
-                        game['away_lineup'].push(data.gameData.players['ID' + id]);
+                if (notEmpty(d.liveData.boxscore.teams.away.battingOrder)) {
+                    $.each(d.liveData.boxscore.teams.away.battingOrder, (i, id) => {
+                        game['away_lineup'].push(d.gameData.players['ID' + id]);
                     });
                 }
-                if (notEmpty(data.liveData.boxscore.teams.home.battingOrder)) {
-                    $.each(data.liveData.boxscore.teams.home.battingOrder, (i, id) => {
-                        game['home_lineup'].push(data.gameData.players['ID' + id]);
+                if (notEmpty(d.liveData.boxscore.teams.home.battingOrder)) {
+                    $.each(d.liveData.boxscore.teams.home.battingOrder, (i, id) => {
+                        game['home_lineup'].push(d.gameData.players['ID' + id]);
                     });
                 }
-
-                var odds = fanduel.find(x => x.participantname_away === game['away_team'] || x.participantname_home === game['home_team']);
+                var odds = fanduel.find(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
                 if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
                     game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
                 num_games_test++;
+                //convert to function
                 if (num_games_test === num_games && active_games === 0) {
                     var table = document.querySelector("#slate");
                     var row = document.createElement("tr");
@@ -181,7 +194,7 @@ getFanduel(odds_url).then(data => {
 
 const updateOdds = setInterval(() => {
     if (num_games_test === num_games && active_games === 0) {
-        console.log('no update');
+        //console.log('no update');
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {
@@ -198,15 +211,52 @@ const updateOdds = setInterval(() => {
                         var row = market_ele.parentNode; //market_ele is null? maybe late games are carrying over
                         row.parentNode.removeChild(row);
                     }
-                    if (market_ele && market_ele.innerHTML != market.currentmatchhandicap) {
-                        market_ele.innerHTML = market.currentmatchhandicap;
+                    // write functions to simplify the code below
+                    if (market_ele) {
+                        if (market_ele.innerHTML > market.currentmatchhandicap) {
+                            market_ele.innerHTML = market.currentmatchhandicap;
+                            market_ele.classList.add("price-up");
+                            setTimeout(() => {
+                                market_ele.classList.remove("price-up");
+                            }, 5500);
+                        } else if (market_ele.innerHTML < market.currentmatchhandicap) {
+                            market_ele.innerHTML = market.currentmatchhandicap;
+                            market_ele.classList.add("price-down");
+                            setTimeout(() => {
+                                market_ele.classList.remove("price-down");
+                            }, 5500);
+                        }
                     }
-                    if (over_ele && over_ele.innerHTML != getMoneyLine(over)) {
-                        over_ele.innerHTML = getMoneyLine(over);
-                    }
-                    if (under_ele && under_ele.innerHTML != getMoneyLine(under)) {
-                        under_ele.innerHTML = getMoneyLine(under);
-                    }
+                    if (over_ele) {
+                        if (over_ele.innerHTML > getMoneyLine(over)) {
+                            over_ele.innerHTML = getMoneyLine(over);
+                            over_ele.classList.add("price-up");
+                            setTimeout(() => {
+                                over_ele.classList.remove("price-up");
+                            }, 5500);
+                        } else if (over_ele.innerHTML < getMoneyLine(over)) {
+                            over_ele.innerHTML = getMoneyLine(over);
+                            over_ele.classList.add("price-down");
+                            setTimeout(() => {
+                                over_ele.classList.remove("price-down");
+                            }, 5500);
+                        }
+                    } 
+                    if (under_ele) {
+                        if (under_ele.innerHTML > getMoneyLine(under)) {
+                            under_ele.innerHTML = getMoneyLine(under);
+                            under_ele.classList.add("price-up");
+                            setTimeout(() => {
+                                under_ele.classList.remove("price-up");
+                            }, 5500);
+                        } else if (under_ele.innerHTML < getMoneyLine(under)) {
+                            under_ele.innerHTML = getMoneyLine(under);
+                            under_ele.classList.add("price-down");
+                            setTimeout(() => {
+                                under_ele.classList.remove("price-down");
+                            }, 5500);
+                        }
+                    } 
                 }
             });
         });
