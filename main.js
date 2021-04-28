@@ -148,7 +148,7 @@ function populateTables(game) {
             }
         }
         table.appendChild(row);
-        // find new way to compare live games to preview games
+        // find new way to compare live games to preview games; get # of pregames from callAPI first
         if (active_games === num_games_test) {
             document.querySelector("#slate").style.visibility = "visible";
             document.querySelector(".loader").style.visibility = "hidden";
@@ -278,10 +278,10 @@ const updateOdds = setInterval(() => {
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                     var over = market.selections.find(x => x.name === "Over");
                     var under = market.selections.find(x => x.name === "Under");
-                    var market_el = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
-                    var over_el = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
-                    var under_el = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
-                    //market_el is null? maybe late games are carrying over
+                    var market_el = document.querySelector(`#${CSS.escape(market.idfoevent)}`);
+                    var over_el = document.querySelector(`#${CSS.escape(over.idfoselection)}`);
+                    var under_el = document.querySelector(`#${CSS.escape(under.idfoselection)}`);
+                    //market_el is null? late games are carrying over, add condition to skip
                     /*
                     if (new Date() >= new Date(market.tsstart)) {
                         var row = market_el.parentNode;
