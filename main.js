@@ -33,11 +33,15 @@ function getFanduel(url) {
 }
 
 // call once to get logos, then in populate function search the result
-function getLogo(url, tname) {
+function getLogos(url) {
     return $.getJSON(url).then(data => {
-        t = data.sports[0].leagues[0].teams.find(x => x.team.displayName === tname);
-        return t.team.logos[2];
+        return data;
     });
+}
+
+function teamLogo(logos, tname) {
+    console.log(logos.find(x => x.team.displayName === tname).logos[2]);
+    return logos.find(x => x.team.displayName === tname).logos[2];
 }
 
 function getMoneyLine(data) {
@@ -53,11 +57,25 @@ function getMoneyLine(data) {
 function populateTables(game) {
     if (game.status === "P" || game.status === "S") {
         //console.log(game);
+        num_games_test++;
         active_games++;
         var table = document.querySelector("#slate");
         var row = document.createElement("tr");
-        // add 2 images for logos, append to td
-        var teams = `${game.away_team_short} @ ${game.home_team_short}`;
+        var away_team_name = game.away_team_short;
+        try {
+            var away_team_logo = teamLogo(logos, game.away_team_full);
+        }
+        catch(error) {
+            var away_team_logo = null;
+        }
+        try {
+            var home_team_logo = teamLogo(logos, game.home_team_full);
+        }
+        catch(error) {
+            var home_team_logo = null;
+        }
+        var home_team_name = game.home_team_short;
+        var teams = {'away_name': away_team_name, "away_logo": away_team_logo, 'home_name': home_team_name, 'home_logo': home_team_logo};
         var game_time = game.game_time;
         var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
         if (game.weather !== "TBD") {
@@ -71,7 +89,17 @@ function populateTables(game) {
         var items = [teams, game_time, weather, prediction, over_under, over_line, under_line];
         for (var i = 0; i < items.length; i++) {
             var td = document.createElement("td");
-            if (items[i] === over_under) {
+            if (items[i] === teams) {
+                var away_span = document.createElement('span');
+                var home_span = document.createElement('span');
+                away_span.innerHTML = `${teams.away_name} @ `;
+                away_span.style.backgroundColor = `url(${teams.away_logo});`;
+                home_span.innerHTML = teams.home_name;
+                home_span.style.backgroundImage = `url(${teams.home_logo});`;
+                td.appendChild(away_span);
+                td.appendChild(home_span);
+                row.appendChild(td);
+            } else if (items[i] === over_under) {
                 td.setAttribute("id", `${game.market.idfoevent}`);
                 td.innerHTML = items[i];
                 row.appendChild(td);
@@ -89,7 +117,8 @@ function populateTables(game) {
             }
         }
         table.appendChild(row);
-        if (active_games === num_games) {
+        // find new way to compare live games to preview games
+        if (active_games === num_games_test) {
             document.querySelector("#slate").style.visibility = "visible";
             document.querySelector(".loader").style.visibility = "hidden";
         }
@@ -100,6 +129,16 @@ function notEmpty(obj) {
     return Object.keys(obj) != 0;
 }
 
+// need new source of logos; just download them?
+var logos = []
+getLogos(logo_url).then(data => {
+    //console.log(data);
+    $.each(data.sports[0].leagues[0].teams, (i, t) => {
+        logos.push(t);
+    }); 
+});
+
+// get logos somewhere here instead of above; are there missing logos?
 getFanduel(odds_url).then(data => {
     //console.log(data);
     var fanduel = [];
@@ -175,7 +214,6 @@ getFanduel(odds_url).then(data => {
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
-                num_games_test++;
                 //convert to function
                 if (num_games_test === num_games && active_games === 0) {
                     var table = document.querySelector("#slate");
