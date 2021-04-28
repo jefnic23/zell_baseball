@@ -28,6 +28,28 @@ tr:nth-child(even) {
     visibility: hidden;
 }
 
+.logo {
+    width: 24px;
+    height: 24px;
+    aspect-ratio: auto 24/24;
+    padding-right: 8px;
+}
+
+.teams {
+    display: flex;
+    align-items: center;
+}
+
+.teams > div {
+    display: flex;
+    align-items: center;
+    flex-basis: 45%;
+}
+
+.teams > span {
+    padding-right: 13px;
+}
+
 .loader {
     border: 16px solid #f3f3f3; /* Light grey */
     border-top: 16px solid #3498db; /* Blue */

@@ -9,10 +9,41 @@ document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 var base_url = "http://statsapi.mlb.com";
 var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
-var logo_url = "http://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams";
 var num_games = 0;
 var num_games_test = 0;
 var active_games = 0;
+
+const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
+    'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
+    'Baltimore Orioles': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg',
+    'Boston Red Sox': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/111.svg',
+    'Chicago Cubs': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/112.svg',
+    'Cincinnati Reds': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/113.svg',
+    'Cleveland Indians': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg',
+    'Colorado Rockies': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/115.svg',
+    'Detroit Tigers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/116.svg',
+    'Houston Astros': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/117.svg',
+    'Kansas City Royals': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/118.svg',
+    'Los Angeles Dodgers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/119.svg',
+    'Washington Nationals': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/120.svg',
+    'New York Mets': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/121.svg',
+    'Oakland Athletics': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/133.svg',
+    'Pittsburgh Pirates': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/134.svg',
+    'San Diego Padres': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/135.svg',
+    'Seattle Mariners': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/136.svg',
+    'San Francisco Giants': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/137.svg',
+    'St. Louis Cardinals': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/138.svg',
+    'Tampa Bay Rays': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/139.svg',
+    'Texas Rangers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/140.svg',
+    'Toronto Blue Jays': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/141.svg',
+    'Minnesota Twins': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/142.svg',
+    'Philadelphia Phillies': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/143.svg',
+    'Atlanta Braves': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/144.svg',
+    'Chicago White Sox': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/145.svg',
+    'Miami Marlins': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/146.svg',
+    'New York Yankees': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/147.svg',
+    'Milwaukee Brewers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/158.svg'
+}
 
 function callApi(url, date) {
     return $.getJSON(url).then(data => {
@@ -32,18 +63,6 @@ function getFanduel(url) {
     });
 }
 
-// call once to get logos, then in populate function search the result
-function getLogos(url) {
-    return $.getJSON(url).then(data => {
-        return data;
-    });
-}
-
-function teamLogo(logos, tname) {
-    console.log(logos.find(x => x.team.displayName === tname).logos[2]);
-    return logos.find(x => x.team.displayName === tname).logos[2];
-}
-
 function getMoneyLine(data) {
     var e = 1 + data.currentpriceup / data.currentpricedown;
     if (e >= 2) {
@@ -61,22 +80,9 @@ function populateTables(game) {
         active_games++;
         var table = document.querySelector("#slate");
         var row = document.createElement("tr");
-        var away_team_name = game.away_team_short;
-        try {
-            var away_team_logo = teamLogo(logos, game.away_team_full);
-        }
-        catch(error) {
-            var away_team_logo = null;
-        }
-        try {
-            var home_team_logo = teamLogo(logos, game.home_team_full);
-        }
-        catch(error) {
-            var home_team_logo = null;
-        }
-        var home_team_name = game.home_team_short;
-        var teams = {'away_name': away_team_name, "away_logo": away_team_logo, 'home_name': home_team_name, 'home_logo': home_team_logo};
-        var game_time = game.game_time;
+        var away_team_logo = logos[game.away_team_full];
+        var home_team_logo = logos[game.home_team_full];
+        var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
         var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
         if (game.weather !== "TBD") {
             weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
@@ -86,29 +92,54 @@ function populateTables(game) {
             over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
             under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
         }
-        var items = [teams, game_time, weather, prediction, over_under, over_line, under_line];
+        var items = [teams, game.game_time, weather, prediction, over_under, over_line, under_line];
         for (var i = 0; i < items.length; i++) {
             var td = document.createElement("td");
             if (items[i] === teams) {
-                var away_span = document.createElement('span');
-                var home_span = document.createElement('span');
-                away_span.innerHTML = `${teams.away_name} @ `;
-                away_span.style.backgroundColor = `url(${teams.away_logo});`;
-                home_span.innerHTML = teams.home_name;
-                home_span.style.backgroundImage = `url(${teams.home_logo});`;
-                td.appendChild(away_span);
-                td.appendChild(home_span);
+                var div = document.createElement("div");
+                var away_div = document.createElement("div");
+                var away_name_div = document.createElement("div");
+                var away_logo_div = document.createElement("div");
+                var away_logo_img = document.createElement("img");
+                away_name_div.innerHTML = teams.away_name;
+                away_logo_img.setAttribute("src", teams.away_logo);
+                away_logo_img.classList.add("logo");
+                away_logo_div.appendChild(away_logo_img);
+                away_div.appendChild(away_logo_div);
+                away_div.appendChild(away_name_div);
+
+                var at_span = document.createElement("span");
+                at_span.innerHTML = " @ ";
+
+                var home_div = document.createElement("div");
+                var home_name_div = document.createElement("div");
+                var home_logo_div = document.createElement("div");
+                var home_logo_img = document.createElement("img");
+                home_name_div.innerHTML = teams.home_name;
+                home_logo_img.setAttribute("src", teams.home_logo);
+                home_logo_img.classList.add("logo");
+                home_logo_div.appendChild(home_logo_img);
+                home_div.appendChild(home_logo_div);
+                home_div.appendChild(home_name_div);
+                
+                td.style.height = "0";
+                div.style.height = "100%";
+                div.classList.add("teams");
+                div.appendChild(away_div);
+                div.appendChild(at_span);
+                div.appendChild(home_div);
+                td.appendChild(div);
                 row.appendChild(td);
             } else if (items[i] === over_under) {
-                td.setAttribute("id", `${game.market.idfoevent}`);
+                td.setAttribute("id", game.market.idfoevent); //add condition for games with no market
                 td.innerHTML = items[i];
                 row.appendChild(td);
             } else if (items[i] === over_line) {
-                td.setAttribute("id", `${game.market.selections.find(x => x.name === "Over").idfoselection}`);
+                td.setAttribute("id", game.market.selections.find(x => x.name === "Over").idfoselection);
                 td.innerHTML = items[i];
                 row.appendChild(td);
             } else if (items[i] === under_line) {
-                td.setAttribute("id", `${game.market.selections.find(x => x.name === "Under").idfoselection}`);
+                td.setAttribute("id", game.market.selections.find(x => x.name === "Under").idfoselection);
                 td.innerHTML = items[i];
                 row.appendChild(td);
             } else {
@@ -125,20 +156,22 @@ function populateTables(game) {
     }
 }
 
+function changePrice(el, odds_type, price, market=false) {
+    if (market) {
+        el.innerHTML = odds_type.currentmatchhandicap;
+    } else {
+        el.innerHTML = getMoneyLine(odds_type);
+    }
+    el.classList.add(price);
+    setTimeout(() => {
+        el.classList.remove(price);
+    }, 5500);
+}
+
 function notEmpty(obj) {
     return Object.keys(obj) != 0;
 }
 
-// need new source of logos; just download them?
-var logos = []
-getLogos(logo_url).then(data => {
-    //console.log(data);
-    $.each(data.sports[0].leagues[0].teams, (i, t) => {
-        logos.push(t);
-    }); 
-});
-
-// get logos somewhere here instead of above; are there missing logos?
 getFanduel(odds_url).then(data => {
     //console.log(data);
     var fanduel = [];
@@ -215,7 +248,8 @@ getFanduel(odds_url).then(data => {
                 }
                 populateTables(game);
                 //convert to function
-                if (num_games_test === num_games && active_games === 0) {
+                /*
+                if (active_games === 0) {
                     var table = document.querySelector("#slate");
                     var row = document.createElement("tr");
                     var td = document.createElement("td");
@@ -225,6 +259,7 @@ getFanduel(odds_url).then(data => {
                     row.appendChild(td);
                     table.appendChild(row);
                 }
+                */
             });
         });
     });
@@ -232,7 +267,6 @@ getFanduel(odds_url).then(data => {
 
 const updateOdds = setInterval(() => {
     if (num_games_test === num_games && active_games === 0) {
-        //console.log('no update');
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {
@@ -242,57 +276,32 @@ const updateOdds = setInterval(() => {
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                     var over = market.selections.find(x => x.name === "Over");
                     var under = market.selections.find(x => x.name === "Under");
-                    var market_ele = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
-                    var over_ele = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
-                    var under_ele = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
+                    var market_el = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
+                    var over_el = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
+                    var under_el = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
                     if (new Date() >= new Date(market.tsstart)) {
-                        var row = market_ele.parentNode; //market_ele is null? maybe late games are carrying over
+                        var row = market_el.parentNode; //market_el is null? maybe late games are carrying over
                         row.parentNode.removeChild(row);
                     }
-                    // write functions to simplify the code below
-                    if (market_ele) {
-                        if (market_ele.innerHTML > market.currentmatchhandicap) {
-                            market_ele.innerHTML = market.currentmatchhandicap;
-                            market_ele.classList.add("price-up");
-                            setTimeout(() => {
-                                market_ele.classList.remove("price-up");
-                            }, 5500);
-                        } else if (market_ele.innerHTML < market.currentmatchhandicap) {
-                            market_ele.innerHTML = market.currentmatchhandicap;
-                            market_ele.classList.add("price-down");
-                            setTimeout(() => {
-                                market_ele.classList.remove("price-down");
-                            }, 5500);
+                    if (market_el) {
+                        if (market_el.innerHTML > market.currentmatchhandicap) {
+                            changePrice(market_el, market, "price-down", market=true); //should color change be different for over-under?
+                        } else if (market_el.innerHTML < market.currentmatchhandicap) {
+                            changePrice(market_el, market, "price-up", market=true);
                         }
                     }
-                    if (over_ele) {
-                        if (over_ele.innerHTML > getMoneyLine(over)) {
-                            over_ele.innerHTML = getMoneyLine(over);
-                            over_ele.classList.add("price-up");
-                            setTimeout(() => {
-                                over_ele.classList.remove("price-up");
-                            }, 5500);
-                        } else if (over_ele.innerHTML < getMoneyLine(over)) {
-                            over_ele.innerHTML = getMoneyLine(over);
-                            over_ele.classList.add("price-down");
-                            setTimeout(() => {
-                                over_ele.classList.remove("price-down");
-                            }, 5500);
+                    if (over_el) {
+                        if (over_el.innerHTML > getMoneyLine(over)) {
+                            changePrice(over_el, over, "price-down");
+                        } else if (over_el.innerHTML < getMoneyLine(over)) {
+                            changePrice(over_el, over, "price-up");
                         }
                     } 
-                    if (under_ele) {
-                        if (under_ele.innerHTML > getMoneyLine(under)) {
-                            under_ele.innerHTML = getMoneyLine(under);
-                            under_ele.classList.add("price-up");
-                            setTimeout(() => {
-                                under_ele.classList.remove("price-up");
-                            }, 5500);
-                        } else if (under_ele.innerHTML < getMoneyLine(under)) {
-                            under_ele.innerHTML = getMoneyLine(under);
-                            under_ele.classList.add("price-down");
-                            setTimeout(() => {
-                                under_ele.classList.remove("price-down");
-                            }, 5500);
+                    if (under_el) {
+                        if (under_el.innerHTML > getMoneyLine(under)) {
+                            changePrice(under_el, under, "price-down");
+                        } else if (under_el.innerHTML < getMoneyLine(under)) {
+                            changePrice(under_el, under, "price-up");
                         }
                     } 
                 }
