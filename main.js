@@ -172,6 +172,8 @@ function notEmpty(obj) {
     return Object.keys(obj) != 0;
 }
 
+// main loop //
+
 getFanduel(odds_url).then(data => {
     //console.log(data);
     var fanduel = [];
@@ -279,10 +281,13 @@ const updateOdds = setInterval(() => {
                     var market_el = document.querySelector(`#${CSS.escape(market.idfoevent)}`)
                     var over_el = document.querySelector(`#${CSS.escape(over.idfoselection)}`)
                     var under_el = document.querySelector(`#${CSS.escape(under.idfoselection)}`)
+                    //market_el is null? maybe late games are carrying over
+                    /*
                     if (new Date() >= new Date(market.tsstart)) {
-                        var row = market_el.parentNode; //market_el is null? maybe late games are carrying over
+                        var row = market_el.parentNode;
                         row.parentNode.removeChild(row);
                     }
+                    */
                     if (market_el) {
                         if (market_el.innerHTML > market.currentmatchhandicap) {
                             changePrice(market_el, market, "price-down", market=true); //should color change be different for over-under?

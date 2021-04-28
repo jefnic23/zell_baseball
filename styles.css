@@ -1,3 +1,8 @@
+body {
+    background-color: #222;
+    color: #fff;
+}
+
 table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
@@ -5,23 +10,33 @@ table {
 }
 
 thead {
-    background-color: #dddddd;
+    background-color: #080808;
 }
 
 th {
-    border: 1px solid #000000;
+    border: 1px solid #808080;
     text-align: center;
     padding: 8px;
 }
 
 td {
-    border: 1px solid #000000;
+    border: 1px solid #808080;
     text-align: left;
     padding: 8px;
 }
 
-tr:nth-child(even) {
-    background-color: #dddddd;
+tbody > tr:nth-child(even) {
+    background-color: #DCDCDC;
+    color: #080808;
+}
+
+tbody > tr:nth-child(odd) {
+    background-color: #F5F5F5;
+    color: #080808;
+}
+
+#date {
+    padding-left: 5rem;
 }
 
 #slate {
@@ -51,14 +66,25 @@ tr:nth-child(even) {
 }
 
 .loader {
-    border: 16px solid #f3f3f3; /* Light grey */
-    border-top: 16px solid #3498db; /* Blue */
-    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
     width: 120px;
     height: 120px;
+    margin: -76px 0 0 -76px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
-  }
+}
   
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
