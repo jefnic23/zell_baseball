@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     </head>
     <body>
@@ -15,6 +15,7 @@
                         <th>Weather</th>
                         <th>Prediction</th>
                         <th>Actual Line</th>
+                        <!-- add column for difference of prediction and actual line -->
                         <th>Over</th>
                         <th>Under</th>
                     </tr>
@@ -24,6 +25,6 @@
             <!-- replace loader with skeleton -->
             <div class="loader"></div> 
         </div>
-        <script src="main.js"></script>
+        <script src="{{ url_for('static', filename='main.js') }}"></script>
     </body>
 </html>
