@@ -249,8 +249,8 @@ getFanduel(odds_url).then(data => {
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
                 }
                 populateTables(game);
-                //convert to function
-                /*
+                /* convert to function
+
                 if (active_games === 0) {
                     var table = document.querySelector("#slate");
                     var row = document.createElement("tr");
@@ -290,10 +290,8 @@ const updateOdds = setInterval(() => {
                     }
                     */
                     if (market_el) {
-                        if (market_el.innerHTML > market.currentmatchhandicap) {
-                            changePrice(market_el, market, "price-down", market=true); //should color change be different for over-under?
-                        } else if (market_el.innerHTML < market.currentmatchhandicap) {
-                            changePrice(market_el, market, "price-up", market=true);
+                        if (market_el.innerHTML !== market.currentmatchhandicap) {
+                            changePrice(market_el, market, "line-change", market=true);
                         }
                     }
                     if (over_el) {

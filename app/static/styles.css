@@ -103,6 +103,12 @@ tbody > tr:nth-child(odd) {
     100% { transform: rotate(360deg); }
 }
 
+.line-change {
+    animation: fadeOut-line 2s forwards;
+    animation-delay: 3s;
+    background-color: rgba(0, 144, 255, 1);
+}
+
 .price-up {
     animation: fadeOut-up 2s forwards;
     animation-delay: 3s;
@@ -113,6 +119,11 @@ tbody > tr:nth-child(odd) {
     animation: fadeOut-down 2s forwards;
     animation-delay: 3s;
     background-color: rgba(255, 36, 0, 1);
+}
+
+@keyframes fadeOut-line {
+    from {background-color: rgba(0, 144, 255, 1);}
+    to {background-color: rgba(0, 144, 255, 0);}
 }
 
 @keyframes fadeOut-up {
