@@ -290,7 +290,7 @@ const updateOdds = setInterval(() => {
                     }
                     */
                     if (market_el) {
-                        if (market_el.innerHTML !== market.currentmatchhandicap) {
+                        if (market_el.innerHTML > market.currentmatchhandicap || market_el < market.currentmatchhandicap) {
                             changePrice(market_el, market, "line-change", market=true);
                         }
                     }
@@ -312,4 +312,4 @@ const updateOdds = setInterval(() => {
             });
         });
     }
-}, 30000);
+}, 15000);
