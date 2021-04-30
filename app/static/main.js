@@ -83,7 +83,7 @@ function populateTables(game) {
         var away_team_logo = logos[game.away_team_full];
         var home_team_logo = logos[game.home_team_full];
         var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
-        var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD", prediction  = "TBD";
+        var weather = game.weather, over_under = "TBD", total = 'TBD', over_line = "TBD", under_line = "TBD", prediction  = "TBD";
         if (game.weather !== "TBD") {
             weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
         }
@@ -92,7 +92,7 @@ function populateTables(game) {
             over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
             under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
         }
-        var items = [teams, game.game_time, weather, prediction, over_under, over_line, under_line];
+        var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line];
         for (var i = 0; i < items.length; i++) {
             var td = document.createElement("td");
             if (items[i] === teams) {
@@ -256,7 +256,7 @@ getFanduel(odds_url).then(data => {
                     var row = document.createElement("tr");
                     var td = document.createElement("td");
                     td.innerHTML = "No games";
-                    td.colSpan = "7";
+                    td.colSpan = "8";
                     td.style.textAlign = "center";
                     row.appendChild(td);
                     table.appendChild(row);
@@ -269,6 +269,7 @@ getFanduel(odds_url).then(data => {
 
 const updateOdds = setInterval(() => {
     if (num_games_test === num_games && active_games === 0) {
+        // instead of clearing interval, wait until next day? try to keep this always running
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {
