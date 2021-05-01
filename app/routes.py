@@ -24,4 +24,4 @@ def send_data(data):
         emit('predictionData', {'gamePk': gamePk, 'prediction': "TBD"})
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)
