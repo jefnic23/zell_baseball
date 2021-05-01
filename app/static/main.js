@@ -109,7 +109,7 @@ function populateTables(game) {
                 if (prediction !== "TBD") {
                     total = Math.round((prediction - over_under) * 100) / 100;
                 }
-                var items = [teams, game.game_time, weather, data.prediction, over_under, total, over_line, under_line];
+                var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line];
                 for (var i = 0; i < items.length; i++) {
                     var td = document.createElement("td");
                     if (items[i] === teams) {
