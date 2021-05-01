@@ -5,8 +5,8 @@ var dd = String(today.getDate()).padStart(2, '0');
 var yyyy = today.getFullYear();
 var main_date = `${mm}/${dd}/${yyyy}`; //used in main_url
 var find_date = `${yyyy}-${mm}-${dd}`; //used when getting games from main_url
-var base_url = "http://statsapi.mlb.com";
-var main_url = `http://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
+var base_url = "https://statsapi.mlb.com";
+var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
 var num_games = 0;
 var num_games_test = 0;
