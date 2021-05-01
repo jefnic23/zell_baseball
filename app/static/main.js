@@ -107,7 +107,7 @@ function populateTables(game) {
                     under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                 }
                 if (prediction !== "TBD") {
-                    total = prediction - over_under;
+                    total = Math.round((prediction - over_under) * 100) / 100;
                 }
                 var items = [teams, game.game_time, weather, data.prediction, over_under, total, over_line, under_line];
                 for (var i = 0; i < items.length; i++) {
