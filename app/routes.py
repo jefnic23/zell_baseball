@@ -18,7 +18,7 @@ def send_data(data):
     try:
         venue = data['game']['venue']
         ump = data['game']['ump']['official']['fullName']
-        prediction = parks[parks['park'] == venue]['runs'].values[0] + umps[umps['name'] == ump]['runs'].values[0]
+        prediction = round(parks[parks['park'] == venue]['runs'].values[0] + umps[umps['name'] == ump]['runs'].values[0], 2)
         emit('predictionData', {'gamePk': gamePk, 'prediction': prediction})
     except:
         emit('predictionData', {'gamePk': gamePk, 'prediction': "TBD"})
