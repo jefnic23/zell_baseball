@@ -3,6 +3,8 @@ import numpy as np
 import glob
 from sklearn.preprocessing import MinMaxScaler
 
+# write functions to get all data
+
 df1 = pd.read_csv('umps.csv')
 
 df2 = pd.read_csv("E:/Documents/Pitcher List/statcast_data/umpires_ids_game_pk.csv")
