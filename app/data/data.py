@@ -30,7 +30,7 @@ def getUmps():
     df = pd.merge(df, ump_count, on="name")
     df['ratio'] = df['wrong_strike'] / df['wrong_ball']
     df['rank'] = df['ratio'].rank(ascending=False)
-    scaler = MinMaxScaler(feature_range=(-1, 1))
+    scaler = MinMaxScaler(feature_range=(-0.75, 0.75))
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
     return df.to_csv('umps.csv')
     

@@ -108,6 +108,9 @@ function populateTables(game) {
                 }
                 if (prediction !== "TBD") {
                     total = Math.round((prediction - over_under) * 100) / 100;
+                    if (game.innings === 7) {
+                        total = Math.round(((prediction - over_under) * (7/9)) * 100) / 100;
+                    }
                 }
                 var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line];
                 for (var i = 0; i < items.length; i++) {
@@ -162,6 +165,9 @@ function populateTables(game) {
                     } else {
                         td.innerHTML = items[i];
                         row.appendChild(td);
+                        if (items[i] === "TBD") {
+                            row.classList.add('grayout');
+                        }
                     }
                 }
                 table.appendChild(row);
