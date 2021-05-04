@@ -140,3 +140,11 @@ tbody > tr:nth-child(odd) {
 .grayout {
     opacity: 0.5;
 }
+
+.betover {
+    background-color: green;
+}
+
+.betunder {
+    background-color: red;
+}

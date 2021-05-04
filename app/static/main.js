@@ -97,14 +97,16 @@ function populateTables(game) {
                 var home_team_logo = logos[game.home_team_full];
                 var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
                 var prediction = data.prediction;
-                var weather = game.weather, over_under = "TBD", total = 'TBD', over_line = "TBD", under_line = "TBD";
+                var total = data.total;
+                var bet = data.bet;
+                var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
                 if (game.weather !== "TBD") {
                     weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
                 }
                 if (game.market) {
-                    over_under = game.market.currentmatchhandicap;
-                    over_line = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                    under_line = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    over_under = game.over_under;
+                    over_line = game.over_line;
+                    under_line = game.under_line;
                 }
                 if (prediction !== "TBD") {
                     total = Math.round((prediction - over_under) * 100) / 100;
@@ -114,7 +116,7 @@ function populateTables(game) {
                 } else {
                     row.classList.add('grayout');
                 }
-                var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line];
+                var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line, bet];
                 for (var i = 0; i < items.length; i++) {
                     var td = document.createElement("td");
                     if (items[i] === teams) {
@@ -163,6 +165,16 @@ function populateTables(game) {
                     } else if (items[i] === under_line) {
                         td.setAttribute("id", game.market.selections.find(x => x.name === "Under").idfoselection);
                         td.innerHTML = items[i];
+                        row.appendChild(td);
+                    } else if (items[i] === bet) {
+                        td.innerHTML = items[i];
+                        if (bet !== "TBD" && bet !== "No bet") {
+                            if (over_line > under_line) {
+                                td.classList.add("betover");
+                            } else if (under_line > over_line) {
+                                td.classList.add("betunder");
+                            }
+                        }
                         row.appendChild(td);
                     } else {
                         td.innerHTML = items[i];
@@ -216,7 +228,7 @@ getFanduel(odds_url).then(data => {
         //console.log(data);
         num_games = data.totalGames;
         $.each(data.games, (i, g) => {
-            //console.log(g);
+            console.log(g);
             var game = {};
             game['gamePk'] = g.gamePk;
             game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
@@ -234,6 +246,9 @@ getFanduel(odds_url).then(data => {
             game['home_lineup'] = [];
             game['home_bullpen'] = [];
             game['market'] = null;
+            game['over_under'] = null;
+            game['over_line'] = null;
+            game['under_line'] = null;
     
             getData(base_url, g.link).then(d => {
                 //console.log(d);
@@ -277,6 +292,9 @@ getFanduel(odds_url).then(data => {
                 if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
                     game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
                     game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
+                    game['over_under'] = game.market.currentmatchhandicap;
+                    game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                    game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                 }
                 populateTables(game);
                 /* convert to function
@@ -286,7 +304,7 @@ getFanduel(odds_url).then(data => {
                     var row = document.createElement("tr");
                     var td = document.createElement("td");
                     td.innerHTML = "No games";
-                    td.colSpan = "8";
+                    td.colSpan = "9";
                     td.style.textAlign = "center";
                     row.appendChild(td);
                     table.appendChild(row);

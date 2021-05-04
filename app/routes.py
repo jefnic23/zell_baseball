@@ -5,6 +5,7 @@ from app import app
 
 umps = pd.read_csv("app/data/umps.csv")
 parks = pd.read_csv("app/data/parks.csv")
+bets = pd.read_csv("app/data/bets.csv", index_col='total')
 
 socketio = SocketIO(app)
 
@@ -19,9 +20,14 @@ def send_data(data):
         venue = data['game']['venue']
         ump = data['game']['ump']['official']['fullName']
         prediction = round(parks[parks['park'] == venue]['runs'].values[0] + umps[umps['name'] == ump]['runs'].values[0], 2)
-        emit('predictionData', {'gamePk': gamePk, 'prediction': prediction})
+        total = round(prediction - data['game']['over_under'], 2)
+        if total >= 0.5:
+            bet = bets.loc[total]
+        else:
+            bet = "No bet"
+        emit('predictionData', {'gamePk': gamePk, 'prediction': prediction, 'total': total, 'bet': bet})
     except:
-        emit('predictionData', {'gamePk': gamePk, 'prediction': "TBD"})
+        emit('predictionData', {'gamePk': gamePk, 'prediction': "TBD", 'total': "TBD", 'bet': "TBD"})
 
 if __name__ == '__main__':
     socketio.run(app)
