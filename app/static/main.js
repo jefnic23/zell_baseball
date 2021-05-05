@@ -169,10 +169,11 @@ function populateTables(game) {
                     } else if (items[i] === bet) {
                         td.innerHTML = items[i];
                         if (bet !== "TBD" && bet !== "No bet") {
-                            td.innerHTML = `$${items[i]}`
                             if (prediction > over_under) {
+                                td.innerHTML = `$${items[i]} O`
                                 td.classList.add("betover");
                             } else if (over_under > prediction) {
+                                td.innerHTML = `$${items[i]} U`
                                 td.classList.add("betunder");
                             }
                         }
@@ -217,7 +218,7 @@ function notEmpty(obj) {
 document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 
 getFanduel(odds_url).then(data => {
-    //console.log(data);
+    console.log(data);
     var fanduel = [];
     $.each(data.events, (i, e) => {
         var date = new Date(e.tsstart);
@@ -226,14 +227,16 @@ getFanduel(odds_url).then(data => {
         }
     });
     callApi(main_url, find_date).then(data => {
-        //console.log(data);
+        console.log(data);
         num_games = data.totalGames;
         $.each(data.games, (i, g) => {
-            console.log(g);
+            //console.log(g);
             var game = {};
             game['gamePk'] = g.gamePk;
             game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
             game['status'] = g.status.codedGameState;
+            game['double_header'] = g.doubleHeader;
+            game['game_number'] = g.gameNumber;
             game['innings'] = g.scheduledInnings;
             game['venue'] = g.venue.name;
             game['weather'] = "TBD";
@@ -291,11 +294,25 @@ getFanduel(odds_url).then(data => {
                 }
                 var odds = fanduel.find(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
                 if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
-                    game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-                    game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
-                    game['over_under'] = game.market.currentmatchhandicap;
-                    game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                    game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    if (game['double_header'] === 'Y' && game['game_number'] === 1) {
+                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                        game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                        game['over_under'] = game.market.currentmatchhandicap;
+                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    } else if (game['double_header'] === 'Y' && game['game_number'] === 2) {
+                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                        game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                        game['over_under'] = game.market.currentmatchhandicap;
+                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    } else {
+                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                        game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
+                        game['over_under'] = game.market.currentmatchhandicap;
+                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    }
                 }
                 populateTables(game);
                 /* convert to function
