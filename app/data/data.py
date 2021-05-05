@@ -34,24 +34,25 @@ def getUmps():
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
     return df.to_csv('umps.csv')
     
-getUmps()
+# getUmps()
 
 
-### old code, gets strike zone size by plate_x/z quantile ###
+d = {"total": [],
+     "x": [],
+     "bet": []
+     }
 
-# def q5(x):
-#     return x.quantile(0.05)
-# def q95(x):
-#     return x.quantile(0.95)
-        
-# df = df[df['description'] == "called_strike"].groupby("name").agg(plate_x_5 = ('plate_x', q5),
-#         plate_x_95 = ('plate_x', q95),
-#         plate_z_5 = ('plate_z', q5),
-#         plate_z_95 = ('plate_z', q95)
-#         )
-# df['plate_x'] = df['plate_x_95'] - df['plate_x_5']
-# df['plate_z'] = df['plate_z_95'] - df['plate_z_5']
-# df['total'] = df['plate_x'] + df['plate_z']
-# df['zscore'] = (df['total'].mean() - df['total']) / df['total'].std()
-# scaler = MinMaxScaler(feature_range=(-0.9, 1))
-# df['runs'] = scaler.fit_transform(df['zscore'].to_numpy().reshape(-1,1))
+for x in range(50, 451, 1):
+    d['total'].append(x/100)
+    
+scaler = MinMaxScaler(feature_range=(0.625, 1.375))
+scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
+
+scale = []
+for i, n in enumerate(d['total']):
+    d['x'].append(scaled[i][0])
+    d['bet'].append(round(n * scaled[i][0] * 20, 2))
+
+
+df = pd.DataFrame(d, columns=d.keys())
+df.to_csv('bets.csv', index=False)
