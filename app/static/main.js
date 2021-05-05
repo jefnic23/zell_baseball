@@ -170,9 +170,9 @@ function populateTables(game) {
                         td.innerHTML = items[i];
                         if (bet !== "TBD" && bet !== "No bet") {
                             td.innerHTML = `$${items[i]}`
-                            if (over_line > under_line) {
+                            if (prediction > over_under) {
                                 td.classList.add("betover");
-                            } else if (under_line > over_line) {
+                            } else if (over_under > prediction) {
                                 td.classList.add("betunder");
                             }
                         }
