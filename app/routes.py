@@ -22,7 +22,7 @@ def send_data(data):
         prediction = round(parks[parks['park'] == venue]['runs'].values[0] + umps[umps['name'] == ump]['runs'].values[0], 2)
         total = round(prediction - data['game']['over_under'], 2)
         if total >= 0.5:
-            bet = bets.loc[total]
+            bet = bets.loc[total]['bet']
         else:
             bet = "No bet"
         emit('predictionData', {'gamePk': gamePk, 'prediction': prediction, 'total': total, 'bet': bet})
