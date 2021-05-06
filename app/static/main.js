@@ -102,6 +102,12 @@ function populateTables(game) {
                 var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
                 if (game.weather !== "TBD") {
                     weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+                    if (weather.condition === "Overcast") {
+                        row.style.border = "3px solid #ffc107";
+                    }
+                    if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
+                        row.style.border = "3px solid #dc3545";
+                    }
                 }
                 if (game.market) {
                     over_under = game.over_under;
@@ -183,7 +189,6 @@ function populateTables(game) {
             
         });
 
-        
         // find new way to compare live games to preview games; get # of pregames from callAPI first
         if (active_games === num_games_test) {
             document.querySelector("#slate").style.visibility = "visible";

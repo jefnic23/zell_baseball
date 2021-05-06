@@ -3,8 +3,8 @@ from flask_socketio import SocketIO, emit
 import pandas as pd
 from app import app
 
-umps = pd.read_csv("app/data/umps.csv")
-parks = pd.read_csv("app/data/parks.csv")
+umps = pd.read_csv("app/data/umps.csv", index_col="name")
+parks = pd.read_csv("app/data/parks.csv", index_col="park")
 bets = pd.read_csv("app/data/bets.csv", index_col='total')
 
 socketio = SocketIO(app)
@@ -19,7 +19,23 @@ def send_data(data):
     try:
         venue = data['game']['venue']
         ump = data['game']['ump']['official']['fullName']
-        prediction = round(parks[parks['park'] == venue]['runs'].values[0] + umps[umps['name'] == ump]['runs'].values[0], 2)
+        temp = data['game']['weather']['temp']
+        if temp <= 46:
+            weather = -0.225
+        elif 47 <= temp <= 53:
+            weather = -0.15
+        elif 54 <= temp <= 62:
+            weather = -0.075
+        elif 63 <= temp <= 71:
+            weather = 0.0
+        elif 72 <= temp <= 79:
+            weather = 0.1
+        elif 80 <= temp <= 87:
+            weather = 0.2
+        elif temp >= 88:
+            weather = 0.3
+        
+        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + weather, 2)
         if data['game']['innings'] == 9:
             total = round(prediction - data['game']['over_under'], 2)
         else:
