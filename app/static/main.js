@@ -47,11 +47,6 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-// tinker with this block //
-
-
-// tinker with this block //
-
 function callApi(url, date) {
     return $.getJSON(url).then(data => {
         return data.dates.find(x => x.date === date);
@@ -83,13 +78,11 @@ function getMoneyLine(data) {
 function populateTables(game) {
     // should be "P" or "S"; "I" for testing
     if (game.status === "P" || game.status === "S" && game.market) {
-        //console.log(game);
+        //console.log(game.weather.temp);
         num_games_test++; // do something about these two variables?
         active_games++;
-        socket.emit('game', {'game': game});
-        //sendData(game);
         socket.on('predictionData', data => {
-            //console.log(data);
+            console.log(data);
             if (data.gamePk === game.gamePk) {
                 var table = document.querySelector("#slate");
                 var row = document.createElement("tr");
@@ -102,10 +95,10 @@ function populateTables(game) {
                 var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
                 if (game.weather !== "TBD") {
                     weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
-                    if (weather.condition === "Overcast") {
+                    if (game.weather.condition === "Overcast") {
                         row.style.border = "3px solid #ffc107";
                     }
-                    if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
+                    if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
                         row.style.border = "3px solid #dc3545";
                     }
                 }
@@ -218,7 +211,7 @@ function notEmpty(obj) {
 document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 
 getFanduel(odds_url).then(data => {
-    console.log(data);
+    //console.log(data);
     var fanduel = [];
     $.each(data.events, (i, e) => {
         var date = new Date(e.tsstart);
@@ -227,7 +220,7 @@ getFanduel(odds_url).then(data => {
         }
     });
     callApi(main_url, find_date).then(data => {
-        console.log(data);
+        //console.log(data);
         num_games = data.totalGames;
         $.each(data.games, (i, g) => {
             //console.log(g);
@@ -314,6 +307,7 @@ getFanduel(odds_url).then(data => {
                         game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                     }
                 }
+                sendData(game);
                 populateTables(game);
                 /* convert to function
 
