@@ -78,11 +78,11 @@ function getMoneyLine(data) {
 function populateTables(game) {
     // should be "P" or "S"; "I" for testing
     if (game.status === "P" || game.status === "S" && game.market) {
-        //console.log(game.weather.temp);
+        console.log(game);
         num_games_test++; // do something about these two variables?
         active_games++;
         socket.on('predictionData', data => {
-            console.log(data);
+            //console.log(data);
             if (data.gamePk === game.gamePk) {
                 var table = document.querySelector("#slate");
                 var row = document.createElement("tr");
