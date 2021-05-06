@@ -107,13 +107,8 @@ function populateTables(game) {
                     over_under = game.over_under;
                     over_line = game.over_line;
                     under_line = game.under_line;
-                }
-                if (prediction !== "TBD") {
-                    total = Math.round((prediction - over_under) * 100) / 100;
-                    if (game.innings === 7) {
-                        total = Math.round(((prediction - over_under) * (7/9)) * 100) / 100;
-                    }
-                } else {
+                } 
+                if (prediction === "TBD") {
                     row.classList.add('grayout');
                 }
                 var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line, bet];
