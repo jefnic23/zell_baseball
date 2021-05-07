@@ -9,7 +9,6 @@ var base_url = "https://statsapi.mlb.com";
 var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
 var num_games = 0;
-var num_games_test = 0;
 var active_games = 0;
 const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
     'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
@@ -76,7 +75,6 @@ function getMoneyLine(data) {
 }
 
 function populateTables(data) {
-    num_games_test++; // ?
     var game = data.game;
     var table = document.querySelector("#slate");
     var row = document.createElement("tr");
@@ -174,7 +172,7 @@ function populateTables(data) {
     table.appendChild(row);
 
     // find new way to compare live games to preview games; get # of pregames from callAPI first
-    if (active_games === num_games_test) {
+    if (active_games === num_games) {
         document.querySelector("#slate").style.visibility = "visible";
         document.querySelector(".loader").style.visibility = "hidden";
     }
@@ -190,6 +188,17 @@ function changePrice(el, odds_type, price, market=false) {
     setTimeout(() => {
         el.classList.remove(price);
     }, 5500);
+}
+
+function noGames() {
+    var table = document.querySelector("#slate");
+    var row = document.createElement("tr");
+    var td = document.createElement("td");
+    td.innerHTML = "No games";
+    td.colSpan = "9";
+    td.style.textAlign = "center";
+    row.appendChild(td);
+    table.appendChild(row);
 }
 
 function notEmpty(obj) {
@@ -211,12 +220,15 @@ getFanduel(odds_url).then(data => {
     });
     callApi(main_url, find_date).then(data => {
         //console.log(data);
+        active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
         num_games = data.totalGames;
+        if (active_games === 0) {
+            noGames(active_games);
+        }
         $.each(data.games, (i, g) => {
             //console.log(g);
             //should be "P" or "S"; "I" for testing
             if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
-                active_games++; // build active games above if statement
                 var game = {};
                 game['gamePk'] = g.gamePk;
                 game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
@@ -303,26 +315,11 @@ getFanduel(odds_url).then(data => {
                     sendData(game);
                 });
             }
-            //populateTables(game);
-            /* convert to function
-
-            if (active_games === 0) {
-                var table = document.querySelector("#slate");
-                var row = document.createElement("tr");
-                var td = document.createElement("td");
-                td.innerHTML = "No games";
-                td.colSpan = "9";
-                td.style.textAlign = "center";
-                row.appendChild(td);
-                table.appendChild(row);
-            }
-            */
         });
     });
 });
 
 var games = [];
-// sort tables somehow
 socket.on("predictionData", data => {
     //console.log(data);
     games.push(data);
@@ -335,7 +332,7 @@ socket.on("predictionData", data => {
 });
 
 const updateOdds = setInterval(() => {
-    if (num_games_test === num_games && active_games === 0) {
+    if (active_games === 0) {
         // instead of clearing interval, wait until next day? try to keep this always running
         clearInterval(updateOdds);
     } else {
