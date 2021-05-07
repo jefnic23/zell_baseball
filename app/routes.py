@@ -31,28 +31,29 @@ def index():
 
 @socketio.on('game')
 def send_data(data):
-    gamePk = data['game']['gamePk']
-    game_time = data['game']['game_time']
+    game = data['game']
+    gamePk = game['gamePk']
+    game_time = game['game_time']
     try:
-        venue = data['game']['venue']
-        ump = data['game']['ump']['official']['fullName']
-        temp = int(data['game']['weather']['temp'])
+        venue = game['venue']
+        ump = game['ump']['official']['fullName']
+        temp = int(game['weather']['temp'])
         weather = getTemp(temp)
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + weather, 2)
 
-        if data['game']['innings'] == 9:
-            total = round(prediction - data['game']['over_under'], 2)
+        if game['innings'] == 9:
+            total = round(prediction - game['over_under'], 2)
         else:
-            total = round((prediction - data['game']['over_under']) * (7/9), 2)
+            total = round((prediction - game['over_under']) * (7/9), 2)
 
         if total >= 0.5 or total <= -0.5:
             bet = bets.loc[total]['bet']
         else:
             bet = "No bet"
 
-        emit('predictionData', {'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'bet': bet})
     except:
-        emit('predictionData', {'gamePk': gamePk, 'game_time': game_time, 'prediction': "TBD", 'total': "TBD", 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': "TBD", 'total': "TBD", 'bet': "TBD"})
 
 if __name__ == '__main__':
     socketio.run(app)
