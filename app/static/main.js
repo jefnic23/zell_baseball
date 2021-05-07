@@ -8,8 +8,8 @@ var find_date = `${yyyy}-${mm}-${dd}`; //used when getting games from main_url
 var base_url = "https://statsapi.mlb.com";
 var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
-var num_games = 0;
-var active_games = 0;
+var num_games = 0; //set this from callapi on dom load
+var active_games = 0; //set this from callapi on dom load
 const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
     'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
     'Baltimore Orioles': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg',
@@ -172,10 +172,8 @@ function populateTables(data) {
     table.appendChild(row);
 
     // find new way to compare live games to preview games; get # of pregames from callAPI first
-    if (active_games === num_games) {
-        document.querySelector("#slate").style.visibility = "visible";
-        document.querySelector(".loader").style.visibility = "hidden";
-    }
+    document.querySelector("#slate").style.visibility = "visible";
+    document.querySelector(".loader").style.visibility = "hidden";
 }
 
 function changePrice(el, odds_type, price, market=false) {
@@ -321,8 +319,8 @@ getFanduel(odds_url).then(data => {
 
 var games = [];
 socket.on("predictionData", data => {
-    //console.log(data);
     games.push(data);
+    console.log(data, games.length);
     if (games.length === active_games) {
         games.sort((a, b) => (a.game_time >= b.game_time) ? 1 : -1);
         $.each(games, (i, g) => {
