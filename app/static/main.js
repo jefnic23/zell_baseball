@@ -76,112 +76,107 @@ function getMoneyLine(data) {
 }
 
 function populateTables(data) {
+    num_games_test++; // ?
     var game = data.game;
-    // should be "P" or "S"; "I" for testing
-    if (game.status === "P" || game.status === "S" && game.market) {
-        //console.log(game);
-        num_games_test++; // do something about these two variables?
-        active_games++;
-        var table = document.querySelector("#slate");
-        var row = document.createElement("tr");
-        var away_team_logo = logos[game.away_team_full];
-        var home_team_logo = logos[game.home_team_full];
-        var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
-        var prediction = data.prediction;
-        var total = data.total;
-        var bet = data.bet;
-        var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
-        if (game.weather !== "TBD") {
-            weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
-            if (game.weather.condition === "Overcast") {
-                row.style.border = "3px solid #ffc107";
-            }
-            if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
-                row.style.border = "3px solid #dc3545";
-            }
+    var table = document.querySelector("#slate");
+    var row = document.createElement("tr");
+    var away_team_logo = logos[game.away_team_full];
+    var home_team_logo = logos[game.home_team_full];
+    var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
+    var prediction = data.prediction;
+    var total = data.total;
+    var bet = data.bet;
+    var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
+    if (game.weather !== "TBD") {
+        weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
+        if (game.weather.condition === "Overcast") {
+            row.style.border = "3px solid #ffc107";
         }
-        if (game.market) {
-            over_under = game.over_under;
-            over_line = game.over_line;
-            under_line = game.under_line;
-        } 
-        if (prediction === "TBD") {
-            row.classList.add('grayout');
+        if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
+            row.style.border = "3px solid #dc3545";
         }
-        var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line, bet];
-        for (var i = 0; i < items.length; i++) {
-            var td = document.createElement("td");
-            if (items[i] === teams) {
-                var div = document.createElement("div");
-                var away_div = document.createElement("div");
-                var away_name_div = document.createElement("div");
-                var away_logo_div = document.createElement("div");
-                var away_logo_img = document.createElement("img");
-                away_name_div.innerHTML = teams.away_name;
-                away_logo_img.setAttribute("src", teams.away_logo);
-                away_logo_img.classList.add("logo");
-                away_logo_div.appendChild(away_logo_img);
-                away_div.appendChild(away_logo_div);
-                away_div.appendChild(away_name_div);
+    }
+    if (game.market) {
+        over_under = game.over_under;
+        over_line = game.over_line;
+        under_line = game.under_line;
+    } 
+    if (prediction === "TBD") {
+        row.classList.add('grayout');
+    }
+    var items = [teams, game.game_time, weather, prediction, over_under, total, over_line, under_line, bet];
+    for (var i = 0; i < items.length; i++) {
+        var td = document.createElement("td");
+        if (items[i] === teams) {
+            var div = document.createElement("div");
+            var away_div = document.createElement("div");
+            var away_name_div = document.createElement("div");
+            var away_logo_div = document.createElement("div");
+            var away_logo_img = document.createElement("img");
+            away_name_div.innerHTML = teams.away_name;
+            away_logo_img.setAttribute("src", teams.away_logo);
+            away_logo_img.classList.add("logo");
+            away_logo_div.appendChild(away_logo_img);
+            away_div.appendChild(away_logo_div);
+            away_div.appendChild(away_name_div);
 
-                var at_span = document.createElement("span");
-                at_span.innerHTML = " @ ";
+            var at_span = document.createElement("span");
+            at_span.innerHTML = " @ ";
 
-                var home_div = document.createElement("div");
-                var home_name_div = document.createElement("div");
-                var home_logo_div = document.createElement("div");
-                var home_logo_img = document.createElement("img");
-                home_name_div.innerHTML = teams.home_name;
-                home_logo_img.setAttribute("src", teams.home_logo);
-                home_logo_img.classList.add("logo");
-                home_logo_div.appendChild(home_logo_img);
-                home_div.appendChild(home_logo_div);
-                home_div.appendChild(home_name_div);
-                
-                td.style.height = "0";
-                div.style.height = "100%";
-                div.classList.add("teams");
-                div.appendChild(away_div);
-                div.appendChild(at_span);
-                div.appendChild(home_div);
-                td.appendChild(div);
-                row.appendChild(td);
-            } else if (items[i] === over_under) {
-                td.setAttribute("id", game.market.idfoevent); //add condition for games with no market, or stop them from getting passed here
-                td.innerHTML = items[i];
-                row.appendChild(td);
-            } else if (items[i] === over_line) {
-                td.setAttribute("id", game.market.selections.find(x => x.name === "Over").idfoselection);
-                td.innerHTML = items[i];
-                row.appendChild(td);
-            } else if (items[i] === under_line) {
-                td.setAttribute("id", game.market.selections.find(x => x.name === "Under").idfoselection);
-                td.innerHTML = items[i];
-                row.appendChild(td);
-            } else if (items[i] === bet) {
-                td.innerHTML = items[i];
-                if (bet !== "TBD" && bet !== "No bet") {
-                    if (prediction > over_under) {
-                        td.innerHTML = `$${items[i]} O`
-                        td.classList.add("betover");
-                    } else if (over_under > prediction) {
-                        td.innerHTML = `$${items[i]} U`
-                        td.classList.add("betunder");
-                    }
+            var home_div = document.createElement("div");
+            var home_name_div = document.createElement("div");
+            var home_logo_div = document.createElement("div");
+            var home_logo_img = document.createElement("img");
+            home_name_div.innerHTML = teams.home_name;
+            home_logo_img.setAttribute("src", teams.home_logo);
+            home_logo_img.classList.add("logo");
+            home_logo_div.appendChild(home_logo_img);
+            home_div.appendChild(home_logo_div);
+            home_div.appendChild(home_name_div);
+            
+            td.style.height = "0";
+            div.style.height = "100%";
+            div.classList.add("teams");
+            div.appendChild(away_div);
+            div.appendChild(at_span);
+            div.appendChild(home_div);
+            td.appendChild(div);
+            row.appendChild(td);
+        } else if (items[i] === over_under) {
+            td.setAttribute("id", game.market.idfoevent); //add condition for games with no market, or stop them from getting passed here
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        } else if (items[i] === over_line) {
+            td.setAttribute("id", game.market.selections.find(x => x.name === "Over").idfoselection);
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        } else if (items[i] === under_line) {
+            td.setAttribute("id", game.market.selections.find(x => x.name === "Under").idfoselection);
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        } else if (items[i] === bet) {
+            td.innerHTML = items[i];
+            if (bet !== "TBD" && bet !== "No bet") {
+                if (prediction > over_under) {
+                    td.innerHTML = `$${items[i]} O`
+                    td.classList.add("betover");
+                } else if (over_under > prediction) {
+                    td.innerHTML = `$${items[i]} U`
+                    td.classList.add("betunder");
                 }
-                row.appendChild(td);
-            } else {
-                td.innerHTML = items[i];
-                row.appendChild(td);
             }
+            row.appendChild(td);
+        } else {
+            td.innerHTML = items[i];
+            row.appendChild(td);
         }
-        table.appendChild(row);
+    }
+    table.appendChild(row);
 
-        // find new way to compare live games to preview games; get # of pregames from callAPI first
-        if (active_games === num_games_test) {
-            document.querySelector("#slate").style.visibility = "visible";
-            document.querySelector(".loader").style.visibility = "hidden";
-        }
+    // find new way to compare live games to preview games; get # of pregames from callAPI first
+    if (active_games === num_games_test) {
+        document.querySelector("#slate").style.visibility = "visible";
+        document.querySelector(".loader").style.visibility = "hidden";
     }
 }
 
@@ -219,114 +214,125 @@ getFanduel(odds_url).then(data => {
         num_games = data.totalGames;
         $.each(data.games, (i, g) => {
             //console.log(g);
-            var game = {};
-            game['gamePk'] = g.gamePk;
-            game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-            game['status'] = g.status.codedGameState;
-            game['double_header'] = g.doubleHeader;
-            game['game_number'] = g.gameNumber;
-            game['innings'] = g.scheduledInnings;
-            game['venue'] = g.venue.name;
-            game['weather'] = "TBD";
-            game['ump'] = "TBD";
-            game['away_team_full'] = g.teams.away.team.name;
-            game['away_pitcher'] = "TBD";
-            game['away_lineup'] = [];
-            game['away_bullpen'] = [];
-            game['home_team_full'] = g.teams.home.team.name;
-            game['home_pitcher'] = "TBD";
-            game['home_lineup'] = [];
-            game['home_bullpen'] = [];
-            game['market'] = null;
-            game['over_under'] = null;
-            game['over_line'] = null;
-            game['under_line'] = null;
-    
-            getData(base_url, g.link).then(d => {
-                //console.log(d);
-                game['away_team_short'] = d.gameData.teams.away.teamName;
-                game['home_team_short'] = d.gameData.teams.home.teamName;
-                if (notEmpty(d.gameData.weather)) {
-                    game['weather'] = d.gameData.weather;
-                }
-                if (notEmpty(d.liveData.boxscore.officials)) {
-                    game["ump"] = d.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
-                }
-                if (notEmpty(d.gameData.probablePitchers)) {
-                    if (d.gameData.probablePitchers.away) {
-                        game["away_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.away.id];
+            //should be "P" or "S"; "I" for testing
+            if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
+                active_games++; // build active games above if statement
+                var game = {};
+                game['gamePk'] = g.gamePk;
+                game["game_time"] = new Date(g.gameDate).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                game['status'] = g.status.codedGameState;
+                game['double_header'] = g.doubleHeader;
+                game['game_number'] = g.gameNumber;
+                game['innings'] = g.scheduledInnings;
+                game['venue'] = g.venue.name;
+                game['weather'] = "TBD";
+                game['ump'] = "TBD";
+                game['away_team_full'] = g.teams.away.team.name;
+                game['away_pitcher'] = "TBD";
+                game['away_lineup'] = [];
+                game['away_bullpen'] = [];
+                game['home_team_full'] = g.teams.home.team.name;
+                game['home_pitcher'] = "TBD";
+                game['home_lineup'] = [];
+                game['home_bullpen'] = [];
+                game['market'] = null;
+                game['over_under'] = null;
+                game['over_line'] = null;
+                game['under_line'] = null;
+        
+                getData(base_url, g.link).then(d => {
+                    //console.log(d);
+                    game['away_team_short'] = d.gameData.teams.away.teamName;
+                    game['home_team_short'] = d.gameData.teams.home.teamName;
+                    if (notEmpty(d.gameData.weather)) {
+                        game['weather'] = d.gameData.weather;
                     }
-                    if (d.gameData.probablePitchers.home) {
-                        game["home_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.home.id];
+                    if (notEmpty(d.liveData.boxscore.officials)) {
+                        game["ump"] = d.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
                     }
-                } 
-                if (notEmpty(d.liveData.boxscore.teams.away.bullpen)) {
-                    $.each(d.liveData.boxscore.teams.away.bullpen, (i, id) => {
-                        game['away_bullpen'].push(d.gameData.players["ID" + id]);
-                    });
-                }
-                if (notEmpty(d.liveData.boxscore.teams.home.bullpen)) {
-                    $.each(d.liveData.boxscore.teams.home.bullpen, (i, id) => {
-                        game['home_bullpen'].push(d.gameData.players["ID" + id]);
-                    });
-                }
-                if (notEmpty(d.liveData.boxscore.teams.away.battingOrder)) {
-                    $.each(d.liveData.boxscore.teams.away.battingOrder, (i, id) => {
-                        game['away_lineup'].push(d.gameData.players['ID' + id]);
-                    });
-                }
-                if (notEmpty(d.liveData.boxscore.teams.home.battingOrder)) {
-                    $.each(d.liveData.boxscore.teams.home.battingOrder, (i, id) => {
-                        game['home_lineup'].push(d.gameData.players['ID' + id]);
-                    });
-                }
-                var odds = fanduel.find(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
-                    if (game['double_header'] === 'Y' && game['game_number'] === 1) {
-                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-                        game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
-                        game['over_under'] = game.market.currentmatchhandicap;
-                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                    } else if (game['double_header'] === 'Y' && game['game_number'] === 2) {
-                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-                        game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
-                        game['over_under'] = game.market.currentmatchhandicap;
-                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                    } else {
-                        game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-                        game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
-                        game['over_under'] = game.market.currentmatchhandicap;
-                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                    if (notEmpty(d.gameData.probablePitchers)) {
+                        if (d.gameData.probablePitchers.away) {
+                            game["away_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.away.id];
+                        }
+                        if (d.gameData.probablePitchers.home) {
+                            game["home_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.home.id];
+                        }
+                    } 
+                    if (notEmpty(d.liveData.boxscore.teams.away.bullpen)) {
+                        $.each(d.liveData.boxscore.teams.away.bullpen, (i, id) => {
+                            game['away_bullpen'].push(d.gameData.players["ID" + id]);
+                        });
                     }
-                }
-                sendData(game);
-                //populateTables(game);
-                /* convert to function
+                    if (notEmpty(d.liveData.boxscore.teams.home.bullpen)) {
+                        $.each(d.liveData.boxscore.teams.home.bullpen, (i, id) => {
+                            game['home_bullpen'].push(d.gameData.players["ID" + id]);
+                        });
+                    }
+                    if (notEmpty(d.liveData.boxscore.teams.away.battingOrder)) {
+                        $.each(d.liveData.boxscore.teams.away.battingOrder, (i, id) => {
+                            game['away_lineup'].push(d.gameData.players['ID' + id]);
+                        });
+                    }
+                    if (notEmpty(d.liveData.boxscore.teams.home.battingOrder)) {
+                        $.each(d.liveData.boxscore.teams.home.battingOrder, (i, id) => {
+                            game['home_lineup'].push(d.gameData.players['ID' + id]);
+                        });
+                    }
+                    var odds = fanduel.find(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
+                    if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
+                        if (game['double_header'] === 'Y' && game['game_number'] === 1) {
+                            game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                            game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['over_under'] = game.market.currentmatchhandicap;
+                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                        } else if (game['double_header'] === 'Y' && game['game_number'] === 2) {
+                            game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                            game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['over_under'] = game.market.currentmatchhandicap;
+                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                        } else {
+                            game['game_time'] = new Date(odds.tsstart).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+                            game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
+                            game['over_under'] = game.market.currentmatchhandicap;
+                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
+                        }
+                    }
+                    sendData(game);
+                });
+            }
+            //populateTables(game);
+            /* convert to function
 
-                if (active_games === 0) {
-                    var table = document.querySelector("#slate");
-                    var row = document.createElement("tr");
-                    var td = document.createElement("td");
-                    td.innerHTML = "No games";
-                    td.colSpan = "9";
-                    td.style.textAlign = "center";
-                    row.appendChild(td);
-                    table.appendChild(row);
-                }
-                */
-            });
+            if (active_games === 0) {
+                var table = document.querySelector("#slate");
+                var row = document.createElement("tr");
+                var td = document.createElement("td");
+                td.innerHTML = "No games";
+                td.colSpan = "9";
+                td.style.textAlign = "center";
+                row.appendChild(td);
+                table.appendChild(row);
+            }
+            */
         });
     });
 });
 
+var games = [];
 // sort tables somehow
 socket.on("predictionData", data => {
-    console.log(data);
-    populateTables(data);
-})
+    //console.log(data);
+    games.push(data);
+    if (games.length === active_games) {
+        games.sort((a, b) => (a.game_time >= b.game_time) ? 1 : -1);
+        $.each(games, (i, g) => {
+            populateTables(g);
+        });
+    }
+});
 
 const updateOdds = setInterval(() => {
     if (num_games_test === num_games && active_games === 0) {
