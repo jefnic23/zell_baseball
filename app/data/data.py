@@ -3,7 +3,6 @@ import numpy as np
 import glob
 from sklearn.preprocessing import MinMaxScaler
 
-# write functions to get all data
 
 def getUmps():
     umps = pd.read_csv("E:/Documents/Pitcher List/statcast_data/umpires_ids_game_pk.csv")
@@ -32,27 +31,40 @@ def getUmps():
     df['rank'] = df['ratio'].rank(ascending=False)
     scaler = MinMaxScaler(feature_range=(-0.75, 0.75))
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
-    return df.to_csv('umps.csv')
+    return df.to_csv('umps.csv', index=False)
+
     
+def getBets():
+    d = {"total": [],
+         "x": [],
+         "bet": []
+         }
+    for x in range(50, 451, 1):
+        d['total'].append(x/100)
+    scaler = MinMaxScaler(feature_range=(0.625, 1.375))
+    scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
+    for i, n in enumerate(d['total']):
+        d['x'].append(scaled[i][0])
+        d['bet'].append(round(n * scaled[i][0] * 20, 2))  
+    df = pd.DataFrame(d, columns=d.keys())
+    return df.to_csv('bets.csv', index=False)
+
+def p2f(x):
+    return float(x.strip('%'))/100
+
+def getFielding():
+    outs = pd.read_csv("outs_above_average.csv", converters={'diff_success_rate_formatted':p2f})
+    d = {"player": [],
+         "outs": []
+         }
+    scaler = MinMaxScaler(feature_range=(-0.1, 0.0975))
+    scaled = scaler.fit_transform(outs['diff_success_rate_formatted'].to_numpy().reshape(-1, 1))
+    d['player'] = outs['player_id']
+    d['outs'] = [i[0] for i in scaled]
+    df = pd.DataFrame(d, columns=d.keys())
+    return df.to_csv('fielding.csv', index=False)
+    
+
 # getUmps()
-
-
-d = {"total": [],
-     "x": [],
-     "bet": []
-     }
-
-for x in range(50, 451, 1):
-    d['total'].append(x/100)
-    
-scaler = MinMaxScaler(feature_range=(0.625, 1.375))
-scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
-
-scale = []
-for i, n in enumerate(d['total']):
-    d['x'].append(scaled[i][0])
-    d['bet'].append(round(n * scaled[i][0] * 20, 2))
-
-
-df = pd.DataFrame(d, columns=d.keys())
-df.to_csv('bets.csv', index=False)
+# getBets()
+getFielding()
