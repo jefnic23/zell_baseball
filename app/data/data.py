@@ -57,7 +57,7 @@ def getFielding():
     d = {"player": [],
          "outs": []
          }
-    scaler = MinMaxScaler(feature_range=(-0.1, 0.0975))
+    scaler = MinMaxScaler(feature_range=(-0.2, 0.1951))
     scaled = scaler.fit_transform(outs['diff_success_rate_formatted'].to_numpy().reshape(-1, 1))
     d['player'] = outs['player_id']
     d['outs'] = [i[0] for i in scaled]
