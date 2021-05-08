@@ -56,11 +56,12 @@ def getFielding():
          "outs": []
          }
     outs['z'] = (outs['outs_above_average'].mean() - outs['outs_above_average']) / outs['outs_above_average'].std()
-    scaler = MinMaxScaler(feature_range=(-0.2, 0.1333))
+    scaler = MinMaxScaler(feature_range=(-0.1, 0.06664444))
     scaled = scaler.fit_transform(outs['z'].to_numpy().reshape(-1, 1))
     d['player'] = outs['player_id']
     d['outs'] = [i[0] for i in scaled]
     df = pd.DataFrame(d, columns=d.keys())
+    # print(df['outs'].sum())
     return df.to_csv('fielding.csv', index=False)
     
 
