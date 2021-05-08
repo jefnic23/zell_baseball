@@ -141,7 +141,13 @@ function populateTables(data) {
             td.appendChild(div);
             row.appendChild(td);
         } else if (items[i] === over_under) {
-            td.setAttribute("id", game.market.idfoevent); //add condition for games with no market, or stop them from getting passed here
+            //add condition for games with no market, or stop them from getting passed here
+            try {
+                td.setAttribute("id", game.market.idfoevent);
+            }
+            catch(error) {
+                td.setAttribute('id', data.gamePk);
+            }
             td.innerHTML = items[i];
             row.appendChild(td);
         } else if (items[i] === over_line) {
