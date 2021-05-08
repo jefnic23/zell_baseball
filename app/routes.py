@@ -67,8 +67,6 @@ def send_data(data):
         else:
             bet = "No bet"
 
-        print(f"\n{bet}\n")
-
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'bet': bet})
     except:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': "TBD", 'total': "TBD", 'bet': "TBD"})
