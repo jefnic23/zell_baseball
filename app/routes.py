@@ -26,8 +26,15 @@ def getTemp(temp):
     if temp >= 88:
         return 0.3
 
-def getFielding(game, team):
-    lineup = [id["id"] for id in game[team]]
+def getFielding(lineup):
+    runs = 0
+    players = [id["id"] for id in lineup]
+    for player in players:
+        try:
+            runs += fielding.loc[player]['outs']
+        except:
+            runs += 0
+    return runs
 
 @app.route('/')
 def index():
@@ -38,12 +45,16 @@ def send_data(data):
     game = data['game']
     gamePk = game['gamePk']
     game_time = game['game_time']
+    away_lineup = game['away_lineup']
+    home_lineup = game['home_lineup']
     try:
         venue = game['venue']
         ump = game['ump']['official']['fullName']
         temp = int(game['weather']['temp'])
         weather = getTemp(temp)
-        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + weather, 2)
+        away_fielding = getFielding(away_lineup)
+        home_fielding = getFielding(home_lineup)
+        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather, 2)
 
         if game['innings'] == 9:
             total = round(prediction - game['over_under'] - 0.3, 2)
