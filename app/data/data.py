@@ -49,16 +49,15 @@ def getBets():
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
-def p2f(x):
-    return float(x.strip('%'))/100
 
 def getFielding():
-    outs = pd.read_csv("outs_above_average.csv", converters={'diff_success_rate_formatted':p2f})
+    outs = pd.read_csv("outs_above_average.csv")
     d = {"player": [],
          "outs": []
          }
-    scaler = MinMaxScaler(feature_range=(-0.2, 0.1951))
-    scaled = scaler.fit_transform(outs['diff_success_rate_formatted'].to_numpy().reshape(-1, 1))
+    outs['z'] = (outs['outs_above_average'].mean() - outs['outs_above_average']) / outs['outs_above_average'].std()
+    scaler = MinMaxScaler(feature_range=(-0.2, 0.1333))
+    scaled = scaler.fit_transform(outs['z'].to_numpy().reshape(-1, 1))
     d['player'] = outs['player_id']
     d['outs'] = [i[0] for i in scaled]
     df = pd.DataFrame(d, columns=d.keys())

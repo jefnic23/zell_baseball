@@ -380,3 +380,11 @@ const updateOdds = setInterval(() => {
         });
     }
 }, 15000);
+
+/*
+
+$.getJSON("http://statsapi.mlb.com/api/v1/people/605113/stats?stats=career&group=fielding").then(data => {
+    console.log(data);
+});
+
+*/
