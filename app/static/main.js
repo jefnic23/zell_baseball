@@ -170,10 +170,6 @@ function populateTables(data) {
         }
     }
     table.appendChild(row);
-
-    // find new way to compare live games to preview games; get # of pregames from callAPI first
-    document.querySelector("#slate").style.visibility = "visible";
-    document.querySelector(".loader").style.visibility = "hidden";
 }
 
 function changePrice(el, odds_type, price, market=false) {
@@ -320,18 +316,21 @@ getFanduel(odds_url).then(data => {
 var games = [];
 socket.on("predictionData", data => {
     games.push(data);
-    console.log(data, games.length);
+    //console.log(data, games.length);
     if (games.length === active_games) {
         games.sort((a, b) => (a.game_time >= b.game_time) ? 1 : -1);
         $.each(games, (i, g) => {
             populateTables(g);
         });
+        document.querySelector("#slate").style.visibility = "visible";
+        document.querySelector(".loader").style.visibility = "hidden";
     }
 });
 
 const updateOdds = setInterval(() => {
     if (active_games === 0) {
         // instead of clearing interval, wait until next day? try to keep this always running
+        noGames();
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {

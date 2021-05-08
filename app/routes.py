@@ -42,11 +42,11 @@ def send_data(data):
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + weather, 2)
 
         if game['innings'] == 9:
-            total = round(prediction - game['over_under'], 2)
+            total = round(prediction - game['over_under'] - 0.2, 2)
         else:
-            total = round((prediction - game['over_under']) * (7/9), 2)
+            total = round((prediction - game['over_under'] - 0.2) * (7/9), 2)
 
-        if total >= 0.5 or total <= -0.5:
+        if total >= 0.6 or total <= -0.6:
             bet = bets.loc[total]['bet']
         else:
             bet = "No bet"
