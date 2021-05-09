@@ -223,7 +223,9 @@ getFanduel(odds_url).then(data => {
         active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
         num_games = data.totalGames;
         if (active_games === 0) {
-            noGames(active_games);
+            noGames();
+            document.querySelector("#slate").style.visibility = "visible";
+            document.querySelector(".loader").style.visibility = "hidden";
         }
         $.each(data.games, (i, g) => {
             //console.log(g);
@@ -336,7 +338,6 @@ socket.on("predictionData", data => {
 const updateOdds = setInterval(() => {
     if (active_games === 0) {
         // instead of clearing interval, wait until next day? try to keep this always running
-        noGames();
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {
