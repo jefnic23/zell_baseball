@@ -54,14 +54,12 @@ def send_data(data):
         weather = getTemp(temp)
         away_fielding = getFielding(away_lineup)
         home_fielding = getFielding(home_lineup)
-        # print(f"\n{venue}, {away_fielding + home_fielding}\n")
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather, 2)
 
-        if game['innings'] == 9:
-            total = round(prediction - game['over_under'] - 0.2, 2)
-        else:
-            total = round((prediction - game['over_under'] - 0.2) * (7/9), 2)
-
+        if game['innings'] == 7:
+            prediction = round(prediction * (7/9), 2)
+        
+        total = round(prediction - game['over_under'] - 0.2, 2)
         if total >= 0.75 or total <= -0.75:
             bet = bets.loc[abs(total)]['bet']
         else:

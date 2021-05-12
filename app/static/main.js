@@ -294,7 +294,6 @@ getFanduel(odds_url).then(data => {
                         });
                     }
                     var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                    console.log(odds);
                     if (odds) {
                         if (game['double_header'] === 'Y' && game['game_number'] === 1) {
                             game['game_time'] = new Date(odds[0].tsstart);
