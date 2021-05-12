@@ -229,7 +229,7 @@ getFanduel(odds_url).then(data => {
             document.querySelector(".loader").style.visibility = "hidden";
         }
         $.each(data.games, (i, g) => {
-            //console.log(g);
+            // console.log(g);
             // should be "P" or "S"; "I" for testing
             if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
                 var game = {};
