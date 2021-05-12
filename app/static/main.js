@@ -293,23 +293,24 @@ getFanduel(odds_url).then(data => {
                             game['home_lineup'].push(d.gameData.players['ID' + id]);
                         });
                     }
-                    var odds = fanduel.find(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                    if (odds && odds.markets.find(x => x.idfomarkettype === 48555.1)) {
+                    var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
+                    console.log(odds);
+                    if (odds) {
                         if (game['double_header'] === 'Y' && game['game_number'] === 1) {
-                            game['game_time'] = new Date(odds.tsstart);
-                            game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['game_time'] = new Date(odds[0].tsstart);
+                            game['market'] = odds[0].markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         } else if (game['double_header'] === 'Y' && game['game_number'] === 2) {
-                            game['game_time'] = new Date(odds.tsstart);
-                            game['market'] = odds.markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['game_time'] = new Date(odds[1].tsstart);
+                            game['market'] = odds[1].markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         } else {
-                            game['game_time'] = new Date(odds.tsstart);
-                            game['market'] = odds.markets.find(x => x.idfomarkettype === 48555.1);
+                            game['game_time'] = new Date(odds[0].tsstart);
+                            game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
@@ -325,7 +326,7 @@ getFanduel(odds_url).then(data => {
 var games = [];
 socket.on("predictionData", data => {
     games.push(data);
-    // console.log(data, games.length);
+    // console.log(data);
     if (games.length === active_games) {
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
