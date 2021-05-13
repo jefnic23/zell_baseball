@@ -59,7 +59,7 @@ def send_data(data):
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
         
-        total = round(prediction - game['over_under'] - 0.2, 2)
+        total = round(prediction - game['over_under'] - 0.3, 2)
         if total >= 0.75 or total <= -0.75:
             bet = bets.loc[abs(total)]['bet']
         else:

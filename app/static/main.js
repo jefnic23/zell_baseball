@@ -294,26 +294,26 @@ getFanduel(odds_url).then(data => {
                         });
                     }
                     var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                    if (odds) {
+                    if (odds.length > 1) {
                         if (game['double_header'] === 'Y' && game['game_number'] === 1) {
                             game['game_time'] = new Date(odds[0].tsstart);
                             game['market'] = odds[0].markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                        } else if (game['double_header'] === 'Y' && game['game_number'] === 2) {
+                        } else {
                             game['game_time'] = new Date(odds[1].tsstart);
                             game['market'] = odds[1].markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                        } else {
-                            game['game_time'] = new Date(odds[0].tsstart);
-                            game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
-                            game['over_under'] = game.market.currentmatchhandicap;
-                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                        }
+                        } 
+                    } else {
+                        game['game_time'] = new Date(odds[0].tsstart);
+                        game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
+                        game['over_under'] = game.market.currentmatchhandicap;
+                        game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
+                        game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                     }
                     sendData(game);
                 });
