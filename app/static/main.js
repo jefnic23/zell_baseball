@@ -212,6 +212,7 @@ document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 
 getFanduel(odds_url).then(data => {
     // console.log(data);
+    bet_games = data.events.length;
     var fanduel = [];
     $.each(data.events, (i, e) => {
         var date = new Date(e.tsstart);
@@ -295,15 +296,15 @@ getFanduel(odds_url).then(data => {
                     }
                     var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
                     if (odds.length > 1) {
-                        if (game['double_header'] === 'Y' && game['game_number'] === 1) {
+                        if ((game['double_header'] === 'Y' || game['double_header' === 'S']) && game['game_number'] === 1) {
                             game['game_time'] = new Date(odds[0].tsstart);
-                            game['market'] = odds[0].markets.find(x => x.name === "Total Runs (Game 1 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['market'] = odds[0].markets.find(x => x.name.slice(0, 18) === "Total Runs (Game 1");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         } else {
                             game['game_time'] = new Date(odds[1].tsstart);
-                            game['market'] = odds[1].markets.find(x => x.name === "Total Runs (Game 2 - 7 Inning Game – Void Unless 7 Innings Played or if already decided)");
+                            game['market'] = odds[1].markets.find(x => x.name.slice(0, 18) === "Total Runs (Game 2");
                             game['over_under'] = game.market.currentmatchhandicap;
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
