@@ -9,6 +9,7 @@ umps = pd.read_csv("app/data/umps.csv", index_col='name')
 parks = pd.read_csv("app/data/parks.csv", index_col='park')
 bets = pd.read_csv("app/data/bets.csv", index_col='total')
 fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
+bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
 
 def getTemp(temp):
     if temp <= 46:
@@ -36,6 +37,16 @@ def getFielding(lineup):
             runs += 0
     return runs
 
+def getBullpen(bullpen):
+    runs = 0
+    players = [id['id'] for id in bullpen]
+    for player in players:
+        try:
+            runs += bullpens.loc[player]['runs']
+        except:
+            runs += 0
+    return runs
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -54,7 +65,12 @@ def send_data(data):
         weather = getTemp(temp)
         away_fielding = getFielding(away_lineup)
         home_fielding = getFielding(home_lineup)
-        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather, 2)
+        away_bullpen = getBullpen(game['away_bullpen'])
+        home_bullpen = getBullpen(game['home_bullpen'])
+        # print(f"\n\n{game['away_team_full']}: {away_bullpen}")
+        # print(f"{game['home_team_full']}: {home_bullpen}\n\n")
+        # print(f"\n\n{game['home_team_short']} bullpen total: {away_bullpen + home_bullpen}\n\n")
+        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
 
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)

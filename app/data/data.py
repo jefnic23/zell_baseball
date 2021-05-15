@@ -63,22 +63,61 @@ def getFielding():
     df = pd.DataFrame(d, columns=d.keys())
     # print(df['outs'].sum())
     return df.to_csv('fielding.csv', index=False)
-    
+  
+  
 def getBullpens():
     # get walks, hits, and innings pitched (via outs divided by 3) from "events" columns
      
-    # df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = pd.read_csv('E:/Documents/Pitcher List/statcast_data/savant_2020.csv')
-    walks = df[(df['balls'] == 3) & (df['description'] == 'ball')].groupby('pitcher')['balls'].count()
-    hits = df[df['description'].isin(['hit_into_play_no_out', 'hit_into_play_score', 'hit_by_pitch'])].groupby('pitcher')['description'].count()
-    print(df['events'].unique())
-    
-    # ip = df.groupby(['pitcher', 'game_pk', 'inning']).agg({'outs_when_up': 'nunique'})
-    # innings = ip.groupby('pitcher').agg({"outs_when_up": 'sum'})
-    # innings['innings'] = innings['outs_when_up'] / 3
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'].to_list()))]
+    walks = df[df['events'] == 'walk'].groupby('pitcher').agg(walks=('events', 'count'))
+    hits = df[df['events'].isin(['single', 
+                                 'home_run', 
+                                 'hit_by_pitch',
+                                 'double',
+                                 'triple'])
+              ].groupby('pitcher').agg(hits=('events', 'count'))
+    df['outs'] = np.where(df['events'].isin(['field_out',
+                                              'strikeout',
+                                              'fielders_choice_out',
+                                              'fielders_choice',
+                                              'force_out',
+                                              'sac_fly',
+                                              'caught_stealing_2b',
+                                              'sac_bunt',
+                                              'caught_stealing_3b',
+                                              'pickoff_caught_stealing_2b',
+                                              'other_out',
+                                              'caught_stealing_home',
+                                              'pickoff_caught_stealing_3b']),
+                          1, 0)
+    df['outs'] = np.where(df['events'].isin(['grounded_into_double_play',
+                                              'double_play',
+                                              'strikeout_double_play',
+                                              'sac_fly_double_play']),
+                          2, df['outs'])
+    df['outs'] = np.where(df['events'] == 'triple_play', 3, df['outs'])
+    innings = df.groupby('pitcher').agg({'outs': 'sum'})
+    innings['innings'] = innings['outs'] / 3
+    whip = pd.merge(walks, hits, on='pitcher')
+    whip['runners'] = whip['walks'] + whip['hits']
+    df = pd.merge(innings, whip, on='pitcher')
+    avg_runners = df['runners'].mean()
+    avg_innings = df['innings'].mean()
+    df['whip'] = (df['runners'] + avg_runners) / (df['innings'] + avg_innings)
+    df['rank'] = df['whip'].rank(ascending=True)
+    scaler = MinMaxScaler(feature_range=(-0.06, 0.06))
+    df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
+    return df.to_csv('bullpens.csv')
 
 
 # getUmps()
 # getBets()
 # getFielding()
-getBullpens()
+# getBullpens()
+
+
+df = pd.read_csv('bullpens.csv', index_col='pitcher')
+scaler = MinMaxScaler(feature_range=(-0.05, 0.05))
+df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
+df.to_csv('bullpens.csv')
