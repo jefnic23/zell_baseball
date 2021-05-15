@@ -64,7 +64,21 @@ def getFielding():
     # print(df['outs'].sum())
     return df.to_csv('fielding.csv', index=False)
     
+def getBullpens():
+    # get walks, hits, and innings pitched (via outs divided by 3) from "events" columns
+     
+    # df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.read_csv('E:/Documents/Pitcher List/statcast_data/savant_2020.csv')
+    walks = df[(df['balls'] == 3) & (df['description'] == 'ball')].groupby('pitcher')['balls'].count()
+    hits = df[df['description'].isin(['hit_into_play_no_out', 'hit_into_play_score', 'hit_by_pitch'])].groupby('pitcher')['description'].count()
+    print(df['events'].unique())
+    
+    # ip = df.groupby(['pitcher', 'game_pk', 'inning']).agg({'outs_when_up': 'nunique'})
+    # innings = ip.groupby('pitcher').agg({"outs_when_up": 'sum'})
+    # innings['innings'] = innings['outs_when_up'] / 3
+
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
+getBullpens()
