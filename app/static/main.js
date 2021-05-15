@@ -163,10 +163,10 @@ function populateTables(data) {
             td.innerHTML = items[i];
             if (bet !== "TBD" && bet !== "No bet") {
                 if (prediction > over_under) {
-                    td.innerHTML = `$${items[i]} O`
+                    td.innerHTML = `${items[i]} O`
                     td.classList.add("betover");
                 } else if (over_under > prediction) {
-                    td.innerHTML = `$${items[i]} U`
+                    td.innerHTML = `${items[i]} U`
                     td.classList.add("betunder");
                 }
             }
