@@ -45,7 +45,7 @@ def getBets():
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         d['x'].append(scaled[i][0])
-        d['bet'].append(round(n * scaled[i][0] * 23, 2))  
+        d['bet'].append(round(n * scaled[i][0] * 24, 2))  
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
@@ -55,13 +55,12 @@ def getFielding():
     d = {"player": [],
          "outs": []
          }
-    outs['z'] = (outs['outs_above_average'].mean() - outs['outs_above_average']) / outs['outs_above_average'].std()
-    scaler = MinMaxScaler(feature_range=(-0.1, 0.06664444))
-    scaled = scaler.fit_transform(outs['z'].to_numpy().reshape(-1, 1))
+    outs['rank'] = outs['outs_above_average'].rank(ascending=False)
+    scaler = MinMaxScaler(feature_range=(-0.1, 0.1))
+    scaled = scaler.fit_transform(outs['rank'].to_numpy().reshape(-1, 1))
     d['player'] = outs['player_id']
     d['outs'] = [i[0] for i in scaled]
     df = pd.DataFrame(d, columns=d.keys())
-    # print(df['outs'].sum())
     return df.to_csv('fielding.csv', index=False)
   
   
@@ -115,9 +114,3 @@ def getBullpens():
 # getBets()
 # getFielding()
 # getBullpens()
-
-
-df = pd.read_csv('bullpens.csv', index_col='pitcher')
-scaler = MinMaxScaler(feature_range=(-0.05, 0.05))
-df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
-df.to_csv('bullpens.csv')
