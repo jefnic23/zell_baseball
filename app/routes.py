@@ -68,9 +68,7 @@ def send_data(data):
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
         # change below to fielding to check totals, should be between -0.2 & 0.2
-        # print(f"\n\n{game['away_team_full']}: {away_bullpen}")
-        # print(f"{game['home_team_full']}: {home_bullpen}\n\n")
-        # print(f"\n\n{game['home_team_short']} bullpen total: {away_bullpen + home_bullpen}\n\n")
+        print(f"\n\n{game['home_team_short']} fielding total: {away_bullpen + home_bullpen}\n\n")
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
 
         if game['innings'] == 7:

@@ -56,7 +56,7 @@ def getFielding():
          "outs": []
          }
     outs['rank'] = outs['outs_above_average'].rank(ascending=False)
-    scaler = MinMaxScaler(feature_range=(-0.1, 0.1))
+    scaler = MinMaxScaler(feature_range=(-0.05, 0.05))
     scaled = scaler.fit_transform(outs['rank'].to_numpy().reshape(-1, 1))
     d['player'] = outs['player_id']
     d['outs'] = [i[0] for i in scaled]
@@ -112,5 +112,5 @@ def getBullpens():
 
 # getUmps()
 # getBets()
-# getFielding()
+getFielding()
 # getBullpens()
