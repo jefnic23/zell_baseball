@@ -329,9 +329,9 @@ getFanduel(odds_url).then(data => {
 
 var games = [];
 socket.on("predictionData", data => {
-    // console.log(data);
+    console.log(games.length, bet_games);
     games.push(data);
-    if (games.length === bet_games) {
+    if (games.length === active_games) {
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
             populateTables(g);
