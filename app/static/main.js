@@ -84,27 +84,23 @@ function populateTables(data) {
     var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
     var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
     var prediction = data.prediction;
+    var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
     var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
     if (game.weather !== "TBD") {
         weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
-        if (game.weather.condition === "Overcast") {
-            row.style.border = "3px solid #ffc107";
-        }
         if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
             row.style.border = "3px solid #dc3545";
         }
     }
     if (game.market) {
         over_under = game.over_under;
-        over_line = game.over_line;
-        under_line = game.under_line;
     } 
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
-    var items = [teams, game_time, weather, prediction, over_under, total, over_line, under_line, bet];
+    var items = [teams, game_time, prediction, over_under, adj_line, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
         if (items[i] === teams) {
@@ -152,14 +148,6 @@ function populateTables(data) {
             }
             td.innerHTML = items[i];
             row.appendChild(td);
-        } else if (items[i] === over_line) {
-            td.setAttribute("id", game.market.selections.find(x => x.name === "Over").idfoselection);
-            td.innerHTML = items[i];
-            row.appendChild(td);
-        } else if (items[i] === under_line) {
-            td.setAttribute("id", game.market.selections.find(x => x.name === "Under").idfoselection);
-            td.innerHTML = items[i];
-            row.appendChild(td);
         } else if (items[i] === bet) {
             td.innerHTML = items[i];
             if (bet !== "TBD" && bet !== "No Value") {
@@ -197,7 +185,7 @@ function noGames() {
     var row = document.createElement("tr");
     var td = document.createElement("td");
     td.innerHTML = "No games";
-    td.colSpan = "9";
+    td.colSpan = "7";
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);
@@ -331,7 +319,7 @@ getFanduel(odds_url).then(data => {
 
 var games = [];
 socket.on("predictionData", data => {
-    // console.log(live_games, games.length);
+    // console.log(data);
     games.push(data);
     if (games.length === live_games) {
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));

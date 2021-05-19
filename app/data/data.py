@@ -129,7 +129,7 @@ def getHitters():
     dfl = pd.merge(dfs1, dfc1, on='batter')
     dfr = pd.merge(dfs2, dfc2, on='batter')
     df = pd.concat([dfl, dfr])
-    return df.to_csv('hitters.csv')
+    return df.to_csv('hitters.csv', index=False)
 
 # getUmps()
 # getBets()
