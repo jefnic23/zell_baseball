@@ -162,7 +162,7 @@ function populateTables(data) {
             row.appendChild(td);
         } else if (items[i] === bet) {
             td.innerHTML = items[i];
-            if (bet !== "TBD" && bet !== "No bet") {
+            if (bet !== "TBD" && bet !== "No Value") {
                 if (prediction > over_under) {
                     td.innerHTML = `${items[i]} O`
                     td.classList.add("betover");

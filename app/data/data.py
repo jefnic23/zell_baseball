@@ -110,16 +110,30 @@ def getBullpens():
 def getPitching():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     dft = df.groupby("pitcher")['p_throws'].unique()
-    dfl = df[df['stand'] == "L"]
-    dfr = df[df['stand'] == "R"]
-    df1 = dfl.groupby("pitcher").agg(woba_L = ('woba_value', 'mean'))
-    df2 = dfr.groupby("pitcher").agg(woba_R = ('woba_value', 'mean'))
+    df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'mean'))
+    df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'mean'))
     dfc = pd.merge(df1, df2, on="pitcher")
     df = pd.merge(dft, dfc, on='pitcher')
     return df.to_csv("pitchers.csv")
+
+def getHitters():
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/Users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
+    dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
+    df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'mean'))
+    df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'mean'))
+    df3 = df[(df['p_throws'] == "L") & (df['stand'] == 'R')].groupby("batter").agg(woba_L = ("woba_value", 'mean'))
+    df4 = df[(df['p_throws'] == "R") & (df['stand'] == 'R')].groupby('batter').agg(woba_R = ('woba_value', 'mean'))
+    dfc1 = pd.merge(df1, df2, on='batter')
+    dfc2 = pd.merge(df3, df4, on='batter')
+    dfl = pd.merge(dfs1, dfc1, on='batter')
+    dfr = pd.merge(dfs2, dfc2, on='batter')
+    df = pd.concat([dfl, dfr])
+    return df.to_csv('hitters.csv')
 
 # getUmps()
 # getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
+# getHitters()
