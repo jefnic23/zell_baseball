@@ -10,6 +10,7 @@ var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=$
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
 var num_games = 0; // set this from callapi on dom load
 var active_games = 0; // set this from callapi on dom load
+var live_games = 0;
 const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
     'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
     'Baltimore Orioles': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg',
@@ -319,6 +320,7 @@ getFanduel(odds_url).then(data => {
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         }
                         sendData(game);
+                        live_games++;
                     }
                     catch (error) {}
                 });
@@ -329,9 +331,9 @@ getFanduel(odds_url).then(data => {
 
 var games = [];
 socket.on("predictionData", data => {
-    console.log(games.length, bet_games);
+    // console.log(live_games, games.length);
     games.push(data);
-    if (games.length === active_games) {
+    if (games.length === live_games) {
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
             populateTables(g);

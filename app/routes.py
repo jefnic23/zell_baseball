@@ -78,7 +78,7 @@ def send_data(data):
         if total >= 0.75 or total <= -0.75:
             bet = bets.loc[abs(total)]['bet']
         else:
-            bet = "No bet"
+            bet = "No Value"
 
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'bet': bet})
     except:

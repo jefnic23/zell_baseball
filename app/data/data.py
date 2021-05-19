@@ -65,8 +65,6 @@ def getFielding():
   
   
 def getBullpens():
-    # get walks, hits, and innings pitched (via outs divided by 3) from "events" columns
-     
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'].to_list()))]
     walks = df[df['events'] == 'walk'].groupby('pitcher').agg(walks=('events', 'count'))
@@ -109,8 +107,19 @@ def getBullpens():
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
     return df.to_csv('bullpens.csv')
 
+def getPitching():
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    dft = df.groupby("pitcher")['p_throws'].unique()
+    dfl = df[df['stand'] == "L"]
+    dfr = df[df['stand'] == "R"]
+    df1 = dfl.groupby("pitcher").agg(woba_L = ('woba_value', 'mean'))
+    df2 = dfr.groupby("pitcher").agg(woba_R = ('woba_value', 'mean'))
+    dfc = pd.merge(df1, df2, on="pitcher")
+    df = pd.merge(dft, dfc, on='pitcher')
+    return df.to_csv("pitchers.csv")
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
 # getBullpens()
+# getPitching()
