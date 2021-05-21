@@ -47,6 +47,10 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
+function changeLine(over_under, prediction, line, ids) {
+    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'line': line, 'ids': ids});
+}
+
 function callApi(url, date) {
     return $.getJSON(url).then(data => {
         return data.dates.find(x => x.date === date);
@@ -87,7 +91,7 @@ function populateTables(data) {
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
-    var weather = game.weather, over_under = "TBD", over_line = "TBD", under_line = "TBD";
+    var weather = game.weather, over_under = "TBD"
     if (game.weather !== "TBD") {
         weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
         if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
@@ -140,16 +144,21 @@ function populateTables(data) {
             row.appendChild(td);
         } else if (items[i] === over_under) {
             // add condition for games with no market, or stop them from getting passed here
-            try {
-                td.setAttribute("id", game.market.idfoevent);
-            }
-            catch(error) {
-                td.setAttribute('id', data.gamePk);
-            }
+            td.setAttribute("id", game.market.idfoevent);
             td.innerHTML = items[i];
+            row.appendChild(td);
+        } else if (items[i] === adj_line) {
+            td.setAttribute("id", game.market.idfomarket);
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        } else if (items[i] === total) {
+            td.innerHTML = items[i];
+            var over_el = game.market.selections.find(x => x.name === "Over");
+            td.setAttribute('id', over_el.idfoselection);
             row.appendChild(td);
         } else if (items[i] === bet) {
             td.innerHTML = items[i];
+            td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
                 if (prediction > over_under) {
                     td.innerHTML = `${items[i]} O`
@@ -168,16 +177,21 @@ function populateTables(data) {
     table.appendChild(row);
 }
 
-function changePrice(el, odds_type, price, market=false) {
-    if (market) {
-        el.innerHTML = odds_type.currentmatchhandicap;
-    } else {
-        el.innerHTML = getMoneyLine(odds_type);
+function changePrice(el, odds_type) {
+    if (el.innerHTML > odds_type) {
+        el.innerHTML = odds_type;
+        el.classList.add("price-down");
+        setTimeout(() => {
+            el.classList.remove("price-down");
+        }, 5500);
     }
-    el.classList.add(price);
-    setTimeout(() => {
-        el.classList.remove(price);
-    }, 5500);
+    if (el.innerHTML < odds_type) {
+        el.innerHTML = odds_type;
+        el.classList.add("price-up");
+        setTimeout(() => {
+            el.classList.remove("price-up");
+        }, 5500);
+    }
 }
 
 function noGames() {
@@ -210,7 +224,6 @@ getFanduel(odds_url).then(data => {
         }
     });
     callApi(main_url, find_date).then(data => {
-        // console.log(data);
         active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
         num_games = data.totalGames;
         if (active_games === 0) {
@@ -324,11 +337,25 @@ socket.on("predictionData", data => {
     if (games.length === live_games) {
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
+            // console.log(g);
             populateTables(g);
         });
         document.querySelector("#slate").style.visibility = "visible";
         document.querySelector(".loader").style.visibility = "hidden";
     }
+});
+
+socket.on("lineChange", data => {
+    // console.log(data);
+    var ids = data.ids;
+    var actual_el = document.querySelector(`#${CSS.escape(ids[0])}`);
+    var adj_el = document.querySelector(`#${CSS.escape(ids[1])}`);
+    var total_el = document.querySelector(`#${CSS.escape(ids[2])}`);
+    var value_el = document.querySelector(`#${CSS.escape(ids[3])}`);
+    changePrice(actual_el, data.over_under);
+    changePrice(adj_el, data.adj_line);
+    changePrice(total_el, data.new_total);
+    changePrice(value_el, data.bet);
 });
 
 const updateOdds = setInterval(() => {
@@ -337,40 +364,24 @@ const updateOdds = setInterval(() => {
         clearInterval(updateOdds);
     } else {
         getFanduel(odds_url).then(data => {
-            //console.log(data);
             $.each(data.events, (i, e) => {
-                if (e.markets.find(x => x.idfomarkettype === 48555.1)) {
-                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+                // console.log(e);
+                // convert to try catch
+                if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
+                    var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
+                    var market = e.markets.find(x => x.idfomarket === game.game.market.idfomarket);
                     var over = market.selections.find(x => x.name === "Over");
-                    var under = market.selections.find(x => x.name === "Under");
-                    var market_el = document.querySelector(`#${CSS.escape(market.idfoevent)}`);
-                    var over_el = document.querySelector(`#${CSS.escape(over.idfoselection)}`);
-                    var under_el = document.querySelector(`#${CSS.escape(under.idfoselection)}`);
-                    //market_el is null? late games are carrying over, add condition to skip
+                    //         actual line       adj. line          total               value
+                    var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
+                    var now = new Date();
+                    var game_time = new Date(market.tsstart);
                     /*
-                    if (new Date() >= new Date(market.tsstart)) {
-                        var row = market_el.parentNode;
-                        row.parentNode.removeChild(row);
+                    if (now.getDate() >= game_time.getDate()) {
+                        document.getElementById('slate').deleteRow(i);
                     }
                     */
-                    if (market_el) {
-                        if (market_el.innerHTML > market.currentmatchhandicap || market_el < market.currentmatchhandicap) {
-                            changePrice(market_el, market, "line-change", market=true);
-                        }
-                    }
-                    if (over_el) {
-                        if (over_el.innerHTML > getMoneyLine(over)) {
-                            changePrice(over_el, over, "price-down");
-                        } else if (over_el.innerHTML < getMoneyLine(over)) {
-                            changePrice(over_el, over, "price-up");
-                        }
-                    } 
-                    if (under_el) {
-                        if (under_el.innerHTML > getMoneyLine(under)) {
-                            changePrice(under_el, under, "price-down");
-                        } else if (under_el.innerHTML < getMoneyLine(under)) {
-                            changePrice(under_el, under, "price-up");
-                        }
+                    if (over) {
+                        changeLine(market.currentmatchhandicap, game.prediction, getMoneyLine(over), ids);
                     } 
                 }
             });

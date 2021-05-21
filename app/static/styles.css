@@ -11,8 +11,10 @@ table {
 }
 
 th {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
+    z-index: 2;
     border: 1px solid #808080;
     background-color: #080808;
     box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
@@ -104,12 +106,6 @@ tbody > tr:nth-child(odd) {
     100% { transform: rotate(360deg); }
 }
 
-.line-change {
-    animation: fadeOut-line 2s forwards;
-    animation-delay: 3s;
-    background-color: rgba(0, 144, 255, 1);
-}
-
 .price-up {
     animation: fadeOut-up 2s forwards;
     animation-delay: 3s;
@@ -120,11 +116,6 @@ tbody > tr:nth-child(odd) {
     animation: fadeOut-down 2s forwards;
     animation-delay: 3s;
     background-color: rgba(255, 36, 0, 1);
-}
-
-@keyframes fadeOut-line {
-    from {background-color: rgba(0, 144, 255, 1);}
-    to {background-color: rgba(0, 144, 255, 0);}
 }
 
 @keyframes fadeOut-up {
@@ -142,9 +133,11 @@ tbody > tr:nth-child(odd) {
 }
 
 .betover {
-    background-color: green;
+    color: green;
+    font-weight: bolder;
 }
 
 .betunder {
     background-color: red;
+    font-weight: bolder;
 }

@@ -91,15 +91,13 @@ def send_data(data):
         home_fielding = getFielding(home_lineup)
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
-        # change below to fielding to check totals, should be between -0.2 & 0.2
-        # print(f"\n\n{game['home_team_short']} fielding total: {away_bullpen + home_bullpen}\n\n")
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
         adj_line = round(game['over_under'] + lines.loc[abs(game['over_line'])]['mod'], 2)
 
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
         
-        total = round(prediction - adj_line - 0.25, 2)
+        total = round(prediction - adj_line - 0.3, 2)
         if total >= 0.75 or total <= -0.75:
             bet = bets.loc[abs(total)]['bet']
         else:
@@ -108,6 +106,23 @@ def send_data(data):
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'adj_line': adj_line, 'bet': bet})
     except:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+
+@socketio.on('changeLine')
+def change_line(data):
+    ids = data['ids']
+    prediction = data['prediction']
+    over_under = data['over_under']
+    line = data['line']
+    try:
+        adj_line = round(over_under + lines.loc[abs(line)]['mod'], 2)
+        new_total = round(prediction - adj_line - 0.3, 2)
+        if new_total >= 0.75 or new_total <= -0.75:
+            bet = bets.loc[abs(new_total)]['bet']
+        else:
+            bet = "No Value"
+        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': new_total, 'bet': bet, "ids": ids})
+    except:
+        emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'bet': 'TBD', "ids": ids})
 
 if __name__ == '__main__':
     socketio.run(app)
