@@ -80,6 +80,7 @@ function getMoneyLine(data) {
 }
 
 function populateTables(data) {
+    console.log(data);
     var game = data.game;
     var table = document.querySelector("#slate");
     var row = document.createElement("tr");
@@ -91,23 +92,20 @@ function populateTables(data) {
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
-    var weather = game.weather, over_under = "TBD"
-    if (game.weather !== "TBD") {
-        weather = `${game.weather.condition}, ${game.weather.temp}&deg`;
-        if (game.weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
+    var weather = game.weather;
+    var over_under = game.over_under;
+    if (weather !== "TBD") {
+        if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
             row.style.border = "3px solid #dc3545";
         }
     }
-    if (game.market) {
-        over_under = game.over_under;
-    } 
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
     var items = [teams, game_time, prediction, over_under, adj_line, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
-        if (items[i] === teams) {
+        if (i === 0) {
             var div = document.createElement("div");
             var away_div = document.createElement("div");
             var away_name_div = document.createElement("div");
@@ -142,21 +140,29 @@ function populateTables(data) {
             div.appendChild(home_div);
             td.appendChild(div);
             row.appendChild(td);
-        } else if (items[i] === over_under) {
+        } 
+        if (i === 1 || i === 2) {
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        }
+        if (i === 3) {
             // add condition for games with no market, or stop them from getting passed here
             td.setAttribute("id", game.market.idfoevent);
             td.innerHTML = items[i];
             row.appendChild(td);
-        } else if (items[i] === adj_line) {
+        }
+        if (i === 4) {
             td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
             row.appendChild(td);
-        } else if (items[i] === total) {
+        }
+        if (i === 5) {
             td.innerHTML = items[i];
             var over_el = game.market.selections.find(x => x.name === "Over");
             td.setAttribute('id', over_el.idfoselection);
             row.appendChild(td);
-        } else if (items[i] === bet) {
+        }
+        if (i === 6) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
@@ -168,9 +174,6 @@ function populateTables(data) {
                     td.classList.add("betunder");
                 }
             }
-            row.appendChild(td);
-        } else {
-            td.innerHTML = items[i];
             row.appendChild(td);
         }
     }
@@ -369,7 +372,7 @@ const updateOdds = setInterval(() => {
                 // convert to try catch
                 if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
                     var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
-                    var market = e.markets.find(x => x.idfomarket === game.game.market.idfomarket);
+                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                     var over = market.selections.find(x => x.name === "Over");
                     //         actual line       adj. line          total               value
                     var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
