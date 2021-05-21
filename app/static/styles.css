@@ -133,11 +133,15 @@ tbody > tr:nth-child(odd) {
 }
 
 .betover {
-    color: green;
+    background-color: green;
     font-weight: bolder;
+    color: white;
+    text-shadow: 1px 1px black;
 }
 
 .betunder {
     background-color: red;
     font-weight: bolder;
+    color: white;
+    text-shadow: 1px 1px black;
 }

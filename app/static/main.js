@@ -197,6 +197,10 @@ function changePrice(el, odds_type) {
     }
 }
 
+function changeValue(el, value) {
+    el.innerHTML = value;
+}
+
 function noGames() {
     var table = document.querySelector("#slate");
     var row = document.createElement("tr");
@@ -358,7 +362,7 @@ socket.on("lineChange", data => {
     changePrice(actual_el, data.over_under);
     changePrice(adj_el, data.adj_line);
     changePrice(total_el, data.new_total);
-    changePrice(value_el, data.bet);
+    changeValue(value_el, data.bet);
 });
 
 const updateOdds = setInterval(() => {
