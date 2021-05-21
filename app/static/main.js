@@ -80,7 +80,7 @@ function getMoneyLine(data) {
 }
 
 function populateTables(data) {
-    console.log(data);
+    // console.log(data);
     var game = data.game;
     var table = document.querySelector("#slate");
     var row = document.createElement("tr");
@@ -376,9 +376,9 @@ const updateOdds = setInterval(() => {
                     var over = market.selections.find(x => x.name === "Over");
                     //         actual line       adj. line          total               value
                     var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
+                    /*
                     var now = new Date();
                     var game_time = new Date(market.tsstart);
-                    /*
                     if (now.getDate() >= game_time.getDate()) {
                         document.getElementById('slate').deleteRow(i);
                     }
