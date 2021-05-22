@@ -33,6 +33,14 @@ def getTemp(temp):
     if temp >= 88:
         return 0.3
 
+def getUmp(ump):
+    runs = 0
+    try:
+        runs += umps.loc[ump]['runs']
+    except: 
+        runs += -0.26
+    return runs
+
 def getFielding(lineup):
     runs = 0
     players = [id["id"] for id in lineup]
@@ -91,14 +99,14 @@ def send_data(data):
     try:
         line = abs(over_line) + abs(under_line)
         venue = game['venue']
-        ump = game['ump']['official']['fullName']
+        ump = getUmp(game['ump']['official']['fullName'])
         temp = int(game['weather']['temp'])
         weather = getTemp(temp)
         away_fielding = getFielding(away_lineup)
         home_fielding = getFielding(home_lineup)
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
-        prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
+        prediction = round(parks.loc[venue]['runs'] + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
 
@@ -107,7 +115,6 @@ def send_data(data):
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
-        print(f"\n\n{game['away_team_short']}: {adj_line}\n\n")
         total = round(prediction - adj_line - 0.3, 2)
         if total >= 0.75 or total <= -0.75:
             bet = bets.loc[abs(total)]['bet']
