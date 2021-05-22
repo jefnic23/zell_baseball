@@ -365,7 +365,9 @@ socket.on("lineChange", data => {
     changeValue(value_el, data.bet);
 });
 
-const updateOdds = setInterval(() => {
+function updateOdds() {
+    var rand = Math.floor(Math.random() * 10) + 10;
+    console.log(rand);
     if (active_games === 0) {
         // instead of clearing interval, wait until next day? try to keep this always running
         clearInterval(updateOdds);
@@ -394,7 +396,10 @@ const updateOdds = setInterval(() => {
             });
         });
     }
-}, 15000);
+    setTimeout(updateOdds, rand * 1000);
+}
+    
+updateOdds();
 
 /*
 
