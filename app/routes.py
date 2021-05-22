@@ -1,8 +1,10 @@
 from flask import render_template
 from flask_socketio import SocketIO, emit
+from engineio.payload import Payload
 import pandas as pd
 from app import app
 
+Payload.max_decode_packets = 500
 socketio = SocketIO(app)
 
 umps = pd.read_csv("app/data/umps.csv", index_col='name')
@@ -87,7 +89,7 @@ def send_data(data):
     over_line = game['over_line']
     under_line = game['under_line']
     try:
-        line = over_line + under_line
+        line = abs(over_line) + abs(under_line)
         venue = game['venue']
         ump = game['ump']['official']['fullName']
         temp = int(game['weather']['temp'])
@@ -100,14 +102,15 @@ def send_data(data):
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
 
-        if line == -120:
+        if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
+        print(f"\n\n{game['away_team_short']}: {adj_line}\n\n")
         total = round(prediction - adj_line - 0.3, 2)
         if total >= 0.75 or total <= -0.75:
-            bet = bets.loc[total]['bet']
+            bet = bets.loc[abs(total)]['bet']
         else:
             bet = "No Value"
 
@@ -121,16 +124,17 @@ def change_line(data):
     prediction = data['prediction']
     over_under = data['over_under']
     over = data['over']
-    line = data['line']
+    under = data['under']
     try:
-        if line == -120:
+        line = abs(over) + abs(under)
+        if line == 220:
             adj_line = round(over_under + lines_20.loc[over]['mod'], 2)
         else: 
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
         new_total = round(prediction - adj_line - 0.3, 2)
         if new_total >= 0.75 or new_total <= -0.75:
-            bet = bets.loc[new_total]['bet']
+            bet = bets.loc[abs(new_total)]['bet']
         else:
             bet = "No Value"
 

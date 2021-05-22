@@ -47,8 +47,8 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-function changeLine(over_under, prediction, over, line, ids) {
-    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over': over, 'line': line, 'ids': ids});
+function changeLine(over_under, prediction, over, under, ids) {
+    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over': over, 'under': under, 'ids': ids});
 }
 
 function callApi(url, date) {
@@ -367,7 +367,6 @@ socket.on("lineChange", data => {
 
 function updateOdds() {
     var rand = Math.floor(Math.random() * 10) + 10;
-    console.log(rand);
     if (active_games === 0) {
         // instead of clearing interval, wait until next day? try to keep this always running
         clearInterval(updateOdds);
@@ -381,7 +380,6 @@ function updateOdds() {
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                     var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                     var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                    var line = over + under;
                     //         actual line       adj. line          total               value
                     var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
                     /*
@@ -391,7 +389,7 @@ function updateOdds() {
                         document.getElementById('slate').deleteRow(i);
                     } 
                     */
-                    changeLine(market.currentmatchhandicap, game.prediction, over, line, ids);
+                    changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
                 }
             });
         });
