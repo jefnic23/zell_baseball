@@ -8,7 +8,8 @@ socketio = SocketIO(app)
 umps = pd.read_csv("app/data/umps.csv", index_col='name')
 parks = pd.read_csv("app/data/parks.csv", index_col='park')
 bets = pd.read_csv("app/data/bets.csv", index_col='total')
-lines = pd.read_csv("app/data/lines.csv", index_col='line')
+lines_20 = pd.read_csv("app/data/lines_20.csv", index_col='line')
+lines_22 = pd.read_csv("app/data/lines_22.csv", index_col='line')
 fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
 bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
 pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
@@ -82,7 +83,11 @@ def send_data(data):
     game_time = game['game_time']
     away_lineup = game['away_lineup']
     home_lineup = game['home_lineup']
+    over_under = game['over_under']
+    over_line = game['over_line']
+    under_line = game['under_line']
     try:
+        line = over_line + under_line
         venue = game['venue']
         ump = game['ump']['official']['fullName']
         temp = int(game['weather']['temp'])
@@ -92,14 +97,17 @@ def send_data(data):
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
         prediction = round(parks.loc[venue]['runs'] + umps.loc[ump]['runs'] + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
-        adj_line = round(game['over_under'] + lines.loc[abs(game['over_line'])]['mod'], 2)
-
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
+
+        if line == -120:
+            adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
+        else:
+            adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
         total = round(prediction - adj_line - 0.3, 2)
         if total >= 0.75 or total <= -0.75:
-            bet = bets.loc[abs(total)]['bet']
+            bet = bets.loc[total]['bet']
         else:
             bet = "No Value"
 
@@ -112,14 +120,20 @@ def change_line(data):
     ids = data['ids']
     prediction = data['prediction']
     over_under = data['over_under']
+    over = data['over']
     line = data['line']
     try:
-        adj_line = round(over_under + lines.loc[abs(line)]['mod'], 2)
+        if line == -120:
+            adj_line = round(over_under + lines_20.loc[over]['mod'], 2)
+        else: 
+            adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
+
         new_total = round(prediction - adj_line - 0.3, 2)
         if new_total >= 0.75 or new_total <= -0.75:
-            bet = bets.loc[abs(new_total)]['bet']
+            bet = bets.loc[new_total]['bet']
         else:
             bet = "No Value"
+
         emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': new_total, 'bet': bet, "ids": ids})
     except:
         emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'bet': 'TBD', "ids": ids})

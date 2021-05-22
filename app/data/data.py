@@ -49,7 +49,6 @@ def getBets():
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
-
 def getFielding():
     outs = pd.read_csv("outs_above_average.csv")
     d = {"player": [],
@@ -137,5 +136,3 @@ def getHitters():
 # getBullpens()
 # getPitching()
 # getHitters()
-
-

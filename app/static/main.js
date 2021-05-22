@@ -47,8 +47,8 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-function changeLine(over_under, prediction, line, ids) {
-    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'line': line, 'ids': ids});
+function changeLine(over_under, prediction, over, line, ids) {
+    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over': over, 'line': line, 'ids': ids});
 }
 
 function callApi(url, date) {
@@ -377,7 +377,9 @@ const updateOdds = setInterval(() => {
                 if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
                     var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                    var over = market.selections.find(x => x.name === "Over");
+                    var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
+                    var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
+                    var line = over + under;
                     //         actual line       adj. line          total               value
                     var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
                     /*
@@ -385,11 +387,9 @@ const updateOdds = setInterval(() => {
                     var game_time = new Date(market.tsstart);
                     if (now.getDate() >= game_time.getDate()) {
                         document.getElementById('slate').deleteRow(i);
-                    }
-                    */
-                    if (over) {
-                        changeLine(market.currentmatchhandicap, game.prediction, getMoneyLine(over), ids);
                     } 
+                    */
+                    changeLine(market.currentmatchhandicap, game.prediction, over, line, ids);
                 }
             });
         });
