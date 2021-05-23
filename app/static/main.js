@@ -166,10 +166,10 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under) {
+                if (prediction > over_under && bet >= 1.25) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
-                } else if (over_under > prediction) {
+                } else if (over_under > prediction && bet <= -1.25) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
@@ -266,7 +266,7 @@ getFanduel(odds_url).then(data => {
                 game['under_line'] = null;
         
                 getData(base_url, g.link).then(d => {
-                    // console.log(d);
+                    console.log(d);
                     game['away_team_short'] = d.gameData.teams.away.teamName;
                     game['home_team_short'] = d.gameData.teams.home.teamName;
                     if (notEmpty(d.gameData.weather)) {

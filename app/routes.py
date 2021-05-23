@@ -7,15 +7,15 @@ from app import app
 Payload.max_decode_packets = 500
 socketio = SocketIO(app)
 
-umps = pd.read_csv("app/data/umps.csv", index_col='name')
+umps = pd.read_csv("app/data/umps.csv", index_col='id')
 parks = pd.read_csv("app/data/parks.csv", index_col='park')
 bets = pd.read_csv("app/data/bets.csv", index_col='total')
 lines_20 = pd.read_csv("app/data/lines_20.csv", index_col='line')
 lines_22 = pd.read_csv("app/data/lines_22.csv", index_col='line')
 fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
 bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
-pitchers = pd.read_csv("app/data/pitchers_test.csv", index_col='pitcher')
-hitters = pd.read_csv('app/data/hitters_test.csv', index_col='batter')
+pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
+hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
 
 def getTemp(temp):
     if temp <= 46:
@@ -114,28 +114,26 @@ def send_data(data):
     game = data['game']
     gamePk = game['gamePk']
     game_time = game['game_time']
-    away_pitcher = game['away_pitcher']
-    home_pitcher = game['home_pitcher']
-    away_lineup = game['away_lineup']
-    home_lineup = game['home_lineup']
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
     try:
         line = abs(over_line) + abs(under_line)
-        venue = game['venue']
-        ump = getUmp(game['ump']['official']['fullName'])
-        temp = int(game['weather']['temp'])
-        weather = getTemp(temp)
-        away_fielding = getFielding(away_lineup)
-        home_fielding = getFielding(home_lineup)
+        venue = parks.loc[game['venue']]['runs']
+        ump = getUmp(game['ump']['official']['id'])
+        weather = getTemp(int(game['weather']['temp']))
+        away_fielding = getFielding(game['away_lineup'])
+        home_fielding = getFielding(game['home_lineup'])
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
-        away_pvb = PvB(away_pitcher, home_lineup)
-        home_pvb = PvB(home_pitcher, away_lineup)
+
+        # PvB testing
+        away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
+        home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         pvb = away_pvb + home_pvb
         print(f"\n{game['away_team_short']}: {pvb}\n")
-        prediction = round(parks.loc[venue]['runs'] + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
+
+        prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
 
@@ -145,7 +143,7 @@ def send_data(data):
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
         total = round(prediction - adj_line - 0.3, 2)
-        if total >= 1.25 or total <= -1.25:
+        if total >= .5 or total <= -.5:
             bet = bets.loc[abs(total)]['bet']
         else:
             bet = "No Value"
@@ -169,7 +167,7 @@ def change_line(data):
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
         new_total = round(prediction - adj_line - 0.3, 2)
-        if new_total >= 1.25 or new_total <= -1.25:
+        if new_total >= .5 or new_total <= -.5:
             bet = bets.loc[abs(new_total)]['bet']
         else:
             bet = "No Value"

@@ -7,10 +7,10 @@ from sklearn.preprocessing import MinMaxScaler
 def getUmps():
     umps = pd.read_csv("E:/Documents/Pitcher List/statcast_data/umpires_ids_game_pk.csv")
     umps['game_date'] = umps['game_date'].str.split('-').str[0]
-    umps = umps[(umps['position'] == 'HP') & (umps['name'].isin(umps[umps['game_date'] == '2021']['name']))]
-    ump_count = umps.groupby('name')['game_pk'].count()
+    umps = umps[(umps['position'] == 'HP') & (umps['id'].isin(umps[umps['game_date'] == '2021']['id']))]
+    ump_count = umps.groupby('id')['game_pk'].count()
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = pd.merge(df[['description', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 'game_pk']], umps[['name', 'game_date', 'game_pk']], on='game_pk')
+    df = pd.merge(df[['description', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 'game_pk']], umps[['id', 'name', 'game_date', 'game_pk']], on='game_pk')
     df['ball'] = np.where((df['plate_x'] < -0.8308333) | 
                           (df['plate_x'] > 0.8308333) |
                           (df['plate_z'] < df['sz_bot']) |
@@ -23,10 +23,10 @@ def getUmps():
                             (df['plate_z'] <= df['sz_top']), 
                             1, 0
                             )
-    df_balls = df[df['description'] == 'ball'].groupby('name').agg(wrong_ball=('strike', 'mean'))
-    df_strikes = df[df['description'] == 'called_strike'].groupby('name').agg(wrong_strike=('ball', 'mean'))
-    df = pd.merge(df_balls, df_strikes, on="name")
-    df = pd.merge(df, ump_count, on="name")
+    df_balls = df[df['description'] == 'ball'].groupby('id').agg(wrong_ball=('strike', 'mean'))
+    df_strikes = df[df['description'] == 'called_strike'].groupby('id').agg(wrong_strike=('ball', 'mean'))
+    df = pd.merge(df_balls, df_strikes, on="id")
+    df = pd.merge(df, ump_count, on="id")
     df['ratio'] = df['wrong_strike'] / df['wrong_ball']
     df['rank'] = df['ratio'].rank(ascending=False)
     scaler = MinMaxScaler(feature_range=(-0.6, 0.6))
@@ -111,7 +111,7 @@ def getBullpens():
 def getPitching():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
-    dft = df.groupby("pitcher")['p_throws'].unique()
+    dft = df.groupby("pitcher")['p_throws'].unique().str[0]
     df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
                                                         pa_L = ('woba_value', 'count'))
     df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'sum'),
@@ -124,14 +124,18 @@ def getPitching():
     woba_R = df['woba_R'].mean()
     df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
     df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
+    
+    scaler = MinMaxScaler(feature_range=(-0.25, 0.25))
+    df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
+    df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv("pitchers.csv")
 
 
 def getHitters():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
-    dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
-    dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
+    dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique().str[0]
+    dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique().str[0]
     df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
                                                                                    pa_L = ('woba_value', 'count'))
     df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'sum'),
@@ -158,8 +162,11 @@ def getHitters():
     pa_R = dfr['pa_R'].mean()
     dfr['woba_R'] = (dfr['woba_R'] + woba_R) / (dfr['pa_R'] + pa_R)
     dfr['woba_L'] = (dfr['woba_L'] + woba_L) / (dfr['pa_L'] + pa_L)
-
     df = pd.concat([dfl, dfr])
+    
+    scaler = MinMaxScaler(feature_range=(-0.25, 0.25))
+    df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
+    df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv('hitters.csv')
 
 
@@ -169,28 +176,3 @@ def getHitters():
 # getBullpens()
 # getPitching()
 # getHitters()
-
-
-# pitchers = pd.read_csv('pitchers.csv', index_col='pitcher')
-# hitters = pd.read_csv('hitters.csv', index_col='batter')
-# scaler = MinMaxScaler(feature_range=(-0.2, 0.2))
-
-# p = pitchers['p_throws'].to_list()
-# ph = []
-# for i in p:
-#     ph.append(i[2])
-# pitchers['p_throws'] = ph
-
-# b = hitters['stand'].to_list()
-# bh = []
-# for i in b:
-#     bh.append(i[2])
-# hitters['stand'] = bh
-
-# pitchers['runs_L'] = scaler.fit_transform(pitchers['woba_L'].to_numpy().reshape(-1,1))
-# pitchers['runs_R'] = scaler.fit_transform(pitchers['woba_R'].to_numpy().reshape(-1,1))
-# hitters['runs_L'] = scaler.fit_transform(hitters['woba_L'].to_numpy().reshape(-1,1))
-# hitters['runs_R'] = scaler.fit_transform(hitters['woba_R'].to_numpy().reshape(-1,1))
-
-# pitchers.to_csv('pitchers_test.csv')
-# hitters.to_csv('hitters_test.csv')
