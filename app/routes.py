@@ -38,7 +38,7 @@ def getUmp(ump):
     try:
         runs += umps.loc[ump]['runs']
     except: 
-        runs += -0.26
+        runs += 0
     return runs
 
 def getFielding(lineup):
@@ -134,7 +134,7 @@ def send_data(data):
         away_pvb = PvB(away_pitcher, home_lineup)
         home_pvb = PvB(home_pitcher, away_lineup)
         pvb = away_pvb + home_pvb
-        # print(f"\n\n{game['away_team_short']}: {pvb}\n\n")
+        # print(f"\n{game['away_team_short']}: {pvb}\n")
         prediction = round(parks.loc[venue]['runs'] + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
@@ -145,7 +145,7 @@ def send_data(data):
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
         total = round(prediction - adj_line - 0.3, 2)
-        if total >= 0.75 or total <= -0.75:
+        if total >= 1.0 or total <= -1.0:
             bet = bets.loc[abs(total)]['bet']
         else:
             bet = "No Value"
@@ -169,7 +169,7 @@ def change_line(data):
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
         new_total = round(prediction - adj_line - 0.3, 2)
-        if new_total >= 0.75 or new_total <= -0.75:
+        if new_total >= 1.0 or new_total <= -1.0:
             bet = bets.loc[abs(new_total)]['bet']
         else:
             bet = "No Value"

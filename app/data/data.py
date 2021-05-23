@@ -49,6 +49,7 @@ def getBets():
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
+
 def getFielding():
     outs = pd.read_csv("outs_above_average.csv")
     d = {"player": [],
@@ -106,13 +107,14 @@ def getBullpens():
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
     return df.to_csv('bullpens.csv')
 
+
 def getPitching():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/Users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'])]
     dft = df.groupby("pitcher")['p_throws'].unique()
-    df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'mean'),
+    df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
                                                         pa_L = ('woba_value', 'count'))
-    df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'mean'),
+    df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'sum'),
                                                         pa_R = ('woba_value', 'count'))
     dfc = pd.merge(df1, df2, on="pitcher")
     df = pd.merge(dft, dfc, on='pitcher')
@@ -124,18 +126,19 @@ def getPitching():
     df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
     return df.to_csv("pitchers.csv")
 
+
 def getHitters():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[df['batter'].isin(df[df['game_year'] == 2021]['batter'])]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
-    df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'mean'),
+    df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
                                                                                    pa_L = ('woba_value', 'count'))
-    df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'mean'),
+    df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'sum'),
                                                                                    pa_R = ('woba_value', 'count'))
-    df3 = df[(df['p_throws'] == "L") & (df['stand'] == 'R')].groupby("batter").agg(woba_L = ("woba_value", 'mean'),
+    df3 = df[(df['p_throws'] == "L") & (df['stand'] == 'R')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
                                                                                    pa_L = ('woba_value', 'count'))
-    df4 = df[(df['p_throws'] == "R") & (df['stand'] == 'R')].groupby('batter').agg(woba_R = ('woba_value', 'mean'),
+    df4 = df[(df['p_throws'] == "R") & (df['stand'] == 'R')].groupby('batter').agg(woba_R = ('woba_value', 'sum'),
                                                                                    pa_R = ('woba_value', 'count'))
     dfc1 = pd.merge(df1, df2, on='batter')
     dfc2 = pd.merge(df3, df4, on='batter')
@@ -159,6 +162,7 @@ def getHitters():
     df = pd.concat([dfl, dfr])
     return df.to_csv('hitters.csv')
 
+
 # getUmps()
 # getBets()
 # getFielding()
@@ -166,9 +170,10 @@ def getHitters():
 # getPitching()
 # getHitters()
 
+
 # pitchers = pd.read_csv('pitchers.csv', index_col='pitcher')
 # hitters = pd.read_csv('hitters.csv', index_col='batter')
-# scaler = MinMaxScaler(feature_range=(-0.1, 0.1))
+# scaler = MinMaxScaler(feature_range=(-0.2, 0.2))
 
 # p = pitchers['p_throws'].to_list()
 # ph = []
