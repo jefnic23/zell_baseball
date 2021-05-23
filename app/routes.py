@@ -14,8 +14,8 @@ lines_20 = pd.read_csv("app/data/lines_20.csv", index_col='line')
 lines_22 = pd.read_csv("app/data/lines_22.csv", index_col='line')
 fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
 bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
-pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
-hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
+pitchers = pd.read_csv("app/data/pitchers_test.csv", index_col='pitcher')
+hitters = pd.read_csv('app/data/hitters_test.csv', index_col='batter')
 
 def getTemp(temp):
     if temp <= 46:
@@ -67,6 +67,7 @@ def oddsRatio(p, h, l):
     p = p / (1-p)
     l = l / (1-l)
     return h * p / l
+'''
 
 def PvB(pitcher, lineup):
     runs = 0
@@ -74,13 +75,35 @@ def PvB(pitcher, lineup):
     p_hand = pitcher['pitchHand']['code']
     for hitter in lineup:
         try:
-            bat = hitter['batSide']['code']
-            if bat == "S" and p_hand == "R":
-                pass
+            b_id = hitter['id']
+            b_hand = hitter['batSide']['code']
+            if b_hand == "S" and p_hand == "R":
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_R']
+                runs += p_runs + b_runs
+            if b_hand == "S" and p_hand == "L":
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_L']
+                runs += p_runs + b_runs
+            if b_hand == "L" and p_hand == "L":
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_L']
+                runs += p_runs + b_runs
+            if b_hand == "L" and p_hand == "R":
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_R']
+                runs += p_runs + b_runs
+            if b_hand == "R" and p_hand == "R":
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_R']
+                runs += p_runs + b_runs
+            if b_hand == "R" and p_hand == "L":
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_L']
+                runs += p_runs + b_runs
         except:
-            pass
+            runs += 0
     return runs
-'''
 
 @app.route('/')
 def index():
@@ -91,6 +114,8 @@ def send_data(data):
     game = data['game']
     gamePk = game['gamePk']
     game_time = game['game_time']
+    away_pitcher = game['away_pitcher']
+    home_pitcher = game['home_pitcher']
     away_lineup = game['away_lineup']
     home_lineup = game['home_lineup']
     over_under = game['over_under']
@@ -106,6 +131,10 @@ def send_data(data):
         home_fielding = getFielding(home_lineup)
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
+        away_pvb = PvB(away_pitcher, home_lineup)
+        home_pvb = PvB(home_pitcher, away_lineup)
+        pvb = away_pvb + home_pvb
+        # print(f"\n\n{game['away_team_short']}: {pvb}\n\n")
         prediction = round(parks.loc[venue]['runs'] + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)

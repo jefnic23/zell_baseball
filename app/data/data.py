@@ -107,32 +107,74 @@ def getBullpens():
     return df.to_csv('bullpens.csv')
 
 def getPitching():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/Users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = df[df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'])]
     dft = df.groupby("pitcher")['p_throws'].unique()
-    df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'mean'))
-    df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'mean'))
+    df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'mean'),
+                                                        pa_L = ('woba_value', 'count'))
+    df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'mean'),
+                                                        pa_R = ('woba_value', 'count'))
     dfc = pd.merge(df1, df2, on="pitcher")
     df = pd.merge(dft, dfc, on='pitcher')
+    pa_L = df['pa_L'].mean()
+    pa_R = df['pa_R'].mean()
+    woba_L = df['woba_L'].mean()
+    woba_R = df['woba_R'].mean()
+    df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
+    df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
     return df.to_csv("pitchers.csv")
 
 def getHitters():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/Users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = df[df['batter'].isin(df[df['game_year'] == 2021]['batter'])]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
-    df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'mean'))
-    df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'mean'))
-    df3 = df[(df['p_throws'] == "L") & (df['stand'] == 'R')].groupby("batter").agg(woba_L = ("woba_value", 'mean'))
-    df4 = df[(df['p_throws'] == "R") & (df['stand'] == 'R')].groupby('batter').agg(woba_R = ('woba_value', 'mean'))
+    df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'mean'),
+                                                                                   pa_L = ('woba_value', 'count'))
+    df2 = df[(df['p_throws'] == "R") & (df['stand'] == 'L')].groupby('batter').agg(woba_R = ('woba_value', 'mean'),
+                                                                                   pa_R = ('woba_value', 'count'))
+    df3 = df[(df['p_throws'] == "L") & (df['stand'] == 'R')].groupby("batter").agg(woba_L = ("woba_value", 'mean'),
+                                                                                   pa_L = ('woba_value', 'count'))
+    df4 = df[(df['p_throws'] == "R") & (df['stand'] == 'R')].groupby('batter').agg(woba_R = ('woba_value', 'mean'),
+                                                                                   pa_R = ('woba_value', 'count'))
     dfc1 = pd.merge(df1, df2, on='batter')
     dfc2 = pd.merge(df3, df4, on='batter')
     dfl = pd.merge(dfs1, dfc1, on='batter')
+    dfl['woba_R'] = (dfl['woba_R'] + woba_R) / (dfl['pa_R'] + pa_R)
+    dfl['woba_L'] = (dfl['woba_L'] + woba_L) / (dfl['pa_L'] + pa_L)
     dfr = pd.merge(dfs2, dfc2, on='batter')
+    dfr['woba_R'] = (dfr['woba_R'] + woba_R) / (dfr['pa_R'] + pa_R)
+    dfr['woba_L'] = (dfr['woba_L'] + woba_L) / (dfr['pa_L'] + pa_L)
     df = pd.concat([dfl, dfr])
-    return df.to_csv('hitters.csv', index=False)
+    return df.to_csv('hitters.csv')
 
 # getUmps()
 # getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
-# getHitters()
+getHitters()
+
+# pitchers = pd.read_csv('pitchers.csv', index_col='pitcher')
+# hitters = pd.read_csv('hitters.csv', index_col='batter')
+# scaler = MinMaxScaler(feature_range=(-0.2, 0.2))
+
+# p = pitchers['p_throws'].to_list()
+# ph = []
+# for i in p:
+#     ph.append(i[2])
+# pitchers['p_throws'] = ph
+
+# b = hitters['stand'].to_list()
+# bh = []
+# for i in b:
+#     bh.append(i[2])
+# hitters['stand'] = bh
+
+# pitchers['runs_L'] = scaler.fit_transform(pitchers['woba_L'].to_numpy().reshape(-1,1))
+# pitchers['runs_R'] = scaler.fit_transform(pitchers['woba_R'].to_numpy().reshape(-1,1))
+# hitters['runs_L'] = scaler.fit_transform(hitters['woba_L'].to_numpy().reshape(-1,1))
+# hitters['runs_R'] = scaler.fit_transform(hitters['woba_R'].to_numpy().reshape(-1,1))
+
+# pitchers.to_csv('pitchers_test.csv')
+# hitters.to_csv('hitters_test.csv')

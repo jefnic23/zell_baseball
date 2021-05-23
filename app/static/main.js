@@ -327,6 +327,7 @@ getFanduel(odds_url).then(data => {
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         }
+                        // console.log(game);
                         sendData(game);
                         live_games++;
                     }
