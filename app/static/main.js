@@ -166,10 +166,11 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under && bet >= 1.25) {
+                if (prediction > over_under && total >= 1.25) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
-                } else if (over_under > prediction && bet <= -1.25) {
+                } 
+                if (over_under > prediction && total <= -1.25) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
