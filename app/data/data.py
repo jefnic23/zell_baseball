@@ -29,9 +29,9 @@ def getUmps():
     df = pd.merge(df, ump_count, on="name")
     df['ratio'] = df['wrong_strike'] / df['wrong_ball']
     df['rank'] = df['ratio'].rank(ascending=False)
-    scaler = MinMaxScaler(feature_range=(-0.75, 0.75))
+    scaler = MinMaxScaler(feature_range=(-0.6, 0.6))
     df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
-    return df.to_csv('umps.csv', index=False)
+    return df.to_csv('umps.csv')
 
     
 def getBets():
@@ -125,7 +125,7 @@ def getPitching():
     return df.to_csv("pitchers.csv")
 
 def getHitters():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/Users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[df['batter'].isin(df[df['game_year'] == 2021]['batter'])]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
@@ -139,12 +139,23 @@ def getHitters():
                                                                                    pa_R = ('woba_value', 'count'))
     dfc1 = pd.merge(df1, df2, on='batter')
     dfc2 = pd.merge(df3, df4, on='batter')
+    
     dfl = pd.merge(dfs1, dfc1, on='batter')
+    woba_L = dfl['woba_L'].mean()
+    woba_R = dfl['woba_R'].mean()
+    pa_L = dfl['pa_L'].mean()
+    pa_R = dfl['pa_R'].mean()
     dfl['woba_R'] = (dfl['woba_R'] + woba_R) / (dfl['pa_R'] + pa_R)
     dfl['woba_L'] = (dfl['woba_L'] + woba_L) / (dfl['pa_L'] + pa_L)
+    
     dfr = pd.merge(dfs2, dfc2, on='batter')
+    woba_L = dfr['woba_L'].mean()
+    woba_R = dfr['woba_R'].mean()
+    pa_L = dfr['pa_L'].mean()
+    pa_R = dfr['pa_R'].mean()
     dfr['woba_R'] = (dfr['woba_R'] + woba_R) / (dfr['pa_R'] + pa_R)
     dfr['woba_L'] = (dfr['woba_L'] + woba_L) / (dfr['pa_L'] + pa_L)
+
     df = pd.concat([dfl, dfr])
     return df.to_csv('hitters.csv')
 
@@ -153,11 +164,11 @@ def getHitters():
 # getFielding()
 # getBullpens()
 # getPitching()
-getHitters()
+# getHitters()
 
 # pitchers = pd.read_csv('pitchers.csv', index_col='pitcher')
 # hitters = pd.read_csv('hitters.csv', index_col='batter')
-# scaler = MinMaxScaler(feature_range=(-0.2, 0.2))
+# scaler = MinMaxScaler(feature_range=(-0.1, 0.1))
 
 # p = pitchers['p_throws'].to_list()
 # ph = []
