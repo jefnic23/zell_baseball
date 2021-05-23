@@ -110,7 +110,7 @@ def getBullpens():
 
 def getPitching():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'])]
+    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
     dft = df.groupby("pitcher")['p_throws'].unique()
     df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
                                                         pa_L = ('woba_value', 'count'))
@@ -129,7 +129,7 @@ def getPitching():
 
 def getHitters():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[df['batter'].isin(df[df['game_year'] == 2021]['batter'])]
+    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique()
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique()
     df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
