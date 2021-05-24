@@ -344,6 +344,7 @@ socket.on("predictionData", data => {
     // console.log(data);
     games.push(data);
     if (games.length === live_games) {
+        games = [...new Set(games)];
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
             // console.log(g);
