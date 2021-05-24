@@ -61,14 +61,6 @@ def getBullpen(bullpen):
             runs += 0
     return runs
 
-'''
-def oddsRatio(p, h, l):
-    h = h / (1-h)
-    p = p / (1-p)
-    l = l / (1-l)
-    return h * p / l
-'''
-
 def PvB(pitcher, lineup):
     runs = 0
     p_id = pitcher['id']
@@ -117,7 +109,7 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
-    try:
+    if game['away_lineup'] and game['home_lineup']:
         line = abs(over_line) + abs(under_line)
         venue = parks.loc[game['venue']]['runs']
         ump = getUmp(game['ump']['official']['id'])
@@ -130,10 +122,10 @@ def send_data(data):
         # PvB testing
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        pvb = away_pvb + home_pvb
+        pvb = away_pvb + home_pvb + 0.17913259581679686
         print(f"\n{game['away_team_short']}: {pvb}\n")
 
-        prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen, 2)
+        prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
 
@@ -149,7 +141,7 @@ def send_data(data):
             bet = "No Value"
 
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': prediction, 'total': total, 'adj_line': adj_line, 'bet': bet})
-    except:
+    else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
