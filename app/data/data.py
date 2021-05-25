@@ -45,7 +45,7 @@ def getBets():
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         d['x'].append(scaled[i][0])
-        d['bet'].append(round(n * scaled[i][0] * 27, 1))  
+        d['bet'].append(round(n * scaled[i][0] * 40, 1))  
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
@@ -171,21 +171,21 @@ def getHitters():
 
 
 # getUmps()
-# getBets()
+getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
 # getHitters()
 
-p = pd.read_csv("pitchers.csv", index_col="pitcher")
-h = pd.read_csv("hitters.csv", index_col="batter")
-pscale = MinMaxScaler(feature_range=(-0.085, 0.085))
-hscale = MinMaxScaler(feature_range=(-0.085, 0.085))
+# p = pd.read_csv("pitchers.csv", index_col="pitcher")
+# h = pd.read_csv("hitters.csv", index_col="batter")
+# pscale = MinMaxScaler(feature_range=(-0.085, 0.085))
+# hscale = MinMaxScaler(feature_range=(-0.085, 0.085))
 
-p['runs_L'] = pscale.fit_transform(p['woba_L'].to_numpy().reshape(-1,1))
-p['runs_R'] = pscale.fit_transform(p['woba_R'].to_numpy().reshape(-1,1))
-h['runs_L'] = hscale.fit_transform(h['woba_L'].to_numpy().reshape(-1,1))
-h['runs_R'] = hscale.fit_transform(h['woba_R'].to_numpy().reshape(-1,1))
+# p['runs_L'] = pscale.fit_transform(p['woba_L'].to_numpy().reshape(-1,1))
+# p['runs_R'] = pscale.fit_transform(p['woba_R'].to_numpy().reshape(-1,1))
+# h['runs_L'] = hscale.fit_transform(h['woba_L'].to_numpy().reshape(-1,1))
+# h['runs_R'] = hscale.fit_transform(h['woba_R'].to_numpy().reshape(-1,1))
 
-p.to_csv("pitchers.csv")
-h.to_csv("hitters.csv")
+# p.to_csv("pitchers.csv")
+# h.to_csv("hitters.csv")
