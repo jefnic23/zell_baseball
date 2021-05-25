@@ -340,15 +340,18 @@ getFanduel(odds_url).then(data => {
 });
 
 var games = [];
+var pks = [];
 socket.on("predictionData", data => {
     // console.log(data);
     games.push(data);
     if (games.length === live_games) {
-        games = [...new Set(games)];
         games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
         $.each(games, (i, g) => {
             // console.log(g);
-            populateTables(g);
+            if (!pks.includes(g.gamePk)) {
+                populateTables(g);
+                pks.push(g.gamePk);
+            }
         });
         document.querySelector("#slate").style.visibility = "visible";
         document.querySelector(".loader").style.visibility = "hidden";

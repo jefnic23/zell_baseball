@@ -171,7 +171,7 @@ def getHitters():
 
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
