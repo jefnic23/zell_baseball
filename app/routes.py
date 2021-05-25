@@ -109,7 +109,7 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
-    if game['away_lineup'] and game['home_lineup']:
+    if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         line = abs(over_line) + abs(under_line)
         venue = parks.loc[game['venue']]['runs']
         ump = getUmp(game['ump']['official']['id'])
@@ -119,11 +119,10 @@ def send_data(data):
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
 
-        # PvB testing
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         pvb = away_pvb + home_pvb + 0.17913259581679686
-        print(f"\n{game['away_team_short']}: {pvb}\n")
+        # print(f"\n{game['away_team_short']}: {pvb}\n")
 
         prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
         if game['innings'] == 7:
@@ -159,7 +158,7 @@ def change_line(data):
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
         new_total = round(prediction - adj_line - 0.3, 2)
-        if new_total >= .5 or new_total <= -.5:
+        if new_total >= 0.5 or new_total <= -0.5:
             bet = bets.loc[abs(new_total)]['bet']
         else:
             bet = "No Value"

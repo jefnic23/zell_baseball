@@ -267,7 +267,7 @@ getFanduel(odds_url).then(data => {
                 game['under_line'] = null;
         
                 getData(base_url, g.link).then(d => {
-                    console.log(d);
+                    // console.log(d);
                     game['away_team_short'] = d.gameData.teams.away.teamName;
                     game['home_team_short'] = d.gameData.teams.home.teamName;
                     if (notEmpty(d.gameData.weather)) {
@@ -357,11 +357,14 @@ socket.on("predictionData", data => {
 
 socket.on("lineChange", data => {
     // console.log(data);
-    var ids = data.ids;
-    var actual_el = document.querySelector(`#${CSS.escape(ids[0])}`);
-    var adj_el = document.querySelector(`#${CSS.escape(ids[1])}`);
-    var total_el = document.querySelector(`#${CSS.escape(ids[2])}`);
-    var value_el = document.querySelector(`#${CSS.escape(ids[3])}`);
+    var actual_id = data.ids.actual_id;
+    var adj_id = data.ids.adj_id;
+    var total_id = data.ids.total_id;
+    var value_id = data.ids.value_id;
+    var actual_el = document.querySelector(`#${CSS.escape(actual_id)}`);
+    var adj_el = document.querySelector(`#${CSS.escape(adj_id)}`);
+    var total_el = document.querySelector(`#${CSS.escape(total_id)}`);
+    var value_el = document.querySelector(`#${CSS.escape(value_id)}`);
     changePrice(actual_el, data.over_under);
     changePrice(adj_el, data.adj_line);
     changePrice(total_el, data.new_total);
@@ -383,8 +386,7 @@ function updateOdds() {
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                     var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                     var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                    //         actual line       adj. line          total               value
-                    var ids = [market.idfoevent, market.idfomarket, over.idfoselection, game.gamePk];
+                    var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": over.idfoselection, "value_id": game.gamePk};
                     /*
                     var now = new Date();
                     var game_time = new Date(market.tsstart);
