@@ -372,7 +372,7 @@ socket.on("predictionData", data => {
 });
 
 socket.on("lineChange", data => {
-    console.log(data);
+    // console.log(data);
     changePrice(data.ids.actual_id, data.over_under);
     changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
@@ -380,37 +380,37 @@ socket.on("lineChange", data => {
 });
 
 function updateOdds() {
-    getFanduel(odds_url).then(data => {
-        $.each(data.events, (i, e) => {
-            // console.log(e);
-            // convert to try catch
-            if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
-                var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
-                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
-                var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
-                /*
-                var now = new Date();
-                var game_time = new Date(market.tsstart);
-                if (now.getDate() >= game_time.getDate()) {
-                    document.getElementById('slate').deleteRow(i);
-                } 
-                */
-                changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
-            }
+    if (active_games != 0) {
+        getFanduel(odds_url).then(data => {
+            $.each(data.events, (i, e) => {
+                // console.log(e);
+                // convert to try catch
+                if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
+                    var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
+                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+                    var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
+                    var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
+                    var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
+                    /*
+                    var now = new Date();
+                    var game_time = new Date(market.tsstart);
+                    if (now.getDate() >= game_time.getDate()) {
+                        document.getElementById('slate').deleteRow(i);
+                    } 
+                    */
+                    changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
+                }
+            });
         });
-    });
+    }
 }
 
 (function mainLoop() {
     let rand = Math.floor(Math.random() * 10) + 10;
-    if (active_games != 0) {
-        setTimeout(() => {
-            updateOdds();
-            mainLoop();
-        }, rand * 1000);
-    } 
+    setTimeout(() => {
+        updateOdds();
+        mainLoop();
+    }, rand * 1000);
 }());
 
 /*

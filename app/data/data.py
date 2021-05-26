@@ -125,7 +125,7 @@ def getPitching():
     df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
     df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
     
-    scaler = MinMaxScaler(feature_range=(-0.15, 0.15))
+    scaler = MinMaxScaler(feature_range=(-0.085, 0.085))
     df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
     df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv("pitchers.csv")
@@ -164,7 +164,7 @@ def getHitters():
     dfr['woba_L'] = (dfr['woba_L'] + woba_L) / (dfr['pa_L'] + pa_L)
     df = pd.concat([dfl, dfr])
     
-    scaler = MinMaxScaler(feature_range=(-0.20, 0.20))
+    scaler = MinMaxScaler(feature_range=(-0.085, 0.085))
     df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
     df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv('hitters.csv')
@@ -184,8 +184,8 @@ def getMatchups():
     hRR = h[h['stand'] == 'R']['woba_R']
     
     LL = pd.concat([pLL, hLL])
-    LR = pd.concat([pLR, hLR])
-    RL = pd.concat([pRL, hRL])
+    LR = pd.concat([pLR, hRL])
+    RL = pd.concat([pRL, hLR])
     RR = pd.concat([pRR, hRR])
     
     matchups = {'matchup': ['LL', 'LR', 'RL', 'RR'],
