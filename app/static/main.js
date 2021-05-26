@@ -181,7 +181,8 @@ function populateTables(data) {
     table.appendChild(row);
 }
 
-function changePrice(el, odds_type) {
+function changePrice(el_id, odds_type) {
+    var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > odds_type) {
         el.innerHTML = odds_type;
         el.classList.add("price-down");
@@ -198,8 +199,22 @@ function changePrice(el, odds_type) {
     }
 }
 
-function changeValue(el, value) {
-    el.innerHTML = value;
+function changeValue(el_id, value) {
+    var el = document.querySelector(`#${CSS.escape(el_id)}`);
+    if (el.innerHTML > value) {
+        el.innerHTML = value;
+        el.classList.add('bet-down');
+        setTimeout(() => {
+            el.classList.remove('bet-down');
+        }, 5500);
+    }
+    if (el.innerHTML < value) {
+        el.innerHTML = value;
+        el.classList.add("bet-up");
+        setTimeout(() => {
+            el.classList.remove("bet-up");
+        }, 5500);
+    }
 }
 
 function noGames() {
@@ -241,7 +256,6 @@ getFanduel(odds_url).then(data => {
         }
         $.each(data.games, (i, g) => {
             // console.log(g);
-            // should be "P" or "S"; "I" for testing
             if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
                 var game = {};
                 game['gamePk'] = g.gamePk;
@@ -328,7 +342,6 @@ getFanduel(odds_url).then(data => {
                             game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
                             game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
                         }
-                        // console.log(game);
                         sendData(game);
                         live_games++;
                     }
@@ -359,53 +372,46 @@ socket.on("predictionData", data => {
 });
 
 socket.on("lineChange", data => {
-    // console.log(data);
-    var actual_id = data.ids.actual_id;
-    var adj_id = data.ids.adj_id;
-    var total_id = data.ids.total_id;
-    var value_id = data.ids.value_id;
-    var actual_el = document.querySelector(`#${CSS.escape(actual_id)}`);
-    var adj_el = document.querySelector(`#${CSS.escape(adj_id)}`);
-    var total_el = document.querySelector(`#${CSS.escape(total_id)}`);
-    var value_el = document.querySelector(`#${CSS.escape(value_id)}`);
-    changePrice(actual_el, data.over_under);
-    changePrice(adj_el, data.adj_line);
-    changePrice(total_el, data.new_total);
-    changeValue(value_el, data.bet);
+    console.log(data);
+    changePrice(data.ids.actual_id, data.over_under);
+    changePrice(data.ids.adj_id, data.adj_line);
+    changePrice(data.ids.total_id, data.new_total);
+    changeValue(data.ids.value_id, data.bet);
 });
 
 function updateOdds() {
-    var rand = Math.floor(Math.random() * 10) + 10;
-    if (active_games === 0) {
-        // instead of clearing interval, wait until next day? try to keep this always running
-        clearInterval(updateOdds);
-    } else {
-        getFanduel(odds_url).then(data => {
-            $.each(data.events, (i, e) => {
-                // console.log(e);
-                // convert to try catch
-                if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
-                    var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
-                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                    var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
-                    var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                    var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": over.idfoselection, "value_id": game.gamePk};
-                    /*
-                    var now = new Date();
-                    var game_time = new Date(market.tsstart);
-                    if (now.getDate() >= game_time.getDate()) {
-                        document.getElementById('slate').deleteRow(i);
-                    } 
-                    */
-                    changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
-                }
-            });
+    getFanduel(odds_url).then(data => {
+        $.each(data.events, (i, e) => {
+            // console.log(e);
+            // convert to try catch
+            if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
+                var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
+                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+                var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
+                var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
+                var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
+                /*
+                var now = new Date();
+                var game_time = new Date(market.tsstart);
+                if (now.getDate() >= game_time.getDate()) {
+                    document.getElementById('slate').deleteRow(i);
+                } 
+                */
+                changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
+            }
         });
-    }
-    setTimeout(updateOdds, rand * 1000);
+    });
 }
-    
-updateOdds();
+
+(function mainLoop() {
+    let rand = Math.floor(Math.random() * 10) + 10;
+    if (active_games != 0) {
+        setTimeout(() => {
+            updateOdds();
+            mainLoop();
+        }, rand * 1000);
+    } 
+}());
 
 /*
 

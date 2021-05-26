@@ -145,3 +145,51 @@ tbody > tr:nth-child(odd) {
     color: white;
     text-shadow: 1px 1px black;
 }
+
+.bet-up {
+    position: relative;
+}
+
+.bet-down {
+    position: relative;
+}
+
+.bet-up:after {
+    animation: fade-bet-up 2s forwards;
+    animation-delay: 3s;
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0; 
+    height: 0; 
+    display: block;
+    border-left: 13px solid transparent;
+    border-bottom: 13px solid transparent;
+    border-top: 13px solid rgba(102, 255, 0, 1);
+}
+
+.bet-down:after {
+    animation: fade-bet-down 2s forwards;
+    animation-delay: 3s;
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0; 
+    height: 0; 
+    display: block;
+    border-left: 13px solid transparent;
+    border-bottom: 13px solid rgba(102, 0, 0, 1);
+    border-top: 13px solid transparent;
+}
+
+@keyframes fade-bet-up {
+    from {border-top: 13px solid rgba(102, 255, 0, 1);}
+    to {border-top: 13px solid rgba(102, 255, 0, 0);}
+}
+
+@keyframes fade-bet-down {
+    from {border-bottom: 13px solid rgba(102, 0, 0, 1);}
+    to {border-bottom: 13px solid rgba(102, 0, 0, 0);}
+}

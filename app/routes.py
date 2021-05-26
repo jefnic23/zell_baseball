@@ -121,7 +121,7 @@ def send_data(data):
 
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        pvb = away_pvb + home_pvb + 0.17913259581679686
+        pvb = away_pvb + home_pvb + 0.18
         # print(f"\n{game['away_team_short']}: {pvb}\n")
 
         prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
@@ -133,7 +133,7 @@ def send_data(data):
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
-        total = round(prediction - adj_line - 0.3, 2)
+        total = round(prediction - adj_line - 0.28, 2)
         if total >= .5 or total <= -.5:
             bet = bets.loc[abs(total)]['bet']
         else:
@@ -157,7 +157,7 @@ def change_line(data):
         else: 
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
-        new_total = round(prediction - adj_line - 0.3, 2)
+        new_total = round(prediction - adj_line - 0.28, 2)
         if new_total >= 0.5 or new_total <= -0.5:
             bet = bets.loc[abs(new_total)]['bet']
         else:
