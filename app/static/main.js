@@ -215,6 +215,9 @@ function changeValue(el_id, value) {
             el.classList.remove("bet-up");
         }, 5500);
     }
+    if (el.innerHTML === 'No Value' && value >= 0.5 || value <= -0.5) {
+        el.innerHTML = value;
+    }
 }
 
 function noGames() {
@@ -384,7 +387,6 @@ function updateOdds() {
         getFanduel(odds_url).then(data => {
             $.each(data.events, (i, e) => {
                 // console.log(e);
-                // convert to try catch
                 if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
                     var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
                     var market = e.markets.find(x => x.idfomarkettype === 48555.1);
