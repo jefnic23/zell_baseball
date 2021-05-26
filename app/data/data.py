@@ -169,6 +169,35 @@ def getHitters():
     df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv('hitters.csv')
 
+def getMatchups():
+    p = pd.read_csv("pitchers.csv", index_col="pitcher")
+    h = pd.read_csv("hitters.csv", index_col="batter")
+    
+    pLL = p[p['p_throws'] == 'L']['woba_L']
+    pLR = p[p['p_throws'] == 'L']['woba_R']
+    pRL = p[p['p_throws'] == 'R']['woba_L']
+    pRR = p[p['p_throws'] == 'R']['woba_R']
+    
+    hLL = h[h['stand'] == 'L']['woba_L']
+    hLR = h[h['stand'] == 'L']['woba_R']
+    hRL = h[h['stand'] == 'R']['woba_L']
+    hRR = h[h['stand'] == 'R']['woba_R']
+    
+    LL = pd.concat([pLL, hLL])
+    LR = pd.concat([pLR, hLR])
+    RL = pd.concat([pRL, hRL])
+    RR = pd.concat([pRR, hRR])
+    
+    matchups = {'matchup': ['LL', 'LR', 'RL', 'RR'],
+                'odds': []
+                }
+    matchups['odds'].append(LL.mean() / (1 - LL.mean()))
+    matchups['odds'].append(LR.mean() / (1 - LR.mean()))
+    matchups['odds'].append(RL.mean() / (1 - RL.mean()))
+    matchups['odds'].append(RR.mean() / (1 - RR.mean()))
+    df = pd.DataFrame(matchups, columns=matchups.keys())
+    return df.to_csv('matchups.csv', index=False)
+
 
 # getUmps()
 # getBets()
@@ -176,9 +205,11 @@ def getHitters():
 # getBullpens()
 # getPitching()
 # getHitters()
+# getMatchups()
 
 # p = pd.read_csv("pitchers.csv", index_col="pitcher")
 # h = pd.read_csv("hitters.csv", index_col="batter")
+    
 # pscale = MinMaxScaler(feature_range=(-0.085, 0.085))
 # hscale = MinMaxScaler(feature_range=(-0.085, 0.085))
 
