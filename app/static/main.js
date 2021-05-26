@@ -218,6 +218,9 @@ function changeValue(el_id, value) {
     if (el.innerHTML === 'No Value' && value >= 0.5 || value <= -0.5) {
         el.innerHTML = value;
     }
+    if (el.innerHTML != 'No Value' && value <= 0.5 && value >= -0.5) {
+        el.innerHTML = 'No Value';
+    }
 }
 
 function noGames() {
