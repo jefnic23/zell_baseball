@@ -79,6 +79,13 @@ function getMoneyLine(data) {
     return Math.round(line);
 }
 
+function changeClass(el, _class) {
+    el.classList.add(_class);
+    setTimeout(() => {
+        el.classList.remove(_class);
+    }, 5500);
+}
+
 function populateTables(data) {
     // console.log(data);
     var game = data.game;
@@ -185,41 +192,35 @@ function changePrice(el_id, odds_type) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > odds_type) {
         el.innerHTML = odds_type;
-        el.classList.add("price-down");
-        setTimeout(() => {
-            el.classList.remove("price-down");
-        }, 5500);
+        changeClass(el, 'price-down');
     }
     if (el.innerHTML < odds_type) {
         el.innerHTML = odds_type;
-        el.classList.add("price-up");
-        setTimeout(() => {
-            el.classList.remove("price-up");
-        }, 5500);
+        changeClass(el, 'price-up');
     }
 }
 
-function changeValue(el_id, value) {
+function changeValue(el_id, value, total) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > value) {
         el.innerHTML = value;
-        el.classList.add('bet-down');
-        setTimeout(() => {
-            el.classList.remove('bet-down');
-        }, 5500);
+        changeClass(el, 'bet-down');
     }
     if (el.innerHTML < value) {
         el.innerHTML = value;
-        el.classList.add("bet-up");
-        setTimeout(() => {
-            el.classList.remove("bet-up");
-        }, 5500);
+        changeClass(el, 'bet-up');
     }
-    if (el.innerHTML === 'No Value' && value >= 0.5 || value <= -0.5) {
+    if (el.innerHTML === 'No Value' && total >= 0.5) {
         el.innerHTML = value;
+        el.classList.add("betover");
     }
-    if (el.innerHTML != 'No Value' && value <= 0.5 && value >= -0.5) {
+    if (el.innerHTML === 'No Value' && total <= 0.5) {
+        el.innerHTML = value;
+        el.classList.add("betunder");
+    }
+    if (el.innerHTML != 'No Value' && total <= 0.5 && total >= -0.5) {
         el.innerHTML = 'No Value';
+        el.setAttribute('class', '');
     }
 }
 
@@ -382,7 +383,7 @@ socket.on("lineChange", data => {
     changePrice(data.ids.actual_id, data.over_under);
     changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
-    changeValue(data.ids.value_id, data.bet);
+    changeValue(data.ids.value_id, data.bet, data.new_total);
 });
 
 function updateOdds() {
@@ -396,13 +397,11 @@ function updateOdds() {
                     var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                     var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
                     var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
-                    /*
                     var now = new Date();
                     var game_time = new Date(market.tsstart);
-                    if (now.getDate() >= game_time.getDate()) {
-                        document.getElementById('slate').deleteRow(i);
+                    if (now.getTime() >= game_time.getTime()) {
+                        $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
                     } 
-                    */
                     changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
                 }
             });

@@ -124,10 +124,6 @@ def getPitching():
     woba_R = df['woba_R'].mean()
     df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
     df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
-    
-    scaler = MinMaxScaler(feature_range=(-0.085, 0.085))
-    df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
-    df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv("pitchers.csv")
 
 
@@ -163,10 +159,6 @@ def getHitters():
     dfr['woba_R'] = (dfr['woba_R'] + woba_R) / (dfr['pa_R'] + pa_R)
     dfr['woba_L'] = (dfr['woba_L'] + woba_L) / (dfr['pa_L'] + pa_L)
     df = pd.concat([dfl, dfr])
-    
-    scaler = MinMaxScaler(feature_range=(-0.085, 0.085))
-    df['runs_R'] = scaler.fit_transform(df['woba_R'].to_numpy().reshape(-1,1))
-    df['runs_L'] = scaler.fit_transform(df['woba_L'].to_numpy().reshape(-1,1))
     return df.to_csv('hitters.csv')
 
 def getMatchups():
@@ -206,17 +198,3 @@ def getMatchups():
 # getPitching()
 # getHitters()
 # getMatchups()
-
-# p = pd.read_csv("pitchers.csv", index_col="pitcher")
-# h = pd.read_csv("hitters.csv", index_col="batter")
-    
-# pscale = MinMaxScaler(feature_range=(-0.085, 0.085))
-# hscale = MinMaxScaler(feature_range=(-0.085, 0.085))
-
-# p['runs_L'] = pscale.fit_transform(p['woba_L'].to_numpy().reshape(-1,1))
-# p['runs_R'] = pscale.fit_transform(p['woba_R'].to_numpy().reshape(-1,1))
-# h['runs_L'] = hscale.fit_transform(h['woba_L'].to_numpy().reshape(-1,1))
-# h['runs_R'] = hscale.fit_transform(h['woba_R'].to_numpy().reshape(-1,1))
-
-# p.to_csv("pitchers.csv")
-# h.to_csv("hitters.csv")

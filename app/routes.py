@@ -16,6 +16,8 @@ fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
 bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
 pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
 hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
+matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
+woba = pd.read_csv('app/data/woba.csv', index_col='woba')
 
 def getTemp(temp):
     if temp <= 46:
@@ -61,6 +63,20 @@ def getBullpen(bullpen):
             runs += 0
     return runs
 
+def oddsRatio(hitter, pitcher, matchup):
+    h = hitter / (1 - hitter)
+    p = pitcher / (1 - hitter)
+    l = matchups.loc[matchup]['odds']
+    odds = h * p / l
+    rate = round(odds / (odds + 1), 3)
+    if 0.290 <= rate <= 0.400:
+        return woba.loc[rate]['runs']
+    else:
+        if rate < 0.290:
+            return -0.12
+        if rate > 0.400:
+            return 0.145
+
 def PvB(pitcher, lineup):
     runs = 0
     p_id = pitcher['id']
@@ -70,29 +86,29 @@ def PvB(pitcher, lineup):
             b_id = hitter['id']
             b_hand = hitter['batSide']['code']
             if b_hand == "S" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_R']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_R']
+                runs += oddsRatio(b_runs, p_runs, 'RL')
             if b_hand == "S" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_L']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_L']
+                runs += oddsRatio(b_runs, p_runs, 'LR')
             if b_hand == "L" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_L']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_L']
+                runs += oddsRatio(b_runs, p_runs, 'LL')
             if b_hand == "L" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['runs_R']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_L']
+                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_R']
+                runs += oddsRatio(b_runs, p_runs, 'RL')
             if b_hand == "R" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['runs_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_R']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_R']
+                runs += oddsRatio(b_runs, p_runs, 'RR')
             if b_hand == "R" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['runs_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['runs_L']
-                runs += p_runs + b_runs
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_R']
+                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_L']
+                runs += oddsRatio(b_runs, p_runs, 'LR')
         except:
             runs += 0
     return runs
@@ -121,7 +137,7 @@ def send_data(data):
 
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        pvb = away_pvb + home_pvb + 0.18
+        pvb = away_pvb + home_pvb
         # print(f"\n{game['away_team_short']}: {pvb}\n")
 
         prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
@@ -133,8 +149,8 @@ def send_data(data):
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
-        total = round(prediction - adj_line - 0.28, 2)
-        if total >= .5 or total <= -.5:
+        total = round(prediction - adj_line, 2)
+        if total >= 0.5 or total <= -0.5:
             bet = bets.loc[abs(total)]['bet']
         else:
             bet = "No Value"
@@ -157,7 +173,7 @@ def change_line(data):
         else: 
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
-        new_total = round(prediction - adj_line - 0.28, 2)
+        new_total = round(prediction - adj_line, 2)
         if new_total >= 0.5 or new_total <= -0.5:
             bet = bets.loc[abs(new_total)]['bet']
         else:
