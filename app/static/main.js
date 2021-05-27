@@ -401,11 +401,14 @@ function updateOdds() {
                     var game_time = new Date(market.tsstart);
                     if (now.getTime() >= game_time.getTime()) {
                         $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
+                        active_games--;
                     } 
                     changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
                 }
             });
         });
+    } else {
+        noGames();
     }
 }
 
