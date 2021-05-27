@@ -414,10 +414,12 @@ function updateOdds() {
 
 (function mainLoop() {
     let rand = Math.floor(Math.random() * 10) + 10;
-    setTimeout(() => {
-        updateOdds();
-        mainLoop();
-    }, rand * 1000);
+    if (active_games != 0) {
+        setTimeout(() => {
+            updateOdds();
+            mainLoop();
+        }, rand * 1000);
+    }
 }());
 
 /*
