@@ -11,6 +11,7 @@ var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
 var num_games = 0; // set this from callapi on dom load
 var active_games = 0; // set this from callapi on dom load
 var live_games = 0;
+var no_games = false;
 const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
     'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
     'Baltimore Orioles': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg',
@@ -214,7 +215,7 @@ function changeValue(el_id, value, total) {
         el.innerHTML = value;
         el.classList.add("betover");
     }
-    if (el.innerHTML === 'No Value' && total <= 0.5) {
+    if (el.innerHTML === 'No Value' && total <= -0.5) {
         el.innerHTML = value;
         el.classList.add("betunder");
     }
@@ -233,6 +234,7 @@ function noGames() {
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);
+    no_games = true;
 }
 
 function notEmpty(obj) {
@@ -408,18 +410,18 @@ function updateOdds() {
             });
         });
     } else {
-        noGames();
+        if (!no_games) {
+            noGames();
+        }
     }
 }
 
 (function mainLoop() {
     let rand = Math.floor(Math.random() * 10) + 10;
-    if (active_games != 0) {
-        setTimeout(() => {
-            updateOdds();
-            mainLoop();
-        }, rand * 1000);
-    }
+    setTimeout(() => {
+        updateOdds();
+        mainLoop();
+    }, rand * 1000);
 }());
 
 /*
