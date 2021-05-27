@@ -410,7 +410,7 @@ function updateOdds() {
             });
         });
     } else {
-        if (!no_games) {
+        if (no_games) {
             noGames();
         }
     }
