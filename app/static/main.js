@@ -106,6 +106,9 @@ function populateTables(data) {
         if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
             row.style.border = "3px solid #dc3545";
         }
+        if (game.venue === "Wrigley Field" && data.direction === "In" && data.speed >= 10) {
+            row.style.border = "3px solid #dc3545";
+        }
     }
     if (prediction === "TBD") {
         row.classList.add('grayout');
