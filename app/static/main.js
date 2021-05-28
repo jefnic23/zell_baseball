@@ -389,9 +389,7 @@ socket.on("lineChange", data => {
 });
 
 function updateOdds() {
-    if (no_games) {
-        noGames();
-    } else {
+    if (!no_games) {
         getFanduel(odds_url).then(data => {
             $.each(data.events, (i, e) => {
                 // console.log(e);
@@ -411,6 +409,10 @@ function updateOdds() {
                 }
             });
         });
+    } else {
+        if (active_games === 0) {
+            noGames();
+        }
     }
 }
 
