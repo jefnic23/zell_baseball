@@ -143,14 +143,18 @@ def send_data(data):
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
         direction = wind[2]
-        print(f"\n{game['home_team_short']}: {speed, direction}\n")
+        # print(f"\n{game['home_team_short']}: {speed, direction}\n")
 
         prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
         if game['innings'] == 7:
             prediction = round(prediction * (7/9), 2)
-        if game['venue'] == "Wrigley Field" and direction == "In" and speed >= 10:
-            for i in range(0, speed - 10 + 1):
-                prediction -= 0.15
+        if game['venue'] == "Wrigley Field" and speed >= 10:
+            if direction == "In":
+                for i in range(0, speed - 10 + 1):
+                    prediction -= 0.2
+            if direction == "Out":
+                for i in range(0, speed - 10 + 1):
+                    prediction += 0.2
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
