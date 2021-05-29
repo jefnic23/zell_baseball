@@ -102,9 +102,8 @@ def getBullpens():
     avg_runners = df['runners'].mean()
     avg_innings = df['innings'].mean()
     df['whip'] = (df['runners'] + avg_runners) / (df['innings'] + avg_innings)
-    df['rank'] = df['whip'].rank(ascending=True)
-    scaler = MinMaxScaler(feature_range=(-0.06, 0.06))
-    df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
+    scaler = MinMaxScaler(feature_range=(-0.3125, 0.2475))
+    df['runs'] = scaler.fit_transform(df['whip'].to_numpy().reshape(-1,1))
     return df.to_csv('bullpens.csv')
 
 
@@ -206,19 +205,7 @@ def getMatchups():
 # getUmps()
 # getBets()
 # getFielding()
-# getBullpens()
-getPitching()
+getBullpens()
+# getPitching()
 # getHitters()
 # getMatchups()
-
-# df = pd.read_csv('E:/Documents/Pitcher List/statcast_data/savant_2021.csv')
-# out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
-# out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
-# out_3 = ['triple_play']
-# df['outs'] = np.where(df['events'].isin(out_1), 1, 0)
-# df['outs'] = np.where(df['events'].isin(out_2), 2, df['outs'])
-# df['outs'] = np.where(df['events'].isin(out_3), 3, df['outs'])
-# sp = df[df['inning'] == 1]['pitcher'].unique()
-# df = df[df['pitcher'].isin(sp)].groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
-# df['innings'] = df['outs'] / 3
-# print(df.groupby('pitcher').agg({'innings': 'mean'}))

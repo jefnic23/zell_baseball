@@ -73,9 +73,26 @@ def oddsRatio(hitter, pitcher, matchup):
         return woba.loc[rate]['runs']
     else:
         if rate < 0.290:
-            return -0.12
+            return -0.15
         if rate > 0.400:
-            return 0.145
+            return 0.1825
+
+def getInnings(pitcher, pvb, bullpen, dh=False): 
+    p_id = pitcher['id']
+    if dh:
+        try:
+            innings = pitchers.loc[p_id]['innings'] / 7
+            return (pvb * innings) + (bullpen * (1 - innings))
+        except:
+            innings = pitchers['innings'].median() / 7
+            return (pvb * innings) + (bullpen * (1 - innings))
+    else:
+        try:
+            innings = pitchers.loc[p_id]['innings'] / 9
+            return (pvb * innings) + (bullpen * (1 - innings))
+        except:
+            innings = pitchers['innings'].median() / 9
+            return (pvb * innings) + (bullpen * (1 - innings))
 
 def PvB(pitcher, lineup):
     runs = 0
@@ -134,27 +151,26 @@ def send_data(data):
         home_fielding = getFielding(game['home_lineup'])
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
-
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        pvb = away_pvb + home_pvb
-        # print(f"\n{game['away_team_short']}: {pvb}\n")
+        away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen)
+        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen)
+        prediction = venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
         direction = wind[2]
-        # print(f"\n{game['home_team_short']}: {speed, direction}\n")
 
-        prediction = round(venue + ump + away_fielding + home_fielding + weather + away_bullpen + home_bullpen + pvb, 2)
         if game['innings'] == 7:
-            prediction = round(prediction * (7/9), 2)
-        if game['venue'] == "Wrigley Field" and speed >= 10:
-            if direction == "In":
-                for i in range(0, speed - 10 + 1):
-                    prediction -= 0.2
-            if direction == "Out":
-                for i in range(0, speed - 10 + 1):
-                    prediction += 0.2
+            away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, dh=True)
+            home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, dh=True)
+            prediction = ((7/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups
+        if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
+            for i in range(0, speed - 10 + 1):
+                prediction -= 0.20
+        if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
+            for i in range(0, speed - 10 + 1):
+                prediction += 0.20
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -167,7 +183,7 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'wind_speed': speed, 'wind_direction': direction, 'prediction': prediction, 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
