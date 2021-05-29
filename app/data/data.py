@@ -111,13 +111,25 @@ def getBullpens():
 def getPitching():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
+    
+    out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
+    out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
+    out_3 = ['triple_play']
+    df['outs'] = np.where(df['events'].isin(out_1), 1, 0)
+    df['outs'] = np.where(df['events'].isin(out_2), 2, df['outs'])
+    df['outs'] = np.where(df['events'].isin(out_3), 3, df['outs'])
+    dfi = df.groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
+    dfi['innings'] = dfi['outs'] / 3
+    dfi = dfi.groupby('pitcher').agg({'innings': 'mean'})
+    
     dft = df.groupby("pitcher")['p_throws'].unique().str[0]
     df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
                                                         pa_L = ('woba_value', 'count'))
     df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'sum'),
                                                         pa_R = ('woba_value', 'count'))
     dfc = pd.merge(df1, df2, on="pitcher")
-    df = pd.merge(dft, dfc, on='pitcher')
+    dfx = pd.merge(dft, dfc, on='pitcher')
+    df = pd.merge(dfx, dfi, on='pitcher')
     pa_L = df['pa_L'].mean()
     pa_R = df['pa_R'].mean()
     woba_L = df['woba_L'].mean()
@@ -195,7 +207,7 @@ def getMatchups():
 # getBets()
 # getFielding()
 # getBullpens()
-# getPitching()
+getPitching()
 # getHitters()
 # getMatchups()
 
@@ -209,4 +221,4 @@ def getMatchups():
 # sp = df[df['inning'] == 1]['pitcher'].unique()
 # df = df[df['pitcher'].isin(sp)].groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
 # df['innings'] = df['outs'] / 3
-# print(df['innings'].mean())
+# print(df.groupby('pitcher').agg({'innings': 'mean'}))
