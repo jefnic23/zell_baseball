@@ -97,6 +97,8 @@ function populateTables(data) {
     var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
     var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
     var prediction = data.prediction;
+    var pred_data = data.pred_data;
+    var pred_name = ['Park', 'Weather', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
@@ -152,8 +154,25 @@ function populateTables(data) {
             td.appendChild(div);
             row.appendChild(td);
         } 
-        if (i === 1 || i === 2) {
+        if (i === 1) {
             td.innerHTML = items[i];
+            row.appendChild(td);
+        }
+        if (i === 2) {
+            td.innerHTML = items[i];
+            td.classList.add('tooltip');
+            if (pred_data) {
+                var span = document.createElement('span');
+                span.classList.add('tooltiptext');
+                var ul = document.createElement('ul');
+                for (var j = 0; j < pred_data.length; j++) {
+                    var li = document.createElement('li');
+                    li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
+                    ul.appendChild(li);
+                }
+                span.appendChild(ul);
+                td.appendChild(span);
+            }
             row.appendChild(td);
         }
         if (i === 3) {
@@ -209,20 +228,16 @@ function changeValue(el_id, value, total) {
     if (el.innerHTML > value) {
         el.innerHTML = value;
         changeClass(el, 'bet-down');
-    }
-    if (el.innerHTML < value) {
+    } else if (el.innerHTML < value) {
         el.innerHTML = value;
         changeClass(el, 'bet-up');
-    }
-    if (el.innerHTML === 'No Value' && total >= 0.5) {
+    } else if (el.innerHTML === 'No Value' && total >= 0.5) {
         el.innerHTML = value;
         el.classList.add("betover");
-    }
-    if (el.innerHTML === 'No Value' && total <= -0.5) {
+    } else if (el.innerHTML === 'No Value' && total <= -0.5) {
         el.innerHTML = value;
         el.classList.add("betunder");
-    }
-    if (el.innerHTML != 'No Value' && total <= 0.5 && total >= -0.5) {
+    } else if (el.innerHTML != 'No Value' && total <= 0.5 && total >= -0.5) {
         el.innerHTML = 'No Value';
         el.setAttribute('class', '');
     }

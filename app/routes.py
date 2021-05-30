@@ -41,7 +41,7 @@ def getUmp(ump):
         runs += umps.loc[ump]['runs']
     except: 
         runs += 0
-    return runs
+    return round(runs, 2)
 
 def getFielding(lineup):
     runs = 0
@@ -51,7 +51,7 @@ def getFielding(lineup):
             runs += fielding.loc[player]['outs']
         except:
             runs += 0
-    return runs
+    return round(runs, 2)
 
 def getBullpen(bullpen):
     runs = 0
@@ -61,7 +61,7 @@ def getBullpen(bullpen):
             runs += bullpens.loc[player]['runs']
         except:
             runs += 0
-    return runs
+    return round(runs, 2)
 
 def oddsRatio(hitter, pitcher, matchup):
     h = hitter / (1 - hitter)
@@ -70,7 +70,7 @@ def oddsRatio(hitter, pitcher, matchup):
     odds = h * p / l
     rate = round(odds / (odds + 1), 3)
     if 0.290 <= rate <= 0.400:
-        return woba.loc[rate]['runs']
+        return round(woba.loc[rate]['runs'], 2)
     else:
         if rate < 0.290:
             return -0.15
@@ -82,17 +82,17 @@ def getInnings(pitcher, pvb, bullpen, dh=False):
     if dh:
         try:
             innings = pitchers.loc[p_id]['innings'] / 7
-            return (pvb * innings) + (bullpen * (1 - innings))
+            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
         except:
             innings = pitchers['innings'].median() / 7
-            return (pvb * innings) + (bullpen * (1 - innings))
+            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
     else:
         try:
             innings = pitchers.loc[p_id]['innings'] / 9
-            return (pvb * innings) + (bullpen * (1 - innings))
+            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
         except:
             innings = pitchers['innings'].median() / 9
-            return (pvb * innings) + (bullpen * (1 - innings))
+            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
 
 def PvB(pitcher, lineup):
     runs = 0
@@ -128,7 +128,7 @@ def PvB(pitcher, lineup):
                 runs += oddsRatio(b_runs, p_runs, 'LR')
         except:
             runs += 0
-    return runs
+    return round(runs, 2)
 
 @app.route('/')
 def index():
@@ -144,7 +144,7 @@ def send_data(data):
     under_line = game['under_line']
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         line = abs(over_line) + abs(under_line)
-        venue = parks.loc[game['venue']]['runs']
+        venue = round(parks.loc[game['venue']]['runs'], 2)
         ump = getUmp(game['ump']['official']['id'])
         weather = getTemp(int(game['weather']['temp']))
         away_fielding = getFielding(game['away_lineup'])
@@ -155,6 +155,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen)
+        pred_data = [venue, weather, ump, away_fielding, home_fielding, away_matchups, home_matchups]
         prediction = venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups
 
         wind = game['weather']['wind'].split()
@@ -183,9 +184,9 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
