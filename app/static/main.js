@@ -196,11 +196,11 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under && total >= 1.1) {
+                if (prediction > over_under && total >= 1.15) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
                 } 
-                if (over_under > prediction && total <= -1.1) {
+                if (over_under > prediction && total <= -1.15) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
@@ -400,9 +400,11 @@ socket.on("lineChange", data => {
 
 function updateOdds() {
     if (!no_games) {
+        /*
         if (active_games === 0) {
             noGames();
         }
+        */
         getFanduel(odds_url).then(data => {
             $.each(data.events, (i, e) => {
                 // console.log(e);

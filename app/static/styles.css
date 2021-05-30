@@ -88,15 +88,15 @@ tbody > tr:nth-child(odd) {
 
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: 250px;
-    height: 150px;
-    background-color: black;
+    width: 240px;
+    height: 140px;
+    background-color: rgba(0, 0, 0, 0.89);
     color: #fff;
     border-radius: 6px;
     padding: 5px 0;
     position: absolute;
     z-index: 3;
-    top: -5px;
+    top: -125%;
     right: 105%;
     margin-left: 0px;
     opacity: 0;
@@ -106,6 +106,17 @@ tbody > tr:nth-child(odd) {
 .tooltip:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
+}
+
+.tooltip .tooltiptext::after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent rgba(0, 0, 0, 0.89);
 }
 
 .loader {
