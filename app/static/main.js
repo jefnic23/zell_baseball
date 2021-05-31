@@ -399,11 +399,6 @@ socket.on("lineChange", data => {
 
 function updateOdds() {
     if (!no_games) {
-        /*
-        if (active_games === 0) {
-            noGames();
-        }
-        */
         getFanduel(odds_url).then(data => {
             $.each(data.events, (i, e) => {
                 // console.log(e);
@@ -418,6 +413,9 @@ function updateOdds() {
                     if (now.getTime() >= game_time.getTime()) {
                         $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
                         active_games--;
+                        if (active_games === 0) {
+                            noGames();
+                        }
                     } 
                     changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
                 }
