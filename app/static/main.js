@@ -377,8 +377,7 @@ socket.on("predictionData", data => {
     // console.log(data);
     games.push(data);
     if (games.length === live_games) {
-        games.sort((a, b) => (a.game_time.localeCompare(b.game_time)));
-        $.each(games, (i, g) => {
+        $.each(games.sort((a, b) => (a.game_time.localeCompare(b.game_time))), (i, g) => {
             // console.log(g);
             if (!pks.includes(g.gamePk)) {
                 populateTables(g);
