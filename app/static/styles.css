@@ -203,7 +203,7 @@ tbody > tr:nth-child(odd) {
     display: block;
     border-left: 13px solid transparent;
     border-bottom: 13px solid transparent;
-    border-top: 13px solid rgba(102, 255, 0, 1);
+    border-top: 13px solid rgba(0, 100, 0, 1);
 }
 
 .bet-down:after {
@@ -222,7 +222,7 @@ tbody > tr:nth-child(odd) {
 }
 
 @keyframes fade-bet-up {
-    from {border-top: 13px solid rgba(102, 255, 0, 1);}
+    from {border-top: 13px solid rgba(0, 100, 0, 1);}
     to {border-top: 13px solid rgba(102, 255, 0, 0);}
 }
 
