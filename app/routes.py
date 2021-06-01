@@ -156,7 +156,7 @@ def send_data(data):
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen)
         pred_data = [venue, weather, ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups
+        prediction = venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups - 0.25
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
@@ -184,7 +184,7 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction - 0.25, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 

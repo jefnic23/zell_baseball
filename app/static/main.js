@@ -216,12 +216,10 @@ function changePrice(el_id, odds_type) {
     if (el.innerHTML > odds_type) {
         el.innerHTML = odds_type;
         changeClass(el, 'price-down');
-        changeClass(el, 'bet-down');
     }
     if (el.innerHTML < odds_type) {
         el.innerHTML = odds_type;
         changeClass(el, 'price-up');
-        changeClass(el, 'bet-up');
     }
 }
 
