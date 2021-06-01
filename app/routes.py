@@ -184,7 +184,7 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction - 0.15, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction - 0.25, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
