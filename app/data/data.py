@@ -65,7 +65,7 @@ def getFielding():
   
   
 def getBullpens():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('C:/users/jefni/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'].to_list()))]
     walks = df[df['events'] == 'walk'].groupby('pitcher').agg(walks=('events', 'count'))
     hits = df[df['events'].isin(['single', 
@@ -205,7 +205,7 @@ def getMatchups():
 # getUmps()
 # getBets()
 # getFielding()
-getBullpens()
+# getBullpens()
 # getPitching()
 # getHitters()
 # getMatchups()
