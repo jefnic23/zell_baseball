@@ -233,13 +233,13 @@ function changeValue(el_id, value, total) {
     } else if (el.innerHTML < value) {
         el.innerHTML = value;
         changeClass(el, 'bet-up');
-    } else if (el.innerHTML === 'No Value' && total >= 0.5) {
+    } else if (el.innerHTML === 'No Value' && total >= 1.25) {
         el.innerHTML = value;
         el.classList.add("betover");
-    } else if (el.innerHTML === 'No Value' && total <= -0.5) {
+    } else if (el.innerHTML === 'No Value' && total <= -1.25) {
         el.innerHTML = value;
         el.classList.add("betunder");
-    } else if (el.innerHTML != 'No Value' && total <= 0.5 && total >= -0.5) {
+    } else if (el.innerHTML != 'No Value' && total <= 1.25 && total >= -1.25) {
         el.innerHTML = 'No Value';
         el.setAttribute('class', '');
     }
