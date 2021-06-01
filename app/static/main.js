@@ -237,7 +237,7 @@ function changeValue(el_id, value, total) {
     } else if (el.innerHTML === 'No Value' && total <= -1.25) {
         el.innerHTML = value;
         el.classList.add("betunder");
-    } else if (el.innerHTML != 'No Value' && total <= 1.25 && total >= -1.25) {
+    } else if (el.innerHTML != 'No Value' && total <= 0.50 && total >= -0.50) {
         el.innerHTML = 'No Value';
         el.setAttribute('class', '');
     }
