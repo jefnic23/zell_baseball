@@ -208,7 +208,7 @@ def getParks():
     return df.to_csv('parks.csv')
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
