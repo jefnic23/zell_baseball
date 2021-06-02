@@ -48,8 +48,8 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-function changeLine(over_under, prediction, threshold, over, under, ids) {
-    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'threshold': threshold, 'over': over, 'under': under, 'ids': ids});
+function changeLine(over_under, prediction, over_threshold, under_threshold, over, under, ids) {
+    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over': over, 'under': under, 'ids': ids});
 }
 
 function callApi(url, date) {
@@ -96,7 +96,8 @@ function populateTables(data) {
     var home_team_logo = logos[game.home_team_full];
     var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
     var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-    var threshold = data.threshold;
+    var over_threshold = data.over_threshold;
+    var under_threshold = data.under_threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Weather', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
@@ -197,11 +198,11 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under && total >= threshold) {
+                if (prediction > over_under && total >= over_threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
                 } 
-                if (over_under > prediction && total <= 0-threshold) {
+                if (over_under > prediction && total <= 0-under_threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
@@ -224,24 +225,24 @@ function changePrice(el_id, odds_type) {
     }
 }
 
-function changeValue(el_id, value, total, threshold) {
+function changeValue(el_id, value, total, over_threshold, under_threshold) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > value) {
         el.innerHTML = value;
         changeClass(el, 'bet-down');
-        if (total <= threshold) {
+        if (total <= 0-under_threshold) {
             el.setAttribute('class', '');
         }
     } else if (el.innerHTML < value) {
         el.innerHTML = value;
         changeClass(el, 'bet-up');
-        if (total >= threshold) {
+        if (total >= over_threshold) {
             el.setAttribute('class', '');
         }
-    } else if (el.innerHTML === 'No Value' && total >= threshold) {
+    } else if (el.innerHTML === 'No Value' && total >= over_threshold) {
         el.innerHTML = value;
         el.classList.add("betover");
-    } else if (el.innerHTML === 'No Value' && total <= 0-threshold) {
+    } else if (el.innerHTML === 'No Value' && total <= 0-under_threshold) {
         el.innerHTML = value;
         el.classList.add("betunder");
     } else if (el.innerHTML != 'No Value' && total <= 0.50 && total >= -0.50) {
@@ -354,7 +355,7 @@ getFanduel(odds_url).then(data => {
                     }
                     try {
                         var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                        // console.log(odds);
+                        console.log(odds);
                         if (game['game_number'] === 1) {
                             game['game_time'] = new Date(odds[0].tsstart);
                             game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
@@ -401,7 +402,7 @@ socket.on("lineChange", data => {
     changePrice(data.ids.actual_id, data.over_under);
     changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
-    changeValue(data.ids.value_id, data.bet, data.new_total, data.threshold);
+    changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
 });
 
 function updateOdds() {
@@ -424,7 +425,7 @@ function updateOdds() {
                             noGames();
                         }
                     } 
-                    changeLine(market.currentmatchhandicap, game.prediction, game.threshold, over, under, ids);
+                    changeLine(market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
                 }
             });
         });
