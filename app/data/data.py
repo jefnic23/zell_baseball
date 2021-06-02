@@ -200,11 +200,17 @@ def getMatchups():
     df = pd.DataFrame(matchups, columns=matchups.keys())
     return df.to_csv('matchups.csv', index=False)
 
+def getParks():
+    df = pd.read_csv('parks.csv', index_col='park')
+    scaler = MinMaxScaler(feature_range=(1.0, 1.75))
+    df['threshold'] = scaler.fit_transform(df['runs'].to_numpy().reshape(-1,1))
+    return df.to_csv('parks.csv')
 
-getUmps()
+# getUmps()
 # getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
 # getHitters()
 # getMatchups()
+# getParks()

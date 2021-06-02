@@ -96,6 +96,7 @@ function populateTables(data) {
     var home_team_logo = logos[game.home_team_full];
     var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
     var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+    var threshold = data.threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Weather', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
@@ -196,11 +197,11 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under && total >= 1.25) {
+                if (prediction > over_under && total >= threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
                 } 
-                if (over_under > prediction && total <= -1.25) {
+                if (over_under > prediction && total <= 0 - threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }

@@ -1,31 +1,31 @@
-park,runs
-American Family Field,8.58
-Angel Stadium,8.33
-Busch Stadium,7.48
-Chase Field,9
-Citi Field,6.72
-Citizens Bank Park,9.57
-Comerica Park,9.04
-Coors Field,11.18
-Dodger Stadium,7.99
-Fenway Park,9.08
-Globe Life Field,8.37
-Great American Ball Park,9.87
-Guaranteed Rate Field,8.46
-Kauffman Stadium,8.87
-loanDepot park,7.56
-Minute Maid Park,8.3
-Nationals Park,9.17
-Oakland Coliseum,8.17
-Oracle Park,8.66
-Oriole Park at Camden Yards,10.18
-Petco Park,8.38
-PNC Park,7.97
-Progressive Field,9.41
-T-Mobile Park,7.35
-Target Field,9.25
-Sahlen Field,9.67
-Tropicana Field,8.5
-Truist Park,8.94
-Wrigley Field,8.9
-Yankee Stadium,9.26
+park,runs,mod
+Citi Field,6.72,1.00
+T-Mobile Park,7.35,1.11
+Busch Stadium,7.48,1.13
+loanDepot park,7.56,1.14
+PNC Park,7.97,1.21
+Dodger Stadium,7.99,1.21
+Oakland Coliseum,8.17,1.24
+Minute Maid Park,8.3,1.27
+Angel Stadium,8.33,1.27
+Globe Life Field,8.37,1.28
+Petco Park,8.38,1.28
+Guaranteed Rate Field,8.46,1.29
+Tropicana Field,8.5,1.30
+American Family Field,8.58,1.31
+Oracle Park,8.66,1.33
+Kauffman Stadium,8.87,1.36
+Wrigley Field,8.9,1.37
+Truist Park,8.94,1.37
+Chase Field,9,1.38
+Comerica Park,9.04,1.39
+Fenway Park,9.08,1.40
+Nationals Park,9.17,1.41
+Target Field,9.25,1.43
+Yankee Stadium,9.26,1.43
+Progressive Field,9.41,1.45
+Citizens Bank Park,9.57,1.48
+Sahlen Field,9.67,1.50
+Great American Ball Park,9.87,1.53
+Oriole Park at Camden Yards,10.18,1.58
+Coors Field,11.18,1.75

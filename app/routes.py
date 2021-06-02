@@ -145,6 +145,7 @@ def send_data(data):
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'], 2)
+        threshold = round(parks.loc[game['venue']]['threshold'], 2)
         ump = getUmp(game['ump']['official']['id'])
         weather = getTemp(int(game['weather']['temp']))
         away_fielding = getFielding(game['away_lineup'])
@@ -184,9 +185,9 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data,'wind_speed': speed, 'wind_direction': direction, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'wind_speed': speed, 'wind_direction': direction, 'threshold': threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None,'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None, 'threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
