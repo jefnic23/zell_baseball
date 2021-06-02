@@ -48,8 +48,8 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-function changeLine(over_under, prediction, over, under, ids) {
-    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over': over, 'under': under, 'ids': ids});
+function changeLine(over_under, prediction, threshold, over, under, ids) {
+    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'threshold': threshold, 'over': over, 'under': under, 'ids': ids});
 }
 
 function callApi(url, date) {
@@ -201,7 +201,7 @@ function populateTables(data) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
                 } 
-                if (over_under > prediction && total <= 0 - threshold) {
+                if (over_under > prediction && total <= 0-threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
@@ -224,18 +224,24 @@ function changePrice(el_id, odds_type) {
     }
 }
 
-function changeValue(el_id, value, total) {
+function changeValue(el_id, value, total, threshold) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > value) {
         el.innerHTML = value;
         changeClass(el, 'bet-down');
+        if (total <= threshold) {
+            el.setAttribute('class', '');
+        }
     } else if (el.innerHTML < value) {
         el.innerHTML = value;
         changeClass(el, 'bet-up');
-    } else if (el.innerHTML === 'No Value' && total >= 1.25) {
+        if (total >= threshold) {
+            el.setAttribute('class', '');
+        }
+    } else if (el.innerHTML === 'No Value' && total >= threshold) {
         el.innerHTML = value;
         el.classList.add("betover");
-    } else if (el.innerHTML === 'No Value' && total <= -1.25) {
+    } else if (el.innerHTML === 'No Value' && total <= 0-threshold) {
         el.innerHTML = value;
         el.classList.add("betunder");
     } else if (el.innerHTML != 'No Value' && total <= 0.50 && total >= -0.50) {
@@ -395,7 +401,7 @@ socket.on("lineChange", data => {
     changePrice(data.ids.actual_id, data.over_under);
     changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
-    changeValue(data.ids.value_id, data.bet, data.new_total);
+    changeValue(data.ids.value_id, data.bet, data.new_total, data.threshold);
 });
 
 function updateOdds() {
@@ -418,7 +424,7 @@ function updateOdds() {
                             noGames();
                         }
                     } 
-                    changeLine(market.currentmatchhandicap, game.prediction, over, under, ids);
+                    changeLine(market.currentmatchhandicap, game.prediction, game.threshold, over, under, ids);
                 }
             });
         });

@@ -193,6 +193,7 @@ def send_data(data):
 def change_line(data):
     ids = data['ids']
     prediction = data['prediction']
+    threshold = data['threshold']
     over_under = data['over_under']
     over = data['over']
     under = data['under']
@@ -209,9 +210,9 @@ def change_line(data):
         else:
             bet = "No Value"
 
-        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': new_total, 'bet': bet, "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': new_total, 'threshold': threshold, 'bet': bet, "ids": ids})
     except:
-        emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'bet': 'TBD', "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'threshold': threshold, 'bet': 'TBD', "ids": ids})
 
 if __name__ == '__main__':
     socketio.run(app)
