@@ -190,8 +190,23 @@ function populateTables(data) {
         }
         if (i === 5) {
             td.innerHTML = items[i];
+            td.classList.add('tooltip');
             var over_el = game.market.selections.find(x => x.name === "Over");
             td.setAttribute('id', over_el.idfoselection);
+            if (over_threshold && under_threshold) {
+                var span = document.createElement('span');
+                span.classList.add('tooltiptext');
+                var ul = document.createElement('ul');
+                var thresholds = [under_threshold, over_threshold]
+                var threshold_names = ['Under threshold', 'Over threshold']
+                for (var j = 0; j < thresholds.length; j++) {
+                    var li = document.createElement('li');
+                    li.innerHTML = `<strong>${threshold_names[j]}</strong>: ${thresholds[j]}`;
+                    ul.appendChild(li);
+                }
+                span.appendChild(ul);
+                td.appendChild(span);
+            }
             row.appendChild(td);
         }
         if (i === 6) {
@@ -230,13 +245,13 @@ function changeValue(el_id, value, total, over_threshold, under_threshold) {
     if (el.innerHTML > value) {
         el.innerHTML = value;
         changeClass(el, 'bet-down');
-        if (total <= 0-under_threshold) {
+        if (total <= over_threshold) {
             el.setAttribute('class', '');
         }
     } else if (el.innerHTML < value) {
         el.innerHTML = value;
         changeClass(el, 'bet-up');
-        if (total >= over_threshold) {
+        if (total >= 0-under_threshold) {
             el.setAttribute('class', '');
         }
     } else if (el.innerHTML === 'No Value' && total >= over_threshold) {

@@ -95,7 +95,8 @@ tbody > tr:nth-child(odd) {
     padding: 5px 0;
     position: absolute;
     z-index: 3;
-    top: -134%;
+    top: 50%;
+    transform: translateY(-50%);
     right: 105%;
     margin-left: 0px;
     opacity: 0;
