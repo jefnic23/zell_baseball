@@ -28,9 +28,8 @@ def getUmps():
     df = pd.merge(df_balls, df_strikes, on="id")
     df = pd.merge(df, ump_count, on="id")
     df['ratio'] = df['wrong_strike'] / df['wrong_ball']
-    df['rank'] = df['ratio'].rank(ascending=False)
-    scaler = MinMaxScaler(feature_range=(-0.6, 0.6))
-    df['runs'] = scaler.fit_transform(df['rank'].to_numpy().reshape(-1,1))
+    scaler = MinMaxScaler(feature_range=(-0.5, 0.5))
+    df['runs'] = scaler.fit_transform(df['ratio'].to_numpy().reshape(-1,1))
     return df.to_csv('umps.csv')
 
     
@@ -202,7 +201,7 @@ def getMatchups():
     return df.to_csv('matchups.csv', index=False)
 
 
-# getUmps()
+getUmps()
 # getBets()
 # getFielding()
 # getBullpens()
