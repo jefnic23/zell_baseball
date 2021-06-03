@@ -82,17 +82,17 @@ def getInnings(pitcher, pvb, bullpen, dh=False):
     if dh:
         try:
             innings = pitchers.loc[p_id]['innings'] / 7
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+            return round((pvb * innings) + (bullpen * (1 - innings)) * 1.25, 2)
         except:
             innings = pitchers['innings'].median() / 7
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+            return round((pvb * innings) + (bullpen * (1 - innings)) * 1.25, 2)
     else:
         try:
             innings = pitchers.loc[p_id]['innings'] / 9
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+            return round((pvb * innings) + (bullpen * (1 - innings)) * 1.25, 2)
         except:
             innings = pitchers['innings'].median() / 9
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+            return round((pvb * innings) + (bullpen * (1 - innings)) * 1.25, 2)
 
 def PvB(pitcher, lineup):
     runs = 0
