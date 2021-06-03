@@ -41,7 +41,7 @@ def getUmp(ump):
         runs += umps.loc[ump]['runs']
     except: 
         runs += 0
-    return round(runs, 2)
+    return round(runs * 1.6, 2)
 
 def getFielding(lineup):
     runs = 0
