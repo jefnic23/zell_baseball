@@ -370,7 +370,7 @@ getFanduel(odds_url).then(data => {
                     }
                     try {
                         var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                        console.log(odds);
+                        // console.log(odds);
                         if (game['game_number'] === 1) {
                             game['game_time'] = new Date(odds[0].tsstart);
                             game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
