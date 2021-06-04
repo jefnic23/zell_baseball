@@ -202,13 +202,13 @@ def getMatchups():
 
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
-    scaler = MinMaxScaler(feature_range=(1.0, 1.63))
+    scaler = MinMaxScaler(feature_range=(0.95, 1.58))
     df['over_threshold'] = scaler.fit_transform(df['runs'].to_numpy().reshape(-1,1))
     df['under_threshold'] = scaler.fit_transform(pd.Series(sorted(df['runs'].to_list(), reverse=True)).to_numpy().reshape(-1,1))
     return df.to_csv('parks.csv')
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
 # getBullpens()
 # getPitching()

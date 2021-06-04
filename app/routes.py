@@ -77,22 +77,14 @@ def oddsRatio(hitter, pitcher, matchup):
         if rate > 0.400:
             return 0.1825
 
-def getInnings(pitcher, pvb, bullpen, dh=False): 
+def getInnings(pitcher, pvb, bullpen, scheduled): 
     p_id = pitcher['id']
-    if dh:
-        try:
-            innings = pitchers.loc[p_id]['innings'] / 7
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
-        except:
-            innings = pitchers['innings'].median() / 7
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
-    else:
-        try:
-            innings = pitchers.loc[p_id]['innings'] / 9
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
-        except:
-            innings = pitchers['innings'].median() / 9
-            return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+    try:
+        innings = pitchers.loc[p_id]['innings'] / scheduled
+        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+    except:
+        innings = pitchers['innings'].median() / scheduled
+        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
 
 def PvB(pitcher, lineup):
     runs = 0
@@ -149,25 +141,21 @@ def send_data(data):
         under_threshold = round(parks.loc[game['venue']]['under_threshold'], 2)
         ump = getUmp(game['ump']['official']['id'])
         weather = getTemp(int(game['weather']['temp']))
+        innings = game['innings']
         away_fielding = getFielding(game['away_lineup'])
         home_fielding = getFielding(game['home_lineup'])
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen)
-        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen)
+        away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
+        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings)
         pred_data = [venue, weather, ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups - 0.25
+        prediction = ((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups - 0.23
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
         direction = wind[2]
-
-        if game['innings'] == 7:
-            away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, dh=True)
-            home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, dh=True)
-            prediction = ((7/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups
         if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
             for i in range(0, speed - 10 + 1):
                 prediction -= 0.20
