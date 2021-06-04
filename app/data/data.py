@@ -204,7 +204,9 @@ def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
     scaler = MinMaxScaler(feature_range=(0.95, 1.58))
     df['over_threshold'] = scaler.fit_transform(df['runs'].to_numpy().reshape(-1,1))
-    df['under_threshold'] = scaler.fit_transform(pd.Series(sorted(df['runs'].to_list(), reverse=True)).to_numpy().reshape(-1,1))
+    df['under_threshold'] = 1 - ((df['runs'] - df['runs'].min())/ (df['runs'].max() - df['runs'].min()))
+    df['under_threshold'] = scaler.fit_transform(df['under_threshold'].to_numpy().reshape(-1,1))
+    # df['under_threshold'] = scaler.fit_transform(pd.Series(sorted(df['runs'], reverse=True)).to_numpy().reshape(-1,1))
     return df.to_csv('parks.csv')
 
 # getUmps()
