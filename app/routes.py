@@ -151,7 +151,7 @@ def send_data(data):
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings)
         pred_data = [venue, weather, 1.6 * ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = ((innings/9) * (venue + 1.6 * ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups - 0.21
+        prediction = ((innings/9) * (venue + 1.6 * ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups - 0.15
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
@@ -168,9 +168,10 @@ def send_data(data):
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
         
-        total = round(prediction - adj_line, 2)
-        if total >= 0.5 or total <= -0.5:
-            bet = bets.loc[abs(total)]['bet']
+        total = round(prediction - over_under, 2)
+        adj_total = round(prediction - adj_line, 2)
+        if adj_total >= 0.5 or adj_total <= -0.5:
+            bet = bets.loc[abs(adj_total)]['bet']
         else:
             bet = "No Value"
 
@@ -194,13 +195,14 @@ def change_line(data):
         else: 
             adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
 
-        new_total = round(prediction - adj_line, 2)
-        if new_total >= 0.5 or new_total <= -0.5:
-            bet = bets.loc[abs(new_total)]['bet']
+        total = round(prediction - over_under, 2)
+        adj_total = round(prediction - adj_line, 2)
+        if adj_total >= 0.5 or adj_total <= -0.5:
+            bet = bets.loc[abs(adj_total)]['bet']
         else:
             bet = "No Value"
 
-        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': new_total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
     except:
         emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': 'TBD', "ids": ids})
 
