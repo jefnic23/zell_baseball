@@ -44,7 +44,7 @@ def getBets():
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         d['x'].append(scaled[i][0])
-        d['bet'].append(round(n * scaled[i][0] * 75, 1))  
+        d['bet'].append(round(n * scaled[i][0] * 80, 1))  
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
