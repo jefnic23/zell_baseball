@@ -44,7 +44,7 @@ def getBets():
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         d['x'].append(scaled[i][0])
-        d['bet'].append(round(n * scaled[i][0] * 80, 1))  
+        d['bet'].append(round(n * scaled[i][0] * 90, 1))  
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
@@ -202,7 +202,7 @@ def getMatchups():
 
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
-    scaler = MinMaxScaler(feature_range=(0.92, 1.59))
+    scaler = MinMaxScaler(feature_range=(0.90, 1.57))
     df['over_threshold'] = scaler.fit_transform(df['runs'].to_numpy().reshape(-1,1))
     df['under_threshold'] = 1 - ((df['runs'] - df['runs'].min())/ (df['runs'].max() - df['runs'].min()))
     df['under_threshold'] = scaler.fit_transform(df['under_threshold'].to_numpy().reshape(-1,1))
