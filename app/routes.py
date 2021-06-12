@@ -150,8 +150,8 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings)
-        pred_data = [venue, weather, 1.6 * ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = ((innings/9) * (venue + 1.6 * ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups - 0.12
+        pred_data = [venue, weather, round(1.6 * ump, 2), away_fielding, home_fielding, away_matchups, home_matchups]
+        prediction = ((innings/9) * (venue + 1.6 * ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups - 0.10
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
