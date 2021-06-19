@@ -135,13 +135,13 @@ def send_data(data):
     over_line = game['over_line']
     under_line = game['under_line']
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
+        innings = game['innings']
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'], 2)
-        over_threshold = round(parks.loc[game['venue']]['over_threshold'], 2)
-        under_threshold = round(parks.loc[game['venue']]['under_threshold'], 2)
+        over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
+        under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
         ump = getUmp(game['ump']['official']['id'])
         weather = getTemp(int(game['weather']['temp']))
-        innings = game['innings']
         away_fielding = getFielding(game['away_lineup'])
         home_fielding = getFielding(game['home_lineup'])
         away_bullpen = getBullpen(game['away_bullpen'])
@@ -151,7 +151,7 @@ def send_data(data):
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings)
         pred_data = [venue, weather, ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = ((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups + 0.2
+        prediction = ((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups + (0.2 * (innings/9))
 
         wind = game['weather']['wind'].split()
         speed = int(wind[0])
