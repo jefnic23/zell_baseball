@@ -100,7 +100,7 @@ function populateTables(data) {
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Weather', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
+    var pred_name = ['Park', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
@@ -168,6 +168,7 @@ function populateTables(data) {
                 span.classList.add('tooltiptext');
                 var ul = document.createElement('ul');
                 for (var j = 0; j < pred_data.length; j++) {
+                    if (pred_name[j] === 'Wind' && game.venue !== 'Wrigley Field') { continue; }
                     var li = document.createElement('li');
                     li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
                     ul.appendChild(li);

@@ -35,6 +35,16 @@ def getTemp(temp):
     if temp >= 88:
         return 0.3
 
+def getWind(game, speed, direction, innings):
+    wind = 0
+    if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
+        for i in range(0, speed - 10 + 1):
+            wind -= 0.20 * (innings/9)
+    if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
+        for i in range(0, speed - 10 + 1):
+            wind += 0.20 * (innings/9)
+    return wind
+
 def getUmp(ump):
     runs = 0
     try:
@@ -136,6 +146,10 @@ def send_data(data):
     under_line = game['under_line']
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         innings = game['innings']
+        wind_data = game['weather']['wind'].split()
+        speed = int(wind_data[0])
+        direction = wind_data[2]
+        wind = getWind(game, speed, direction, innings)
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'], 2)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
@@ -149,19 +163,9 @@ def send_data(data):
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
-        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings)
-        pred_data = [venue, weather, ump, away_fielding, home_fielding, away_matchups, home_matchups]
-        prediction = ((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups + (0.35 * (innings/9))
-
-        wind = game['weather']['wind'].split()
-        speed = int(wind[0])
-        direction = wind[2]
-        if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
-            for i in range(0, speed - 10 + 1):
-                prediction -= 0.20 * (innings/9)
-        if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
-            for i in range(0, speed - 10 + 1):
-                prediction += 0.20 * (innings/9)
+        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
+        prediction = ((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups + wind + (0.35 * (innings/9))
+        pred_data = [venue, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -175,9 +179,9 @@ def send_data(data):
         else:
             bet = "No Value"
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'wind_speed': speed, 'wind_direction': direction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'wind_speed': speed, 'wind_direction': direction, 'wind_mod': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None, 'wind_mod': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
