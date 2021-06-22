@@ -158,10 +158,10 @@ def send_data(data):
         direction = wind[2]
         if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
             for i in range(0, speed - 10 + 1):
-                prediction -= 0.20
+                prediction -= 0.20 * (innings/9)
         if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
             for i in range(0, speed - 10 + 1):
-                prediction += 0.20
+                prediction += 0.20 * (innings/9)
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
