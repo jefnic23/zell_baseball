@@ -19,41 +19,41 @@ hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
 matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
 woba = pd.read_csv('app/data/woba.csv', index_col='woba')
 
-def getTemp(temp):
+def getTemp(temp, innings):
     if temp <= 46:
-        return -0.225
+        return round(-0.225 * (innings/9), 2)
     if 47 <= temp <= 53:
-        return -0.15
+        return round(-0.15 * (innings/9), 2)
     if 54 <= temp <= 62:
-        return -0.075
+        return round(-0.075 * (innings/9), 2)
     if 63 <= temp <= 71:
         return 0.0
     if 72 <= temp <= 79:
-        return 0.1
+        return round(0.1 * (innings/9), 2)
     if 80 <= temp <= 87:
-        return 0.2
+        return round(0. * (innings/9), 2)
     if temp >= 88:
-        return 0.3
+        return round(0.3 * (innings/9), 2)
 
 def getWind(game, speed, direction, innings):
     wind = 0
     if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
         for i in range(0, speed - 10 + 1):
-            wind -= 0.20 * (innings/9)
+            wind -= 0.20
     if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
         for i in range(0, speed - 10 + 1):
-            wind += 0.20 * (innings/9)
-    return wind
+            wind += 0.20
+    return round(wind * (innings/9), 2)
 
-def getUmp(ump):
+def getUmp(ump, innings):
     runs = 0
     try:
         runs += umps.loc[ump]['runs']
     except: 
         runs += 0
-    return round(runs * 1.6, 2)
+    return round(runs * 1.6 * (innings/9), 2)
 
-def getFielding(lineup):
+def getFielding(lineup, innings):
     runs = 0
     players = [id["id"] for id in lineup]
     for player in players:
@@ -61,7 +61,7 @@ def getFielding(lineup):
             runs += fielding.loc[player]['outs']
         except:
             runs += 0
-    return round(runs, 2)
+    return round(runs * (innings/9), 2)
 
 def getBullpen(bullpen):
     runs = 0
@@ -151,20 +151,20 @@ def send_data(data):
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
         line = abs(over_line) + abs(under_line)
-        venue = round(parks.loc[game['venue']]['runs'], 2)
+        venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
-        ump = getUmp(game['ump']['official']['id'])
-        weather = getTemp(int(game['weather']['temp']))
-        away_fielding = getFielding(game['away_lineup'])
-        home_fielding = getFielding(game['home_lineup'])
+        ump = getUmp(game['ump']['official']['id'], innings)
+        weather = getTemp(int(game['weather']['temp']), innings)
+        away_fielding = getFielding(game['away_lineup'], innings)
+        home_fielding = getFielding(game['home_lineup'], innings)
         away_bullpen = getBullpen(game['away_bullpen'])
         home_bullpen = getBullpen(game['home_bullpen'])
         away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (((innings/9) * (venue + ump + away_fielding + home_fielding + weather)) + away_matchups + home_matchups + wind) * (1.068 * (innings/9))
+        prediction = (venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind) * (1.068 * (innings/9))
         pred_data = [venue, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
 
         if line == 220:
