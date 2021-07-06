@@ -44,7 +44,7 @@ def getBets():
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         d['x'].append(scaled[i][0])
-        d['bet'].append(5 * round(n * scaled[i][0] * 155 / 5))
+        d['bet'].append(5 * round(n * scaled[i][0] * 175 / 5))
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
@@ -202,11 +202,21 @@ def getMatchups():
 
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
-    over_scaler = MinMaxScaler(feature_range=(0.79, 1.34))
-    under_scaler = MinMaxScaler(feature_range=(0.98, 1.57))
-    df['over_threshold'] = over_scaler.fit_transform(df['runs'].to_numpy().reshape(-1,1))
-    df['under_threshold'] = 1 - ((df['runs'] - df['runs'].min())/ (df['runs'].max() - df['runs'].min()))
-    df['under_threshold'] = under_scaler.fit_transform(df['under_threshold'].to_numpy().reshape(-1,1))
+    al_over = MinMaxScaler(feature_range=(0.75, 1.27))
+    al_under = MinMaxScaler(feature_range=(1.06, 1.70))
+    nl_over = MinMaxScaler(feature_range=(0.88, 1.50))
+    nl_under = MinMaxScaler(feature_range=(0.98, 1.57))
+    al = df[df['lg'] == 'al']
+    nl = df[df['lg'] == 'nl']
+    al['over_threshold'] = al_over.fit_transform(al['runs'].to_numpy().reshape(-1,1))
+    al['under_threshold'] = 1 - ((al['runs'] - al['runs'].min())/ (al['runs'].max() - al['runs'].min()))
+    al['under_threshold'] = al_under.fit_transform(al['under_threshold'].to_numpy().reshape(-1,1))
+    
+    nl['over_threshold'] = nl_over.fit_transform(nl['runs'].to_numpy().reshape(-1,1))
+    nl['under_threshold'] = 1 - ((nl['runs'] - nl['runs'].min())/ (nl['runs'].max() - nl['runs'].min()))
+    nl['under_threshold'] = nl_under.fit_transform(nl['under_threshold'].to_numpy().reshape(-1,1))
+    
+    df = pd.concat([al, nl])
     # df['under_threshold'] = scaler.fit_transform(pd.Series(sorted(df['runs'], reverse=True)).to_numpy().reshape(-1,1))
     return df.to_csv('parks.csv')
 
