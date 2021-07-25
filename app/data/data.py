@@ -35,16 +35,15 @@ def getUmps():
     
 def getBets():
     d = {"total": [],
-         "x": [],
          "bet": []
          }
-    for x in range(50, 501, 1):
+    for x in range(1, 201, 1):
         d['total'].append(x/100)
-    scaler = MinMaxScaler(feature_range=(0.625, 1.625))
+    scaler = MinMaxScaler(feature_range=(100, 500))
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
-        d['x'].append(scaled[i][0])
-        d['bet'].append(5 * round(n * scaled[i][0] * 175 / 5))
+        # d['x'].append(scaled[i][0])
+        d['bet'].append(5 * round(scaled[i][0] / 5))
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('bets.csv', index=False)
 
@@ -203,9 +202,9 @@ def getMatchups():
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
     al_over = MinMaxScaler(feature_range=(0.75, 1.27))
-    al_under = MinMaxScaler(feature_range=(1.06, 1.70))
+    al_under = MinMaxScaler(feature_range=(1.11, 1.7))
     nl_over = MinMaxScaler(feature_range=(0.88, 1.50))
-    nl_under = MinMaxScaler(feature_range=(0.98, 1.57))
+    nl_under = MinMaxScaler(feature_range=(1.03, 1.57))
     al = df[df['lg'] == 'al']
     nl = df[df['lg'] == 'nl']
     al['over_threshold'] = al_over.fit_transform(al['runs'].to_numpy().reshape(-1,1))
