@@ -117,7 +117,7 @@ function populateTables(data) {
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
-    var items = [teams, game_time, prediction, over_under, adj_line, total, bet];
+    var items = [teams, game_time, prediction, over_under, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
         if (i === 0) {
@@ -184,12 +184,12 @@ function populateTables(data) {
             td.innerHTML = items[i];
             row.appendChild(td);
         }
+        // if (i === 4) {
+        //     td.setAttribute("id", game.market.idfomarket);
+        //     td.innerHTML = items[i];
+        //     row.appendChild(td);
+        // }
         if (i === 4) {
-            td.setAttribute("id", game.market.idfomarket);
-            td.innerHTML = items[i];
-            row.appendChild(td);
-        }
-        if (i === 5) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             var over_el = game.market.selections.find(x => x.name === "Over");
@@ -210,7 +210,7 @@ function populateTables(data) {
             }
             row.appendChild(td);
         }
-        if (i === 6) {
+        if (i === 5) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {

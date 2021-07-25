@@ -132,13 +132,13 @@ def PvB(pitcher, lineup):
             runs += 0
     return round(runs, 2)
 
-def getValue(adj_total, over_threshold, under_threshold):
+def getValue(total, over_threshold, under_threshold):
     bet = 'No Value'
-    if adj_total < 0 and abs(adj_total) - under_threshold >= 0.01:
-        value = round(abs(adj_total) - under_threshold, 2)
+    if total < 0 and abs(total) - under_threshold >= 0.01:
+        value = round(abs(total) - under_threshold, 2)
         bet = int(bets.loc[value]['bet'])
-    if adj_total > 0 and adj_total - over_threshold >= 0.01:
-        value = round(abs(adj_total) - over_threshold, 2)
+    if total > 0 and total - over_threshold >= 0.01:
+        value = round(abs(total) - over_threshold, 2)
         bet = int(bets.loc[value]['bet'])
     return bet
 
@@ -184,7 +184,7 @@ def send_data(data):
         
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
-        bet = getValue(adj_total, over_threshold, under_threshold)
+        bet = getValue(total, over_threshold, under_threshold)
 
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
@@ -208,7 +208,7 @@ def change_line(data):
 
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
-        bet = getValue(adj_total, over_threshold, under_threshold)
+        bet = getValue(total, over_threshold, under_threshold)
 
         emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
     except:
