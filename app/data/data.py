@@ -201,10 +201,10 @@ def getMatchups():
 
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
-    al_over = MinMaxScaler(feature_range=(0.75, 1.27))
-    al_under = MinMaxScaler(feature_range=(1.13, 1.7))
-    nl_over = MinMaxScaler(feature_range=(0.88, 1.50))
-    nl_under = MinMaxScaler(feature_range=(1.07, 1.57))
+    al_over = MinMaxScaler(feature_range=(0.73, 1.23))
+    al_under = MinMaxScaler(feature_range=(1.16, 1.75))
+    nl_over = MinMaxScaler(feature_range=(0.91, 1.55))
+    nl_under = MinMaxScaler(feature_range=(1.10, 1.62))
     al = df[df['lg'] == 'al']
     nl = df[df['lg'] == 'nl']
     al['over_threshold'] = al_over.fit_transform(al['runs'].to_numpy().reshape(-1,1))
@@ -220,10 +220,10 @@ def getParks():
     return df.to_csv('parks.csv')
 
 # getUmps()
-getBets()
+# getBets()
 # getFielding()
 # getBullpens()
 # getPitching()
 # getHitters()
 # getMatchups()
-# getParks()
+getParks()
