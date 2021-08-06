@@ -400,6 +400,7 @@ var pks = [];
 socket.on("predictionData", data => {
     // console.log(data);
     games.push(data);
+    console.log(games.length, live_games);
     if (games.length === live_games) {
         $.each(games.sort((a, b) => (a.game_time.localeCompare(b.game_time))), (i, g) => {
             // console.log(g);
