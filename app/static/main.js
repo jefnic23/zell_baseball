@@ -100,7 +100,7 @@ function populateTables(data) {
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
+    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', 'Away Matchups', 'Home Matchups'];
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;

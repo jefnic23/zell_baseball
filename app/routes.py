@@ -132,6 +132,10 @@ def PvB(pitcher, lineup):
             runs += 0
     return round(runs, 2)
 
+def getHandicap(away_team, home_team):
+    handicap = parks.loc[away_team]['handicap'] - parks.loc[away_team]['handicap']
+    return round(handicap, 2)
+
 def getValue(total, over_threshold, under_threshold):
     bet = 'No Value'
     if total < 0 and abs(total) - under_threshold >= 0.01:
@@ -162,6 +166,7 @@ def send_data(data):
         wind = getWind(game, speed, direction, innings)
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
+        handicap = getHandicap(game['away_team_full'], game['home_team_full'])
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
         ump = getUmp(game['ump']['official']['id'], innings)
@@ -174,8 +179,8 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (venue + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind) * 1.077
-        pred_data = [venue, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
+        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind) * 1.077
+        pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)

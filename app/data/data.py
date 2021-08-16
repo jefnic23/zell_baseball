@@ -210,14 +210,15 @@ def getParks():
     al['over_threshold'] = al_over.fit_transform(al['runs'].to_numpy().reshape(-1,1))
     al['under_threshold'] = 1 - ((al['runs'] - al['runs'].min())/ (al['runs'].max() - al['runs'].min()))
     al['under_threshold'] = al_under.fit_transform(al['under_threshold'].to_numpy().reshape(-1,1))
-    
     nl['over_threshold'] = nl_over.fit_transform(nl['runs'].to_numpy().reshape(-1,1))
     nl['under_threshold'] = 1 - ((nl['runs'] - nl['runs'].min())/ (nl['runs'].max() - nl['runs'].min()))
     nl['under_threshold'] = nl_under.fit_transform(nl['under_threshold'].to_numpy().reshape(-1,1))
-    
     df = pd.concat([al, nl])
-    # df['under_threshold'] = scaler.fit_transform(pd.Series(sorted(df['runs'], reverse=True)).to_numpy().reshape(-1,1))
+    
+    handicaps = MinMaxScaler(feature_range=(0.0, 0.21))
+    df['handicap'] = handicaps.fit_transform(df['runs'].to_numpy().reshape(-1,1)).round(2)
     return df.to_csv('parks.csv')
+
 
 # getUmps()
 # getBets()
