@@ -37,10 +37,10 @@ def getTemp(temp, innings):
 
 def getWind(game, speed, direction, innings):
     wind = 0
-    if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "In":
+    if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "In":
         for i in range(0, speed - 10 + 1):
             wind -= 0.20
-    if game['venue'] == "Wrigley Field" and speed >= 10 and direction == "Out":
+    if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "Out":
         for i in range(0, speed - 10 + 1):
             wind += 0.20
     return round(wind * (innings/9), 2)
@@ -133,7 +133,7 @@ def PvB(pitcher, lineup):
     return round(runs, 2)
 
 def getHandicap(away_team, home_team):
-    handicap = parks.loc[away_team]['handicap'] - parks.loc[away_team]['handicap']
+    handicap = parks.loc[home_team]['handicap'] - parks.loc[away_team]['handicap']
     return round(handicap, 2)
 
 def getValue(total, over_threshold, under_threshold):
