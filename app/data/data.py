@@ -106,8 +106,7 @@ def getBullpens():
 
 
 def getPitching():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('D:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[(df['game_year'].isin([2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
+    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
     
     out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
     out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
@@ -144,8 +143,8 @@ def getPitching():
 
 
 def getHitters():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('D:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[(df['game_year'].isin([2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
+    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
+    
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique().str[0]
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique().str[0]
     df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
@@ -231,7 +230,7 @@ def getParks():
 # getBets()
 # getFielding()
 # getBullpens()
-# getPitching()
+getPitching()
 getHitters()
 # getMatchups()
 # getParks()
