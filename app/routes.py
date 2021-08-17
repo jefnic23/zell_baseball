@@ -18,6 +18,7 @@ pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
 hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
 matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
 woba = pd.read_csv('app/data/woba.csv', index_col='woba')
+whip = pd.read_csv('app/data/whip.csv', index_col='whip')
 
 def getTemp(temp, innings):
     if temp <= 46:
@@ -87,13 +88,27 @@ def oddsRatio(hitter, pitcher, matchup):
         if rate > 0.400:
             return 0.1825
 
+def getWhip(pitcher):
+    p_id = pitcher['id']
+    try:
+        whip = pitchers.loc[p_id]['whip']
+        if 0.95 <= whip <= 1.55:
+            return whip.loc[whip]['runs']
+        else:
+            if whip < 0.95:
+                return -0.17
+            if whip > 1.55:
+                return 0.17
+    except:
+        return 0
+
 def getInnings(pitcher, pvb, bullpen, scheduled): 
     p_id = pitcher['id']
     try:
-        innings = pitchers.loc[p_id]['innings'] / scheduled
+        innings = pitchers.loc[p_id]['ips'] / scheduled
         return round((pvb * innings) + (bullpen * (1 - innings)), 2)
     except:
-        innings = pitchers['innings'].median() / scheduled
+        innings = pitchers['ips'].median() / scheduled
         return round((pvb * innings) + (bullpen * (1 - innings)), 2)
 
 def PvB(pitcher, lineup):
@@ -166,6 +181,8 @@ def send_data(data):
         wind = getWind(game, speed, direction, innings)
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
+        away_whip = getWhip(game['away_pitcher'])
+        home_whip = getWhip(game['home_pitcher'])
         handicap = getHandicap(game['away_team_full'], game['home_team_full'])
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
@@ -179,8 +196,8 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind) * 1.077
-        pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
+        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.077
+        pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_whip, home_whip, away_matchups, home_matchups]
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)

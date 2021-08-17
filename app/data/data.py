@@ -106,19 +106,26 @@ def getBullpens():
 
 
 def getPitching():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('D:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = df[(df['game_year'].isin([2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher']))]
     
     out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
     out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
     out_3 = ['triple_play']
+    walks_hits = ['single', 'home_run', 'double', 'walk', 'hit_by_pitch', 'triple']
     df['outs'] = np.where(df['events'].isin(out_1), 1, 0)
     df['outs'] = np.where(df['events'].isin(out_2), 2, df['outs'])
     df['outs'] = np.where(df['events'].isin(out_3), 3, df['outs'])
+    df['walks_hits'] = np.where(df['events'].isin(walks_hits), 1, 0)
     dfi = df.groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
     dfi['innings'] = dfi['outs'] / 3
-    dfi = dfi.groupby('pitcher').agg({'innings': 'mean'})
-    
+    # dfi['ip'] = round(dfi['walks_hits'] / dfi['innings'], 2)
+    dfi = dfi.groupby('pitcher').agg(ips = ('innings', 'mean'),
+                                     ip = ('innings', 'sum')
+                                     )
+    df_wh = df.groupby('pitcher').agg({'walks_hits': 'sum'})
+    df_whip = pd.merge(dfi, df_wh, on='pitcher')
+    df_whip['whip'] = round(df_whip['walks_hits'] / df_whip['ip'], 2)
     dft = df.groupby("pitcher")['p_throws'].unique().str[0]
     df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
                                                         pa_L = ('woba_value', 'count'))
@@ -126,19 +133,19 @@ def getPitching():
                                                         pa_R = ('woba_value', 'count'))
     dfc = pd.merge(df1, df2, on="pitcher")
     dfx = pd.merge(dft, dfc, on='pitcher')
-    df = pd.merge(dfx, dfi, on='pitcher')
+    df = pd.merge(dfx, df_whip, on='pitcher')
     pa_L = df['pa_L'].mean()
     pa_R = df['pa_R'].mean()
     woba_L = df['woba_L'].mean()
     woba_R = df['woba_R'].mean()
     df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
     df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
-    return df.to_csv("pitchers.csv")
+    return df.drop(columns=['ip', 'walks_hits']).to_csv("pitchers.csv")
 
 
 def getHitters():
     df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
+    df = df[(df['game_year'].isin([2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique().str[0]
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique().str[0]
     df1 = df[(df['p_throws'] == "L") & (df['stand'] == 'L')].groupby("batter").agg(woba_L = ("woba_value", 'sum'),
@@ -228,3 +235,16 @@ def getParks():
 # getHitters()
 # getMatchups()
 # getParks()
+
+d = {'whip': [],
+     'runs': []
+     }
+for i in range(95, 156):
+    d['whip'].append(i/100)
+    
+scale = MinMaxScaler(feature_range=(-0.17, 0.17))
+runs = scale.fit_transform(np.asarray(d['whip']).reshape(-1,1))
+for i in runs:
+    d['runs'].append(round(i[0],3))
+
+pd.DataFrame(d, columns=d.keys()).to_csv('whip.csv', index=False)
