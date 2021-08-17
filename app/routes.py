@@ -91,13 +91,13 @@ def oddsRatio(hitter, pitcher, matchup):
 def getWhip(pitcher):
     p_id = pitcher['id']
     try:
-        whip = pitchers.loc[p_id]['whip']
-        if 0.95 <= whip <= 1.55:
-            return whip.loc[whip]['runs']
+        x = pitchers.loc[p_id]['whip']
+        if 0.95 <= x <= 1.55:
+            return whip.loc[x]['runs']
         else:
-            if whip < 0.95:
+            if x < 0.95:
                 return -0.17
-            if whip > 1.55:
+            if x > 1.55:
                 return 0.17
     except:
         return 0

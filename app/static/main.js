@@ -400,7 +400,7 @@ var pks = [];
 socket.on("predictionData", data => {
     // console.log(data);
     games.push(data);
-    console.log(games.length, live_games);
+    // console.log(games.length, live_games);
     if (games.length === live_games) {
         $.each(games.sort((a, b) => (a.game_time.localeCompare(b.game_time))), (i, g) => {
             // console.log(g);
@@ -417,7 +417,7 @@ socket.on("predictionData", data => {
 socket.on("lineChange", data => {
     // console.log(data);
     changePrice(data.ids.actual_id, data.over_under);
-    changePrice(data.ids.adj_id, data.adj_line);
+    // changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
     changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
 });
