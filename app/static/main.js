@@ -198,8 +198,8 @@ function populateTables(data) {
                 var span = document.createElement('span');
                 span.classList.add('tooltiptext');
                 var ul = document.createElement('ul');
-                var thresholds = [under_threshold, over_threshold]
-                var threshold_names = ['Under threshold', 'Over threshold']
+                var thresholds = [over_threshold, under_threshold]
+                var threshold_names = ['Over threshold', 'Under threshold']
                 for (var j = 0; j < thresholds.length; j++) {
                     var li = document.createElement('li');
                     li.innerHTML = `<strong>${threshold_names[j]}</strong>: ${thresholds[j]}`;
