@@ -144,7 +144,7 @@ def getPitching():
 
 
 def getHitters():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('D:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = df[(df['game_year'].isin([2019, 2020, 2021])) & (df['batter'].isin(df[df['game_year'] == 2021]['batter']))]
     dfs1 = df[df['stand'] == "L"].groupby("batter")['stand'].unique().str[0]
     dfs2 = df[df['stand'] == "R"].groupby("batter")['stand'].unique().str[0]
@@ -232,19 +232,6 @@ def getParks():
 # getFielding()
 # getBullpens()
 # getPitching()
-# getHitters()
+getHitters()
 # getMatchups()
 # getParks()
-
-d = {'whip': [],
-     'runs': []
-     }
-for i in range(95, 156):
-    d['whip'].append(i/100)
-    
-scale = MinMaxScaler(feature_range=(-0.17, 0.17))
-runs = scale.fit_transform(np.asarray(d['whip']).reshape(-1,1))
-for i in runs:
-    d['runs'].append(round(i[0],3))
-
-pd.DataFrame(d, columns=d.keys()).to_csv('whip.csv', index=False)
