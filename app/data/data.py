@@ -39,7 +39,7 @@ def getBets():
          }
     for x in range(1, 201, 1):
         d['total'].append(x/100)
-    scaler = MinMaxScaler(feature_range=(210, 610))
+    scaler = MinMaxScaler(feature_range=(190, 590))
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         # d['x'].append(scaled[i][0])
@@ -233,4 +233,4 @@ def getParks():
 # getPitching()
 # getHitters()
 # getMatchups()
-getParks()
+# getParks()
