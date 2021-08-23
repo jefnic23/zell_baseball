@@ -196,7 +196,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.076
+        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.075
         pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_whip, home_whip, away_matchups, home_matchups]
 
         if line == 220:
