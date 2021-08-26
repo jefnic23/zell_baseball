@@ -15,9 +15,9 @@ lines_22 = pd.read_csv("app/data/lines_22.csv", index_col='line')
 fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
 bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
 pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
-hitters = pd.read_csv('app/data/hitters.csv', index_col='batter')
+batters = pd.read_csv('app/data/batters.csv', index_col='batter')
 matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
-woba = pd.read_csv('app/data/woba.csv', index_col='woba')
+hev = pd.read_csv('app/data/hev.csv', index_col='hev')
 whip = pd.read_csv('app/data/whip.csv', index_col='whip')
 
 def getTemp(temp, innings):
@@ -80,12 +80,12 @@ def oddsRatio(hitter, pitcher, matchup):
     l = matchups.loc[matchup]['odds']
     odds = h * p / l
     rate = round(odds / (odds + 1), 3)
-    if 0.290 <= rate <= 0.400:
-        return round(woba.loc[rate]['runs'], 2)
+    if 0.473 <= rate <= 0.653:
+        return round(hev.loc[rate]['runs'], 2)
     else:
-        if rate < 0.290:
+        if rate < 0.473:
             return -0.15
-        if rate > 0.400:
+        if rate > 0.653:
             return 0.1825
 
 def getWhip(pitcher):
@@ -120,28 +120,28 @@ def PvB(pitcher, lineup):
             b_id = hitter['id']
             b_hand = hitter['batSide']['code']
             if b_hand == "S" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_R']
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_L']
+                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_R']
                 runs += oddsRatio(b_runs, p_runs, 'RL')
             if b_hand == "S" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_L']
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_R']
+                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_L']
                 runs += oddsRatio(b_runs, p_runs, 'LR')
             if b_hand == "L" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_L']
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_L']
+                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_L']
                 runs += oddsRatio(b_runs, p_runs, 'LL')
             if b_hand == "L" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_L']
-                b_runs = hitters[hitters['stand'] == "L"].loc[b_id]['woba_R']
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_L']
+                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_R']
                 runs += oddsRatio(b_runs, p_runs, 'RL')
             if b_hand == "R" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['woba_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_R']
+                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_R']
+                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_R']
                 runs += oddsRatio(b_runs, p_runs, 'RR')
             if b_hand == "R" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['woba_R']
-                b_runs = hitters[hitters['stand'] == "R"].loc[b_id]['woba_L']
+                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_R']
+                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_L']
                 runs += oddsRatio(b_runs, p_runs, 'LR')
         except:
             runs += 0
@@ -173,6 +173,7 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
+    pitchers = {'away_pitcher': game['away_pitcher']['boxscoreName'], 'home_pitcher': game['home_pitcher']['boxscoreName']}
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         innings = game['innings']
         wind_data = game['weather']['wind'].split()
@@ -196,7 +197,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.073
+        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.072
         pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_whip, home_whip, away_matchups, home_matchups]
 
         if line == 220:
@@ -208,9 +209,9 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):

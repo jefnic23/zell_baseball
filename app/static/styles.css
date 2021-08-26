@@ -88,7 +88,7 @@ tbody > tr:nth-child(odd) {
 
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: 240px;
+    width: 300px;
     background-color: rgba(0, 0, 0, 0.89);
     color: #fff;
     border-radius: 6px;

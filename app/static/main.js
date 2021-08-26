@@ -95,12 +95,14 @@ function populateTables(data) {
     var away_team_logo = logos[game.away_team_full];
     var home_team_logo = logos[game.home_team_full];
     var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
+    var home_pitcher = data.pitchers.home_pitcher;
+    var away_pitcher = data.pitchers.away_pitcher;
     var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
     var over_threshold = data.over_threshold;
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', 'Away WHIP', 'Home WHIP', 'Away Matchups', 'Home Matchups'];
+    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${away_pitcher} WHIP`, `${home_pitcher} WHIP`, `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
