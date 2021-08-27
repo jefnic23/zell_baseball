@@ -65,12 +65,6 @@ tbody > tr:nth-child(odd) {
     }
 }
 
-@media all and (max-width: 500px) {
-    .teams {
-      flex-direction: column;
-    }
-}
-
 .teams > div {
     display: flex;
     align-items: center;
