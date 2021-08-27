@@ -88,17 +88,17 @@ tbody > tr:nth-child(odd) {
 
 .tooltip .tooltiptext {
     visibility: hidden;
-    width: fit-content; /* 300px seems to work but fit to content would be better */
+    width: max-content;
     background-color: rgba(0, 0, 0, 0.89);
     color: #fff;
     border-radius: 6px;
-    padding: 5px 0;
+    padding-right: 25px;
     position: absolute;
     z-index: 3;
     top: 50%;
     transform: translateY(-50%);
     right: 105%;
-    margin-left: 0px;
+    /* margin-left: 0px; */
     opacity: 0;
     transition: opacity 0.5s;
 }

@@ -242,11 +242,11 @@ def getHEV():
          'runs': []
          }
     
-    for i in range(731, 896):
+    for i in range(657, 825):
         hev = i / 1000
         d['hev'].append(hev)
     
-    scaler = MinMaxScaler(feature_range=(-0.3, 0.275))
+    scaler = MinMaxScaler(feature_range=(-0.15, 0.15))
     runs = scaler.fit_transform(pd.Series(d['hev']).to_numpy().reshape(-1,1))
     for i, n in enumerate(d['hev']):
         d['runs'].append(runs[i][0])
