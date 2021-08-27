@@ -56,7 +56,7 @@ tbody > tr:nth-child(odd) {
 .teams {
     display: flex;
     align-items: center;
-    flex-flow: row wrap;
+    /* flex-flow: row wrap; */
 }
 
 @media all and (max-width: 800px) {
