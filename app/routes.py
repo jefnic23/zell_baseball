@@ -18,7 +18,6 @@ pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
 batters = pd.read_csv('app/data/batters.csv', index_col='batter')
 matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
 hev = pd.read_csv('app/data/hev.csv', index_col='hev')
-whip = pd.read_csv('app/data/whip.csv', index_col='whip')
 
 def getTemp(temp, innings):
     if temp <= 46:
@@ -76,31 +75,17 @@ def getBullpen(bullpen):
 
 def oddsRatio(hitter, pitcher, matchup):
     h = hitter / (1 - hitter)
-    p = pitcher / (1 - hitter)
+    p = pitcher / (1 - pitcher)
     l = matchups.loc[matchup]['odds']
     odds = h * p / l
     rate = round(odds / (odds + 1), 3)
-    if 0.473 <= rate <= 0.653:
+    if 0.657 <= rate <= 0.824:
         return round(hev.loc[rate]['runs'], 2)
     else:
-        if rate < 0.473:
+        if rate < 0.657:
             return -0.15
-        if rate > 0.653:
-            return 0.1825
-
-def getWhip(pitcher):
-    p_id = pitcher['id']
-    try:
-        x = pitchers.loc[p_id]['whip']
-        if 0.95 <= x <= 1.55:
-            return whip.loc[x]['runs']
-        else:
-            if x < 0.95:
-                return -0.17
-            if x > 1.55:
-                return 0.17
-    except:
-        return 0
+        if rate > 0.824:
+            return 0.15
 
 def getInnings(pitcher, pvb, bullpen, scheduled): 
     p_id = pitcher['id']
@@ -147,9 +132,9 @@ def PvB(pitcher, lineup):
             runs += 0
     return round(runs, 2)
 
-def getHandicap(away_team, home_team):
+def getHandicap(away_team, home_team, innings):
     handicap = parks.loc[home_team]['handicap'] - parks.loc[away_team]['handicap']
-    return round(handicap, 2)
+    return round(handicap * (innings/9), 2)
 
 def getValue(total, over_threshold, under_threshold):
     bet = 'No Value'
@@ -173,8 +158,8 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
-    pitchers = {'away_pitcher': game['away_pitcher']['boxscoreName'], 'home_pitcher': game['home_pitcher']['boxscoreName']}
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
+        pitchers = {'away_pitcher': game['away_pitcher']['boxscoreName'], 'home_pitcher': game['home_pitcher']['boxscoreName']}
         innings = game['innings']
         wind_data = game['weather']['wind'].split()
         speed = int(wind_data[0])
@@ -182,9 +167,7 @@ def send_data(data):
         wind = getWind(game, speed, direction, innings)
         line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
-        away_whip = getWhip(game['away_pitcher'])
-        home_whip = getWhip(game['home_pitcher'])
-        handicap = getHandicap(game['away_team_full'], game['home_team_full'])
+        handicap = getHandicap(game['away_team_full'], game['home_team_full'], innings)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
         ump = getUmp(game['ump']['official']['id'], innings)
@@ -197,8 +180,8 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (venue + handicap + ump + away_fielding + home_fielding + weather + away_whip + home_whip + away_matchups + home_matchups + wind) * 1.072
-        pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_whip, home_whip, away_matchups, home_matchups]
+        prediction = (1.072 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
+        pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -211,7 +194,7 @@ def send_data(data):
 
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': {'away_pitcher': "TBA", 'home_pitcher': "TBA"}, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):

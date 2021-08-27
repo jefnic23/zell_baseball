@@ -5,11 +5,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 def getUmps():
-    umps = pd.read_csv("E:/Documents/Pitcher List/statcast_data/umpires_ids_game_pk.csv")
+    umps = pd.read_csv("D:/Documents/Pitcher List/statcast_data/umpires_ids_game_pk.csv")
     umps['game_date'] = umps['game_date'].str.split('-').str[0]
     umps = umps[(umps['position'] == 'HP') & (umps['id'].isin(umps[umps['game_date'] == '2021']['id']))]
     ump_count = umps.groupby('id')['game_pk'].count()
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
+    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('D:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
     df = pd.merge(df[['description', 'plate_x', 'plate_z', 'sz_bot', 'sz_top', 'game_pk']], umps[['id', 'name', 'game_date', 'game_pk']], on='game_pk')
     df['ball'] = np.where((df['plate_x'] < -0.8308333) | 
                           (df['plate_x'] > 0.8308333) |
@@ -37,9 +37,9 @@ def getBets():
     d = {"total": [],
          "bet": []
          }
-    for x in range(1, 201, 1):
+    for x in range(1, 501, 1):
         d['total'].append(x/100)
-    scaler = MinMaxScaler(feature_range=(220, 620))
+    scaler = MinMaxScaler(feature_range=(220, 1220))
     scaled = scaler.fit_transform(pd.Series(d['total']).to_numpy().reshape(-1, 1))
     for i, n in enumerate(d['total']):
         # d['x'].append(scaled[i][0])
@@ -63,8 +63,7 @@ def getFielding():
   
   
 def getBullpens():
-    df = pd.concat([pd.read_csv(f, engine='python') for f in glob.glob('E:/Documents/Pitcher List/statcast_data/savant_20*.csv')])
-    df = df[(df['game_year'].isin([2018, 2019, 2020, 2021])) & (df['pitcher'].isin(df[df['game_year'] == 2021]['pitcher'].to_list()))]
+    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
     walks = df[df['events'] == 'walk'].groupby('pitcher').agg(walks=('events', 'count'))
     hits = df[df['events'].isin(['single', 
                                  'home_run', 
@@ -111,7 +110,6 @@ def getPitching():
     df['hev'] = np.where(df['description'] == 'foul', np.nan, df['hev'])
     df['hev'] = np.where((df['description'] == 'swinging_strike') & (df['events'] == 'strikeout'), 0.0, df['hev'])
     df = df.dropna(subset=['hev'])
-    
     d = {'pitcher': [],
          'p_throws': [],
          'hev_R': [],
@@ -119,7 +117,6 @@ def getPitching():
          'hev_L': [],
          'ab_L': []
          }
-    
     for player in df['pitcher'].unique():
         try:
             df_new = df[df['pitcher'] == player]
@@ -136,50 +133,26 @@ def getPitching():
             d['ab_L'].append(ab_L)
         except:
             pass
-    
     df1 = pd.DataFrame(d, columns=list(d.keys()))
-    
-    
     out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
     out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
     out_3 = ['triple_play']
-    walks_hits = ['single', 'home_run', 'double', 'walk', 'hit_by_pitch', 'triple']
     df['outs'] = np.where(df['events'].isin(out_1), 1, 0)
     df['outs'] = np.where(df['events'].isin(out_2), 2, df['outs'])
     df['outs'] = np.where(df['events'].isin(out_3), 3, df['outs'])
-    df['walks_hits'] = np.where(df['events'].isin(walks_hits), 1, 0)
     dfi = df.groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
     dfi['innings'] = dfi['outs'] / 3
     dfi = dfi.groupby('pitcher').agg(ips = ('innings', 'mean'),
                                      ip = ('innings', 'sum')
                                      )
-    df_wh = df.groupby('pitcher').agg({'walks_hits': 'sum'})
-    df_whip = pd.merge(dfi, df_wh, on='pitcher')
-    df_whip['whip'] = round(df_whip['walks_hits'] / df_whip['ip'], 2)
-    df = pd.merge(df1, df_whip, on='pitcher')
-    # dft = df.groupby("pitcher")['p_throws'].unique().str[0]
-    # df1 = df[df['stand'] == "L"].groupby("pitcher").agg(woba_L = ('woba_value', 'sum'),
-    #                                                     pa_L = ('woba_value', 'count'))
-    # df2 = df[df['stand'] == "R"].groupby("pitcher").agg(woba_R = ('woba_value', 'sum'),
-    #                                                     pa_R = ('woba_value', 'count'))
-    # dfc = pd.merge(df1, df2, on="pitcher")
-    # dfx = pd.merge(dft, dfc, on='pitcher')
-    # df = pd.merge(dfx, df_whip, on='pitcher')
-    # pa_L = df['pa_L'].mean()
-    # pa_R = df['pa_R'].mean()
-    # woba_L = df['woba_L'].mean()
-    # woba_R = df['woba_R'].mean()
-    # df['woba_R'] = (df['woba_R'] + woba_R) / (df['pa_R'] + pa_R)
-    # df['woba_L'] = (df['woba_L'] + woba_L) / (df['pa_L'] + pa_L)
-    # df.drop(columns=['ip', 'walks_hits']).to_csv("pitchers.csv")
-    return df.drop(columns=['ip', 'walks_hits']).to_csv('pitchers.csv', index=False)
+    df = pd.merge(df1, dfi, on='pitcher')
+    return df.drop(columns=['ip']).to_csv('pitchers.csv', index=False)
 
 
 def getHitters():
     df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
     df['hev'] = round(df['launch_speed'] * np.cos(np.radians(df['launch_angle']-25)))
     df['hev'] = np.where(df['description'] == 'foul', np.nan, df['hev'])
-    df['hev'] = np.where((df['description'] == 'swinging_strike') & (df['events'] == 'strikeout'), 0.0, df['hev'])
     df = df.dropna(subset=['hev'])
     
     d = {'batter': [],
@@ -213,6 +186,7 @@ def getHitters():
     df = pd.DataFrame(d, columns=list(d.keys()))
     return df.to_csv('batters.csv', index=False)
 
+
 def getMatchups():
     p = pd.read_csv("pitchers.csv", index_col="pitcher")
     h = pd.read_csv("batters.csv", index_col="batter")
@@ -242,6 +216,7 @@ def getMatchups():
     df = pd.DataFrame(matchups, columns=matchups.keys())
     return df.to_csv('matchups.csv', index=False)
 
+
 def getParks():
     df = pd.read_csv('parks.csv', index_col='park')
     al_over = MinMaxScaler(feature_range=(0.73, 1.23))
@@ -267,11 +242,11 @@ def getHEV():
          'runs': []
          }
     
-    for i in range(193, 731):
+    for i in range(731, 896):
         hev = i / 1000
         d['hev'].append(hev)
     
-    scaler = MinMaxScaler(feature_range=(-0.15, 0.15))
+    scaler = MinMaxScaler(feature_range=(-0.3, 0.275))
     runs = scaler.fit_transform(pd.Series(d['hev']).to_numpy().reshape(-1,1))
     for i, n in enumerate(d['hev']):
         d['runs'].append(runs[i][0])

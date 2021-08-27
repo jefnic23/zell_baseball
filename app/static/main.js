@@ -102,7 +102,7 @@ function populateTables(data) {
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${away_pitcher} WHIP`, `${home_pitcher} WHIP`, `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
+    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
     var total = data.total;
     var bet = data.bet;
@@ -216,11 +216,11 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
-                if (prediction > over_under && total >= over_threshold) {
+                if (prediction > over_under && total > over_threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betover");
                 } 
-                if (over_under > prediction && total <= 0-under_threshold) {
+                if (over_under > prediction && total < 0-under_threshold) {
                     td.innerHTML = `${items[i]}`
                     td.classList.add("betunder");
                 }
