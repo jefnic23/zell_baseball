@@ -158,8 +158,10 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
+    pitchers = {'away_pitcher': "TBA", 'home_pitcher': "TBA"}
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
-        pitchers = {'away_pitcher': game['away_pitcher']['boxscoreName'], 'home_pitcher': game['home_pitcher']['boxscoreName']}
+        pitchers['away_pitcher'] = game['away_pitcher']['boxscoreName']
+        pitchers['home_pitcher'] = game['home_pitcher']['boxscoreName']
         innings = game['innings']
         wind_data = game['weather']['wind'].split()
         speed = int(wind_data[0])
@@ -194,7 +196,7 @@ def send_data(data):
 
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': {'away_pitcher': "TBA", 'home_pitcher': "TBA"}, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
