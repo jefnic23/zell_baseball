@@ -257,10 +257,10 @@ function changeValue(el_id, value, total, over_threshold, under_threshold) {
         if (total >= 0-under_threshold) {
             el.setAttribute('class', '');
         }
-    } else if (el.innerHTML === 'No Value' && total >= over_threshold) {
+    } else if (el.innerHTML === 'No Value' && total > over_threshold) {
         el.innerHTML = value;
         el.classList.add("betover");
-    } else if (el.innerHTML === 'No Value' && total <= 0-under_threshold) {
+    } else if (el.innerHTML === 'No Value' && total < 0-under_threshold) {
         el.innerHTML = value;
         el.classList.add("betunder");
     } else if (el.innerHTML != 'No Value' && total <= 0.50 && total >= -0.50) {
