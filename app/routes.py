@@ -91,10 +91,10 @@ def oddsRatio(hitter, pitcher, matchup):
 def getInnings(pitcher, pvb, bullpen, scheduled): 
     p_id = pitcher['id']
     try:
-        innings = pitchers.loc[p_id]['ips'] / scheduled
+        innings = pitchers.loc[p_id]['innings'] / scheduled
         return round((pvb * innings) + (bullpen * (1 - innings)), 2)
     except:
-        innings = pitchers['ips'].median() / scheduled
+        innings = pitchers['innings'].median() / scheduled
         return round((pvb * innings) + (bullpen * (1 - innings)), 2)
 
 def PvB(pitcher, lineup):
@@ -186,7 +186,7 @@ def pitcherHEV(pitcher):
     except:
         return None
 
-def getInnings(pitcher):
+def starterInnings(pitcher):
     innings = 5.1
     try:
         innings = pitchers.loc[pitcher]['innings']
@@ -222,32 +222,35 @@ def getDefense(lineup):
     return runs
 
 def modelPred(game):
-    d = {'innings': game['innings'],
-         'temp': int(game['weather']['temp']),
-         'wind_spd': int(game['weather']['wind'].split()[0]),
-         'wind_dir': wind[game['weather']['wind'].split(',')[1]],
-         'condition': condition_map[game['weather']['condition']],
-         'ump': game['ump']['official']['id'],
-         'away_team': game['teams']['away']['team']['id'],
-         'home_team': game['teams']['home']['team']['id'],
-         'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
-         'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
-         'away_pitcher_innings': getInnings(game['away_pitcher']['id']),
-         'home_pitcher_innings': getInnings(game['home_pitcher']['id']),
-         'away_matchups': batterHEV(game['away_lineup']),
-         'home_matchups': batterHEV(game['home_lineup']),
-         'away_bullpen': getRelievers(game['away_bullpen']),
-         'home_bullpen': getRelievers(game['home_bullpen']),
-         'away_defense': getDefense(game['away_lineup']),
-         'home_defense': getDefense(game['home_lineup'])
-         }
-    df = pd.DataFrame(d, columns=d.keys())
-    X = df.loc[:,'temp': 'home_defense']
-    if df['innings'] == 7:
-        pred = round(model.predict(X) * (7/9), 2)
-    else:
-        pred = round(model.predict(X), 2)
-    return pred
+    try:
+        d = {'innings': game['innings'],
+            'temp': int(game['weather']['temp']),
+            'wind_spd': int(game['weather']['wind'].split()[0]),
+            'wind_dir': wind[game['weather']['wind'].split(',')[1]],
+            'condition': condition_map[game['weather']['condition']],
+            'ump': game['ump']['official']['id'],
+            'away_team': game['teams']['away']['team']['id'],
+            'home_team': game['teams']['home']['team']['id'],
+            'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
+            'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
+            'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
+            'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
+            'away_matchups': batterHEV(game['away_lineup']),
+            'home_matchups': batterHEV(game['home_lineup']),
+            'away_bullpen': getRelievers(game['away_bullpen']),
+            'home_bullpen': getRelievers(game['home_bullpen']),
+            'away_defense': getDefense(game['away_lineup']),
+            'home_defense': getDefense(game['home_lineup'])
+            }
+        df = pd.DataFrame(d, columns=d.keys(), index=[0])
+        X = df.loc[:,'temp':'home_defense']
+        if d['innings'] == 7:
+            pred = round(model.predict(X) * (7/9), 2)
+        else:
+            pred = round(model.predict(X), 2)
+        return pred
+    except:
+        pass
 
 '''
 sockets

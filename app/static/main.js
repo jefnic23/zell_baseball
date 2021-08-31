@@ -310,7 +310,7 @@ getFanduel(odds_url).then(data => {
         }
         $.each(data.games, (i, g) => {
             // console.log(g);
-            if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
+            if (g.status.codedGameState === "P" || g.status.codedGameState === "S" && !('resumedFrom' in g)) {
                 var game = {};
                 game['gamePk'] = g.gamePk;
                 game["game_time"] = new Date(g.gameDate);
