@@ -2,6 +2,7 @@ from flask import render_template
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 import pandas as pd
+import pickle
 from app import app
 
 Payload.max_decode_packets = 500
@@ -146,6 +147,113 @@ def getValue(total, over_threshold, under_threshold):
         bet = int(bets.loc[value]['bet'])
     return bet
 
+
+'''
+model predictions
+'''
+
+defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
+with open('app/data/model.pkl', 'rb') as f:
+    model = pickle.load(f)
+
+wind = {' None': 0,
+        ' R To L': 1,
+        ' Varies': 2,
+        ' Out To RF': 3,
+        ' Out To CF': 4,
+        ' L To R': 5,
+        ' In From RF': 6,
+        ' In From CF': 7,
+        ' Out To LF': 8,
+        ' In From LF': 9,
+        ' Calm': 10
+        }
+condition_map = {'Dome': 0,
+                 'Partly Cloudy': 1,
+                 'Sunny': 2,
+                 'Roof Closed': 3,
+                 'Overcast': 4,
+                 'Cloudy': 5,
+                 'Clear': 6,
+                 'Snow': 7,
+                 'Drizzle': 8,
+                 'Rain': 9
+                 }
+
+def pitcherHEV(pitcher):
+    try:
+        return pitchers.loc[pitcher]['wHEV']
+    except:
+        return None
+
+def getInnings(pitcher):
+    innings = 5.1
+    try:
+        innings = pitchers.loc[pitcher]['innings']
+        return round(innings,1)
+    except:
+        return innings
+
+def batterHEV(lineup):
+    hev = []
+    for batter in lineup:
+        try:
+            hev.append(batters.loc[batter['id']]['wHEV'])
+        except:
+            pass
+    return round(sum(hev)/len(hev), 3)
+
+def getRelievers(bullpen):
+    runs = []
+    for player in bullpen:
+        try:
+            runs.append(pitchers.loc[player['id']]['wHEV'])
+        except:
+            pass
+    return round(sum(runs)/len(runs), 3)
+
+def getDefense(lineup):
+    runs = 0
+    for player in lineup:
+        try:
+            runs += fielding.loc[player['id']]['outs_above_average']
+        except:
+            runs += 0
+    return runs
+
+def modelPred(game):
+    d = {'innings': game['innings'],
+         'temp': int(game['weather']['temp']),
+         'wind_spd': int(game['weather']['wind'].split()[0]),
+         'wind_dir': wind[game['weather']['wind'].split(',')[1]],
+         'condition': condition_map[game['weather']['condition']],
+         'ump': game['ump']['official']['id'],
+         'away_team': game['teams']['away']['team']['id'],
+         'home_team': game['teams']['home']['team']['id'],
+         'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
+         'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
+         'away_pitcher_innings': getInnings(game['away_pitcher']['id']),
+         'home_pitcher_innings': getInnings(game['home_pitcher']['id']),
+         'away_matchups': batterHEV(game['away_lineup']),
+         'home_matchups': batterHEV(game['home_lineup']),
+         'away_bullpen': getRelievers(game['away_bullpen']),
+         'home_bullpen': getRelievers(game['home_bullpen']),
+         'away_defense': getDefense(game['away_lineup']),
+         'home_defense': getDefense(game['home_lineup'])
+         }
+    df = pd.DataFrame(d, columns=d.keys())
+    X = df.loc[:,'temp': 'home_defense']
+    if df['innings'] == 7:
+        pred = round(model.predict(X) * (7/9), 2)
+    else:
+        pred = round(model.predict(X), 2)
+    return pred
+
+'''
+sockets
+'''
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -184,6 +292,7 @@ def send_data(data):
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
         prediction = (1.061 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
+        model_pred = modelPred(game)
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -194,9 +303,9 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': model_pred})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD'})
 
 @socketio.on('changeLine')
 def change_line(data):

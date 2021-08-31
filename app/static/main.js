@@ -101,6 +101,7 @@ function populateTables(data) {
     var over_threshold = data.over_threshold;
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
+    var model_pred = data.model_pred;
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
@@ -119,7 +120,7 @@ function populateTables(data) {
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
-    var items = [teams, game_time, prediction, over_under, total, bet];
+    var items = [teams, game_time, prediction, model_pred, over_under, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
         if (i === 0) {
@@ -186,12 +187,12 @@ function populateTables(data) {
             td.innerHTML = items[i];
             row.appendChild(td);
         }
-        // if (i === 4) {
-        //     td.setAttribute("id", game.market.idfomarket);
-        //     td.innerHTML = items[i];
-        //     row.appendChild(td);
-        // }
         if (i === 4) {
+            // td.setAttribute("id", game.market.idfomarket);
+            td.innerHTML = items[i];
+            row.appendChild(td);
+        }
+        if (i === 5) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             var over_el = game.market.selections.find(x => x.name === "Over");
@@ -212,7 +213,7 @@ function populateTables(data) {
             }
             row.appendChild(td);
         }
-        if (i === 5) {
+        if (i === 6) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
@@ -332,6 +333,9 @@ getFanduel(odds_url).then(data => {
                 game['over_under'] = null;
                 game['over_line'] = null;
                 game['under_line'] = null;
+                // used for model predictions
+                game['park'] = g.venue.id;
+                game['teams'] = g.teams;
         
                 getData(base_url, g.link).then(d => {
                     // console.log(d);
