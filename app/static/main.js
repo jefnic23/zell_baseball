@@ -87,6 +87,10 @@ function changeClass(el, _class) {
     }, 5500);
 }
 
+function roundToTwo(num) {    
+    return +(Math.round(num + "e+2")  + "e-2");
+}
+
 function populateTables(data) {
     // console.log(data);
     var game = data.game;
@@ -101,7 +105,7 @@ function populateTables(data) {
     var over_threshold = data.over_threshold;
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
-    var model_pred = data.model_pred;
+    var model_pred = roundToTwo(data.model_pred);
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
@@ -182,13 +186,12 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 3) {
-            // add condition for games with no market, or stop them from getting passed here
-            td.setAttribute("id", game.market.idfoevent);
+            // td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
             row.appendChild(td);
         }
         if (i === 4) {
-            // td.setAttribute("id", game.market.idfomarket);
+            td.setAttribute("id", game.market.idfoevent);
             td.innerHTML = items[i];
             row.appendChild(td);
         }

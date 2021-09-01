@@ -2,7 +2,8 @@ from flask import render_template
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 import pandas as pd
-import pickle
+from xgboost import XGBRegressor
+import json
 from app import app
 
 Payload.max_decode_packets = 500
@@ -153,8 +154,8 @@ model predictions
 '''
 
 defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
-with open('app/data/model.pkl', 'rb') as f:
-    model = pickle.load(f)
+model = XGBRegressor()
+model.load_model('app/data/model.txt')
 
 wind = {' None': 0,
         ' R To L': 1,
@@ -222,35 +223,32 @@ def getDefense(lineup):
     return runs
 
 def modelPred(game):
-    try:
-        d = {'innings': game['innings'],
-            'temp': int(game['weather']['temp']),
-            'wind_spd': int(game['weather']['wind'].split()[0]),
-            'wind_dir': wind[game['weather']['wind'].split(',')[1]],
-            'condition': condition_map[game['weather']['condition']],
-            'ump': game['ump']['official']['id'],
-            'away_team': game['teams']['away']['team']['id'],
-            'home_team': game['teams']['home']['team']['id'],
-            'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
-            'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
-            'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
-            'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
-            'away_matchups': batterHEV(game['away_lineup']),
-            'home_matchups': batterHEV(game['home_lineup']),
-            'away_bullpen': getRelievers(game['away_bullpen']),
-            'home_bullpen': getRelievers(game['home_bullpen']),
-            'away_defense': getDefense(game['away_lineup']),
-            'home_defense': getDefense(game['home_lineup'])
-            }
-        df = pd.DataFrame(d, columns=d.keys(), index=[0])
-        X = df.loc[:,'temp':'home_defense']
-        if d['innings'] == 7:
-            pred = round(model.predict(X) * (7/9), 2)
-        else:
-            pred = round(model.predict(X), 2)
-        return pred
-    except:
-        pass
+    d = {'innings': game['innings'],
+        'temp': int(game['weather']['temp']),
+        'wind_spd': int(game['weather']['wind'].split()[0]),
+        'wind_dir': wind[game['weather']['wind'].split(',')[1]],
+        'condition': condition_map[game['weather']['condition']],
+        'ump': game['ump']['official']['id'],
+        'away_team': game['teams']['away']['team']['id'],
+        'home_team': game['teams']['home']['team']['id'],
+        'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
+        'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
+        'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
+        'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
+        'away_matchups': batterHEV(game['away_lineup']),
+        'home_matchups': batterHEV(game['home_lineup']),
+        'away_bullpen': getRelievers(game['away_bullpen']),
+        'home_bullpen': getRelievers(game['home_bullpen']),
+        'away_defense': getDefense(game['away_lineup']),
+        'home_defense': getDefense(game['home_lineup'])
+        }
+    df = pd.DataFrame(d, columns=d.keys(), index=[0])
+    X = df.loc[:,'temp':'home_defense']
+    pred = model.predict(X)
+    if d['innings'] == 7:
+        return pred[0] * (7/9)
+    else:
+        return pred[0]
 
 '''
 sockets
@@ -306,7 +304,7 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': model_pred})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': json.dumps(model_pred.astype(float))})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD'})
 
