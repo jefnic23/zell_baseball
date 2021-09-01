@@ -87,10 +87,6 @@ function changeClass(el, _class) {
     }, 5500);
 }
 
-function roundToTwo(num) {    
-    return +(Math.round(num + "e+2")  + "e-2");
-}
-
 function populateTables(data) {
     // console.log(data);
     var game = data.game;
@@ -105,7 +101,9 @@ function populateTables(data) {
     var over_threshold = data.over_threshold;
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
-    var model_pred = roundToTwo(data.model_pred);
+    var model_pred = data.model_pred;
+    var model_data = data.model_data;
+    var model_name = ['Over threshold', 'Under threshold', 'Total']
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
@@ -188,6 +186,29 @@ function populateTables(data) {
         if (i === 3) {
             // td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
+            td.classList.add('tooltip');
+            if (model_data) {
+                if (model_pred > over_under && model_data[2] > model_data[1]) {
+                    td.classList.add("betover");
+                } 
+                if (over_under > model_pred && model_data[2] < 0-model_data[0]) {
+                    td.classList.add("betunder");
+                }
+                var span = document.createElement('span');
+                span.classList.add('tooltiptext');
+                var ul = document.createElement('ul');
+                for (var j = 0; j < model_data.length; j++) {
+                    var li = document.createElement('li');
+                    if (j === 2) {
+                        li.innerHTML = `<strong>${model_name[j]}</strong>: <strong>${model_data[j]}</strong>`;
+                    } else {
+                        li.innerHTML = `${model_name[j]}: ${model_data[j]}`;
+                    }
+                    ul.appendChild(li);
+                }
+                span.appendChild(ul);
+                td.appendChild(span);
+            }
             row.appendChild(td);
         }
         if (i === 4) {
@@ -465,11 +486,3 @@ function updateOdds() {
         mainLoop();
     }, rand * 1000);
 }());
-
-/*
-
-$.getJSON("http://statsapi.mlb.com/api/v1/people/605113/stats?stats=career&group=fielding").then(data => {
-    console.log(data);
-});
-
-*/

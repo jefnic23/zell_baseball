@@ -148,12 +148,13 @@ def getValue(total, over_threshold, under_threshold):
         bet = int(bets.loc[value]['bet'])
     return bet
 
-
 '''
 model predictions
 '''
 
 defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
+under_thresholds = pd.read_csv('app/data/under_thresholds.csv', index_col='park')
+over_thresholds = pd.read_csv('app/data/over_thresholds.csv', index_col='park')
 model = XGBRegressor()
 model.load_model('app/data/model.txt')
 
@@ -246,14 +247,19 @@ def modelPred(game):
     X = df.loc[:,'temp':'home_defense']
     pred = model.predict(X)
     if d['innings'] == 7:
-        return pred[0] * (7/9)
+        return json.dumps(pred[0] * (7/9).astype(float))
     else:
-        return pred[0]
+        return json.dumps(pred[0].astype(float))
+
+def modelData(park, pred, line):
+    u = under_thresholds.loc[park]['threshold']
+    o = over_thresholds.loc[park]['threshold']
+    total = round(pred - line, 2)
+    return [u, o, total]
 
 '''
 sockets
 '''
-
 
 @app.route('/')
 def index():
@@ -294,6 +300,7 @@ def send_data(data):
         prediction = (1.055 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
         model_pred = modelPred(game)
+        model_data = modelData(game['park'], model_pred, over_under)
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -304,9 +311,9 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': json.dumps(model_pred.astype(float))})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': round(model_pred, 2), 'model_data': model_data})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD'})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD', 'model_data': None})
 
 @socketio.on('changeLine')
 def change_line(data):
