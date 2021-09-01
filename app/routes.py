@@ -269,10 +269,10 @@ def send_data(data):
     over_under = game['over_under']
     over_line = game['over_line']
     under_line = game['under_line']
-    pitchers = {'away_pitcher': "TBA", 'home_pitcher': "TBA"}
+    starters = {'away': "TBA", 'home': "TBA"}
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
-        pitchers['away_pitcher'] = game['away_pitcher']['boxscoreName']
-        pitchers['home_pitcher'] = game['home_pitcher']['boxscoreName']
+        starters['away'] = game['away_pitcher']['boxscoreName']
+        starters['home'] = game['home_pitcher']['boxscoreName']
         innings = game['innings']
         wind_data = game['weather']['wind'].split()
         speed = int(wind_data[0])
@@ -306,9 +306,9 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': pitchers, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': model_pred})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': model_pred})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': pitchers, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD'})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD'})
 
 @socketio.on('changeLine')
 def change_line(data):
