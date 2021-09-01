@@ -247,9 +247,9 @@ def modelPred(game):
     X = df.loc[:,'temp':'home_defense']
     pred = model.predict(X)
     if d['innings'] == 7:
-        return json.dumps(pred[0] * (7/9).astype(float))
+        return float(pred[0] * (7/9))
     else:
-        return json.dumps(pred[0].astype(float))
+        return float(pred[0])
 
 def modelData(park, pred, line):
     u = under_thresholds.loc[park]['threshold']
