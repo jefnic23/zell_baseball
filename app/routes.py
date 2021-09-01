@@ -170,6 +170,7 @@ wind_map = {' None': 0,
         ' In From LF': 9,
         ' Calm': 10
         }
+
 condition_map = {'Dome': 0,
                  'Partly Cloudy': 1,
                  'Sunny': 2,
@@ -225,24 +226,24 @@ def getDefense(lineup):
 
 def modelPred(game):
     d = {'innings': game['innings'],
-        'temp': int(game['weather']['temp']),
-        'wind_spd': int(game['weather']['wind'].split()[0]),
-        'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
-        'condition': condition_map[game['weather']['condition']],
-        'ump': game['ump']['official']['id'],
-        'away_team': game['teams']['away']['team']['id'],
-        'home_team': game['teams']['home']['team']['id'],
-        'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
-        'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
-        'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
-        'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
-        'away_matchups': batterHEV(game['away_lineup']),
-        'home_matchups': batterHEV(game['home_lineup']),
-        'away_bullpen': getRelievers(game['away_bullpen']),
-        'home_bullpen': getRelievers(game['home_bullpen']),
-        'away_defense': getDefense(game['away_lineup']),
-        'home_defense': getDefense(game['home_lineup'])
-        }
+         'temp': int(game['weather']['temp']),
+         'wind_spd': int(game['weather']['wind'].split()[0]),
+         'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
+         'condition': condition_map[game['weather']['condition']],
+         'ump': game['ump']['official']['id'],
+         'away_team': game['teams']['away']['team']['id'],
+         'home_team': game['teams']['home']['team']['id'],
+         'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
+         'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
+         'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
+         'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
+         'away_matchups': batterHEV(game['away_lineup']),
+         'home_matchups': batterHEV(game['home_lineup']),
+         'away_bullpen': getRelievers(game['away_bullpen']),
+         'home_bullpen': getRelievers(game['home_bullpen']),
+         'away_defense': getDefense(game['away_lineup']),
+         'home_defense': getDefense(game['home_lineup'])
+         }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
     X = df.loc[:,'temp':'home_defense']
     pred = model.predict(X)
@@ -252,10 +253,10 @@ def modelPred(game):
         return float(pred[0])
 
 def modelData(park, pred, line):
-    u = under_thresholds.loc[park]['threshold']
     o = over_thresholds.loc[park]['threshold']
+    u = under_thresholds.loc[park]['threshold']
     total = round(pred - line, 2)
-    return [u, o, total]
+    return [o, u, total]
 
 '''
 sockets
@@ -306,7 +307,7 @@ def send_data(data):
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
-            
+
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)

@@ -170,10 +170,10 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             if (model_data) {
-                if (model_pred > over_under && model_data[2] > model_data[1]) {
+                if (model_pred > over_under && model_data[2] > model_data[0]) {
                     td.classList.add("betover");
                 } 
-                if (over_under > model_pred && model_data[2] < 0-model_data[0]) {
+                if (model_pred < over_under && model_data[2] < 0-model_data[1]) {
                     td.classList.add("betunder");
                 }
                 var span = document.createElement('span');
