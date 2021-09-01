@@ -158,7 +158,7 @@ over_thresholds = pd.read_csv('app/data/over_thresholds.csv', index_col='park')
 model = XGBRegressor()
 model.load_model('app/data/model.txt')
 
-wind = {' None': 0,
+wind_map = {' None': 0,
         ' R To L': 1,
         ' Varies': 2,
         ' Out To RF': 3,
@@ -227,7 +227,7 @@ def modelPred(game):
     d = {'innings': game['innings'],
         'temp': int(game['weather']['temp']),
         'wind_spd': int(game['weather']['wind'].split()[0]),
-        'wind_dir': wind[game['weather']['wind'].split(',')[1]],
+        'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
         'condition': condition_map[game['weather']['condition']],
         'ump': game['ump']['official']['id'],
         'away_team': game['teams']['away']['team']['id'],
@@ -306,7 +306,7 @@ def send_data(data):
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
         else:
             adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
-        
+            
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)

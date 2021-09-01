@@ -122,7 +122,7 @@ function populateTables(data) {
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
-    var items = [teams, game_time, prediction, model_pred, over_under, total, bet];
+    var items = [teams, game_time, model_pred, prediction, over_under, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
         if (i === 0) {
@@ -334,7 +334,7 @@ getFanduel(odds_url).then(data => {
         }
         $.each(data.games, (i, g) => {
             // console.log(g);
-            if (g.status.codedGameState === "P" || g.status.codedGameState === "S" && !('resumedFrom' in g)) {
+            if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
                 var game = {};
                 game['gamePk'] = g.gamePk;
                 game["game_time"] = new Date(g.gameDate);
