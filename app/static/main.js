@@ -166,24 +166,6 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 2) {
-            td.innerHTML = items[i];
-            td.classList.add('tooltip');
-            if (pred_data) {
-                var span = document.createElement('span');
-                span.classList.add('tooltiptext');
-                var ul = document.createElement('ul');
-                for (var j = 0; j < pred_data.length; j++) {
-                    if (pred_name[j] === 'Wind' && game.venue !== 'Wrigley Field') { continue; }
-                    var li = document.createElement('li');
-                    li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
-                    ul.appendChild(li);
-                }
-                span.appendChild(ul);
-                td.appendChild(span);
-            }
-            row.appendChild(td);
-        }
-        if (i === 3) {
             // td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
             td.classList.add('tooltip');
@@ -204,6 +186,24 @@ function populateTables(data) {
                     } else {
                         li.innerHTML = `${model_name[j]}: ${model_data[j]}`;
                     }
+                    ul.appendChild(li);
+                }
+                span.appendChild(ul);
+                td.appendChild(span);
+            }
+            row.appendChild(td);
+        }
+        if (i === 3) {
+            td.innerHTML = items[i];
+            td.classList.add('tooltip');
+            if (pred_data) {
+                var span = document.createElement('span');
+                span.classList.add('tooltiptext');
+                var ul = document.createElement('ul');
+                for (var j = 0; j < pred_data.length; j++) {
+                    if (pred_name[j] === 'Wind' && game.venue !== 'Wrigley Field') { continue; }
+                    var li = document.createElement('li');
+                    li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
                     ul.appendChild(li);
                 }
                 span.appendChild(ul);
