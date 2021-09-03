@@ -103,7 +103,7 @@ function populateTables(data) {
     var prediction = data.prediction;
     var model_pred = data.model_pred;
     var model_data = data.model_data;
-    var model_name = ['Over threshold', 'Under threshold', 'Total']
+    var model_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
@@ -170,10 +170,10 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             if (model_data) {
-                if (model_pred > over_under && model_data[2] > model_data[0]) {
+                if (model_pred > over_under && model_data[4] > model_data[0] && model_data[2] >= 62.0) {
                     td.classList.add("betover");
                 } 
-                if (model_pred < over_under && model_data[2] < 0-model_data[1]) {
+                if (model_pred < over_under && model_data[4] < 0-model_data[1] && model_data[3] >= 62.0) {
                     td.classList.add("betunder");
                 }
                 var span = document.createElement('span');
@@ -181,8 +181,10 @@ function populateTables(data) {
                 var ul = document.createElement('ul');
                 for (var j = 0; j < model_data.length; j++) {
                     var li = document.createElement('li');
-                    if (j === 2) {
+                    if (j === 4) {
                         li.innerHTML = `<strong>${model_name[j]}</strong>: <strong>${model_data[j]}</strong>`;
+                    } else if (j === 2 || j === 3) {
+                        li.innerHTML = `${model_name[j]}: ${Math.round(model_data[j])}%`;
                     } else {
                         li.innerHTML = `${model_name[j]}: ${model_data[j]}`;
                     }

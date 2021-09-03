@@ -159,17 +159,17 @@ model = XGBRegressor()
 model.load_model('app/data/model.txt')
 
 wind_map = {' None': 0,
-        ' R To L': 1,
-        ' Varies': 2,
-        ' Out To RF': 3,
-        ' Out To CF': 4,
-        ' L To R': 5,
-        ' In From RF': 6,
-        ' In From CF': 7,
-        ' Out To LF': 8,
-        ' In From LF': 9,
-        ' Calm': 10
-        }
+            ' R To L': 1,
+            ' Varies': 2,
+            ' Out To RF': 3,
+            ' Out To CF': 4,
+            ' L To R': 5,
+            ' In From RF': 6,
+            ' In From CF': 7,
+            ' Out To LF': 8,
+            ' In From LF': 9,
+            ' Calm': 10
+            }
 
 condition_map = {'Dome': 0,
                  'Partly Cloudy': 1,
@@ -254,9 +254,11 @@ def modelPred(game):
 
 def modelData(park, pred, line):
     o = over_thresholds.loc[park]['threshold']
+    o_pct = over_thresholds.loc[park]['pct']
     u = under_thresholds.loc[park]['threshold']
+    u_pct = under_thresholds.loc[park]['pct']
     total = round(pred - line, 2)
-    return [o, u, total]
+    return [o, u, o_pct, u_pct, total]
 
 '''
 sockets
