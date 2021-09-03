@@ -338,7 +338,10 @@ def change_line(data):
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over]['mod'], 2)
         else: 
-            adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
+            try:
+                adj_line = round(over_under + lines_22.loc[over]['mod'], 2)
+            except:
+                adj_line = -0.25
 
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
