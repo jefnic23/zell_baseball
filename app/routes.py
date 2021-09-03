@@ -253,12 +253,15 @@ def modelPred(game):
         return float(pred[0])
 
 def modelData(park, pred, line):
-    o = over_thresholds.loc[park]['threshold']
-    o_pct = over_thresholds.loc[park]['pct']
-    u = under_thresholds.loc[park]['threshold']
-    u_pct = under_thresholds.loc[park]['pct']
-    total = round(pred - line, 2)
-    return [o, u, o_pct, u_pct, total]
+    try:
+        o = over_thresholds.loc[park]['threshold']
+        o_pct = over_thresholds.loc[park]['pct']
+        u = under_thresholds.loc[park]['threshold']
+        u_pct = under_thresholds.loc[park]['pct']
+        total = round(pred - line, 2)
+        return [o, u, o_pct, u_pct, total]
+    except:
+        return None
 
 '''
 sockets
@@ -308,7 +311,10 @@ def send_data(data):
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
         else:
-            adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
+            try:
+                adj_line = round(over_under + lines_22.loc[over_line]['mod'], 2)
+            except:
+                adj_line = -0.25
 
         total = round(prediction - over_under, 2)
         adj_total = round(prediction - adj_line, 2)
