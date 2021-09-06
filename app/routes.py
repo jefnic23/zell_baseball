@@ -204,7 +204,7 @@ def batterHEV(lineup):
             hev.append(batters.loc[batter['id']]['wHEV'])
         except:
             pass
-    return round(sum(hev)/len(hev), 3)
+    return round(sum(hev)/len(hev), 2)
 
 def getRelievers(bullpen):
     runs = []
@@ -213,7 +213,7 @@ def getRelievers(bullpen):
             runs.append(pitchers.loc[player['id']]['wHEV'])
         except:
             pass
-    return round(sum(runs)/len(runs), 3)
+    return round(sum(runs)/len(runs), 2)
 
 def getDefense(lineup):
     runs = 0
