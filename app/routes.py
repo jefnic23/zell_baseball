@@ -242,7 +242,8 @@ def modelPred(game):
          'away_bullpen': getRelievers(game['away_bullpen']),
          'home_bullpen': getRelievers(game['home_bullpen']),
          'away_defense': getDefense(game['away_lineup']),
-         'home_defense': getDefense(game['home_lineup'])
+         'home_defense': getDefense(game['home_lineup']),
+         'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
     X = df.loc[:,'temp':'home_defense']
