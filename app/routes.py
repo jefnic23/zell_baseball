@@ -246,7 +246,7 @@ def modelPred(game):
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X = df.loc[:,'temp':'home_defense']
+    X = df.loc[:,'temp':'CloseOU']
     pred = model.predict(X)
     if d['innings'] == 7:
         return float(pred[0] * (7/9))
