@@ -187,7 +187,7 @@ def pitcherHEV(pitcher):
     try:
         return pitchers.loc[pitcher]['wHEV']
     except:
-        return None
+        return pitchers['wHEV'].quantile(0.33)
 
 def starterInnings(pitcher):
     innings = 5.1
@@ -203,7 +203,7 @@ def batterHEV(lineup):
         try:
             hev.append(batters.loc[batter['id']]['wHEV'])
         except:
-            pass
+            hev.append(batters['wHEV'].quantile(0.33))
     return round(sum(hev)/len(hev), 2)
 
 def getRelievers(bullpen):
@@ -212,7 +212,7 @@ def getRelievers(bullpen):
         try:
             runs.append(pitchers.loc[player['id']]['wHEV'])
         except:
-            pass
+            runs.append(pitchers['wHEV'].quantile(0.33))
     return round(sum(runs)/len(runs), 2)
 
 def getDefense(lineup):
@@ -225,30 +225,24 @@ def getDefense(lineup):
     return runs
 
 def modelPred(game):
-    d = {'innings': game['innings'],
-         'temp': int(game['weather']['temp']),
+    d = {'temp': int(game['weather']['temp']),
          'wind_spd': int(game['weather']['wind'].split()[0]),
          'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
          'condition': condition_map[game['weather']['condition']],
          'ump': umps.loc[game['ump']['official']['id']]['ratio'].round(2),
         #  'away_team': game['teams']['away']['team']['id'],
          'home_team': game['teams']['home']['team']['id'],
-         'away_pitcher': pitcherHEV(game['away_pitcher']['id']),
-         'home_pitcher': pitcherHEV(game['home_pitcher']['id']),
-         'away_pitcher_innings': starterInnings(game['away_pitcher']['id']),
-         'home_pitcher_innings': starterInnings(game['home_pitcher']['id']),
-         'away_matchups': batterHEV(game['away_lineup']),
-         'home_matchups': batterHEV(game['home_lineup']),
-         'away_bullpen': getRelievers(game['away_bullpen']),
-         'home_bullpen': getRelievers(game['home_bullpen']),
-         'away_defense': getDefense(game['away_lineup']),
-         'home_defense': getDefense(game['home_lineup']),
+         'pitchers': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
+         'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
+         'offense': batterHEV(game['away_lineup']) + batterHEV(game['home_lineup']),
+         'bullpens': getRelievers(game['away_bullpen']) + getRelievers(game['home_bullpen']),
+         'defense': getDefense(game['away_lineup']) + getDefense(game['home_lineup']),
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
     X = df.loc[:,'temp':'CloseOU']
     pred = model.predict(X)
-    if d['innings'] == 7:
+    if game['innings'] == 7:
         return float(pred[0] * (7/9))
     else:
         return float(pred[0])
