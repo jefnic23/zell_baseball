@@ -225,13 +225,12 @@ def getDefense(lineup):
     return runs
 
 def modelPred(game):
-    d = {'temp': int(game['weather']['temp']),
+    d = {'park': game['park'],
+         'temp': int(game['weather']['temp']),
          'wind_spd': int(game['weather']['wind'].split()[0]),
          'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
          'condition': condition_map[game['weather']['condition']],
          'ump': umps.loc[game['ump']['official']['id']]['ratio'].round(2),
-        #  'away_team': game['teams']['away']['team']['id'],
-         'home_team': game['teams']['home']['team']['id'],
          'pitchers': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
          'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
          'offense': batterHEV(game['away_lineup']) + batterHEV(game['home_lineup']),
@@ -240,7 +239,7 @@ def modelPred(game):
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X = df.loc[:,'temp':'CloseOU']
+    X = df.loc[:,'park':'CloseOU']
     pred = model.predict(X)
     if game['innings'] == 7:
         return float(pred[0] * (7/9))
@@ -298,7 +297,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (1.01 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
+        prediction = (1.02 * venue) + (0.25 * (over_under - venue)) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         pred_data = [venue, handicap, weather, wind, ump, away_fielding, home_fielding, away_matchups, home_matchups]
         model_pred = modelPred(game)
         model_data = modelData(game['park'], model_pred, over_under)
