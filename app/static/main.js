@@ -109,8 +109,7 @@ function populateTables(data) {
     var larry_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 
-        `${teams.away_name} Defense`, `${teams.home_name} Defense`, 
-        `${teams.away_name} Bullpen`, `${teams.home_name} Bullpen`, 
+        `${teams.home_name} Defense`, `${teams.away_name} Defense`, 
         `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`
     ];
     var over_line = game.over_line;
@@ -253,6 +252,11 @@ function populateTables(data) {
         if (i === 5) {
             td.setAttribute("id", game.market.idfoevent);
             td.innerHTML = items[i];
+            var div = document.createElement("div");
+            var over_div = document.createElement("div");
+            var under_div = document.createElement("div");
+            over_div.innerHTML = over_line;
+            under_div.innerHTML = under_line;
             row.appendChild(td);
         }
         if (i === 6) {
