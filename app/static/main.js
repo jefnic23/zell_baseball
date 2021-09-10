@@ -173,18 +173,14 @@ function populateTables(data) {
             td.classList.add('tooltip');
             if (uncle_jack_data) {
                 if (uncle_jack_pred[0] > uncle_jack_pred[1]) {
+                    td.innerHTML = `U, ${Math.round(uncle_jack_pred[0] * 10) / 10}%`;
                     if (uncle_jack_pred[0] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.67) {
-                        td.innerHTML = `U, ${Math.round(uncle_jack_pred[0] * 10) / 10}%`;
                         td.classList.add("betunder");
-                    } else {
-                        td.innerHTML = 'No value';
                     }
                 } else {
+                    td.innerHTML = `O, ${Math.round(uncle_jack_pred[1] * 10) / 10}%`;
                     if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
-                        td.innerHTML = `O, ${Math.round(uncle_jack_pred[1] * 10) / 10}%`;
                         td.classList.add("betover");
-                    } else {
-                        td.innerHTML = 'No value';
                     }
                 }
                 var span = document.createElement('span');
