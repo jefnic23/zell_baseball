@@ -108,7 +108,11 @@ function populateTables(data) {
     var larry_data = data.larry_data;
     var larry_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', 'Away Bullpen', 'Home Bullpen', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
+    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 
+        `${teams.away_name} Defense`, `${teams.home_name} Defense`, 
+        `${teams.away_name} Bullpen`, `${teams.home_name} Bullpen`, 
+        `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`
+    ];
     var over_line = game.over_line;
     var under_line = game.under_line;
     var adj_line = data.adj_line;
