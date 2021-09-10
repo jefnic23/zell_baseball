@@ -4,6 +4,8 @@ from engineio.payload import Payload
 import pandas as pd
 from xgboost import XGBRegressor
 import json
+
+from xgboost.sklearn import XGBClassifier
 from app import app
 
 Payload.max_decode_packets = 500
@@ -158,6 +160,11 @@ over_thresholds = pd.read_csv('app/data/over_thresholds.csv', index_col='park')
 model = XGBRegressor()
 model.load_model('app/data/model.txt')
 
+prob_over_thresholds = pd.read_csv('app/data/prob_over_thresholds.csv', index_col='park')
+prob_under_thresholds = pd.read_csv('app/data/prob_under_thresholds.csv', index_col='park')
+prob_model = XGBClassifier()
+prob_model.load_model('app/data/prob_model.txt')
+
 wind_map = {' None': 0,
             ' R To L': 1,
             ' Varies': 2,
@@ -240,11 +247,15 @@ def modelPred(game):
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
     X = df.loc[:,'park':'CloseOU']
+    preds = []
     pred = model.predict(X)
     if game['innings'] == 7:
-        return float(pred[0] * (7/9))
+        preds.append(float(pred[0] * (7/9)))
     else:
-        return float(pred[0])
+        preds.append(float(pred[0]))
+    prob = prob_model.predict_proba(X)
+    preds.append(prob)
+    return preds
 
 def modelData(park, pred, line):
     try:
@@ -252,10 +263,22 @@ def modelData(park, pred, line):
         o_pct = over_thresholds.loc[park]['pct']
         u = under_thresholds.loc[park]['threshold']
         u_pct = under_thresholds.loc[park]['pct']
-        total = round(pred - line, 2)
-        return [o, u, o_pct, u_pct, total]
+        total = round(pred[0] - line, 2)
+        larry = [o, u, o_pct, u_pct, total]
     except:
-        return None
+        larry = None
+
+    try:
+        o = prob_over_thresholds.loc[park]['thresholds']
+        o_pct = prob_over_thresholds.loc[park]['pct']
+        u = prob_under_thresholds.loc[park]['threshold']
+        u_pct = prob_under_thresholds.loc[park]['pct']
+        uncle_jack = [o, u, o_pct, u_pct]
+    except:
+        uncle_jack = None
+
+    return larry, uncle_jack
+
 
 '''
 sockets
@@ -314,9 +337,9 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'model_pred': round(model_pred, 2), 'model_data': model_data})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': model_pred[0], 'larry_data': model_data[0], 'uncle_jack_pred': model_pred[1], 'uncle_jack_data': model_data[1]})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'model_pred': 'TBD', 'model_data': None})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'larry_pred': "TBD", 'larry_data': None, 'uncle_jack_pred': "TBD", 'uncle_jack_data': None})
 
 @socketio.on('changeLine')
 def change_line(data):

@@ -42,6 +42,12 @@ tbody > tr:nth-child(odd) {
     padding-left: 5rem;
 }
 
+.center {
+    display: block;
+    margin: auto;
+    padding-top: 1rem;
+}
+
 #slate {
     visibility: hidden;
 }
@@ -62,6 +68,10 @@ tbody > tr:nth-child(odd) {
 @media all and (max-width: 800px) {
     .teams {
       justify-content: space-around;
+    }
+
+    .center {
+        margin-left: 1rem;
     }
 }
 

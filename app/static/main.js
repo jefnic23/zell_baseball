@@ -101,9 +101,12 @@ function populateTables(data) {
     var over_threshold = data.over_threshold;
     var under_threshold = data.under_threshold;
     var prediction = data.prediction;
-    var model_pred = data.model_pred;
-    var model_data = data.model_data;
-    var model_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
+    var uncle_jack_pred = data.uncle_jack_pred;
+    var uncle_jack_data = data.uncle_jack_data;
+    var uncle_jack_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage']
+    var larry_pred = data.larry_pred;
+    var larry_data = data.larry_data;
+    var larry_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
     var pred_data = data.pred_data;
     var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 'Away Defense', 'Home Defense', `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`];
     var adj_line = data.adj_line;
@@ -122,7 +125,7 @@ function populateTables(data) {
     if (prediction === "TBD") {
         row.classList.add('grayout');
     }
-    var items = [teams, game_time, model_pred, prediction, over_under, total, bet];
+    var items = [teams, game_time, uncle_jack_pred, larry_pred, prediction, over_under, total, bet];
     for (var i = 0; i < items.length; i++) {
         var td = document.createElement("td");
         if (i === 0) {
@@ -166,27 +169,33 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 2) {
-            // td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
             td.classList.add('tooltip');
-            if (model_data) {
-                if (model_pred > over_under && model_data[4] > model_data[0] && model_data[2] >= 67.0) {
-                    td.classList.add("betover");
-                } 
-                if (model_pred < over_under && model_data[4] < 0-model_data[1] && model_data[3] >= 67.0) {
-                    td.classList.add("betunder");
+            if (uncle_jack_data) {
+                if (uncle_jack_pred[0] > uncle_jack_pred[1]) {
+                    if (uncle_jack_pred[0] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.67) {
+                        td.innerHTML = `U, ${Math.round(uncle_jack_pred[0] * 10) / 10}%`;
+                        td.classList.add("betunder");
+                    } else {
+                        td.innerHTML = 'No value';
+                    }
+                } else {
+                    if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
+                        td.innerHTML = `O, ${Math.round(uncle_jack_pred[1] * 10) / 10}%`;
+                        td.classList.add("betover");
+                    } else {
+                        td.innerHTML = 'No value';
+                    }
                 }
                 var span = document.createElement('span');
                 span.classList.add('tooltiptext');
                 var ul = document.createElement('ul');
-                for (var j = 0; j < model_data.length; j++) {
+                for (var j = 0; j < uncle_jack_data.length; j++) {
                     var li = document.createElement('li');
-                    if (j === 4) {
-                        li.innerHTML = `<strong>${model_name[j]}</strong>: <strong>${model_data[j]}</strong>`;
-                    } else if (j === 2 || j === 3) {
-                        li.innerHTML = `${model_name[j]}: ${Math.round(model_data[j])}%`;
+                    if (j === 2 || j === 3) {
+                        li.innerHTML = `${uncle_jack_name[j]}: ${Math.round(uncle_jack_data[j] * 100) / 100}%`;
                     } else {
-                        li.innerHTML = `${model_name[j]}: ${model_data[j]}`;
+                        li.innerHTML = `${uncle_jack_name[j]}: ${uncle_jack_data[j]}`;
                     }
                     ul.appendChild(li);
                 }
@@ -196,6 +205,36 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 3) {
+            // td.setAttribute("id", game.market.idfomarket);
+            td.innerHTML = items[i];
+            td.classList.add('tooltip');
+            if (larry_data) {
+                if (larry_pred > over_under && larry_data[4] > larry_data[0] && larry_data[2] >= 67.0) {
+                    td.classList.add("betover");
+                } 
+                if (larry_pred < over_under && larry_data[4] < 0-larry_data[1] && larry_data[3] >= 67.0) {
+                    td.classList.add("betunder");
+                }
+                var span = document.createElement('span');
+                span.classList.add('tooltiptext');
+                var ul = document.createElement('ul');
+                for (var j = 0; j < larry_data.length; j++) {
+                    var li = document.createElement('li');
+                    if (j === 4) {
+                        li.innerHTML = `<strong>${larry_name[j]}</strong>: <strong>${larry_data[j]}</strong>`;
+                    } else if (j === 2 || j === 3) {
+                        li.innerHTML = `${larry_name[j]}: ${Math.round(larry_data[j] * 100) / 100}%`;
+                    } else {
+                        li.innerHTML = `${larry_name[j]}: ${larry_data[j]}`;
+                    }
+                    ul.appendChild(li);
+                }
+                span.appendChild(ul);
+                td.appendChild(span);
+            }
+            row.appendChild(td);
+        }
+        if (i === 4) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             if (pred_data) {
@@ -213,12 +252,12 @@ function populateTables(data) {
             }
             row.appendChild(td);
         }
-        if (i === 4) {
+        if (i === 5) {
             td.setAttribute("id", game.market.idfoevent);
             td.innerHTML = items[i];
             row.appendChild(td);
         }
-        if (i === 5) {
+        if (i === 6) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             var over_el = game.market.selections.find(x => x.name === "Over");
@@ -239,7 +278,7 @@ function populateTables(data) {
             }
             row.appendChild(td);
         }
-        if (i === 6) {
+        if (i === 7) {
             td.innerHTML = items[i];
             td.setAttribute('id', data.gamePk);
             if (bet !== "TBD" && bet !== "No Value") {
