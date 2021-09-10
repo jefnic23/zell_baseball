@@ -173,12 +173,12 @@ function populateTables(data) {
             td.classList.add('tooltip');
             if (uncle_jack_data) {
                 if (uncle_jack_pred[0] > uncle_jack_pred[1]) {
-                    td.innerHTML = `U, ${Math.round(uncle_jack_pred[0] * 10) / 10}%`;
+                    td.innerHTML = `<strong>U</strong>, ${Math.round(uncle_jack_pred[0] * 10000) / 100}%`;
                     if (uncle_jack_pred[0] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.67) {
                         td.classList.add("betunder");
                     }
                 } else {
-                    td.innerHTML = `O, ${Math.round(uncle_jack_pred[1] * 10) / 10}%`;
+                    td.innerHTML = `<strong>O</strong>, ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
                     if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
                         td.classList.add("betover");
                     }
@@ -188,11 +188,7 @@ function populateTables(data) {
                 var ul = document.createElement('ul');
                 for (var j = 0; j < uncle_jack_data.length; j++) {
                     var li = document.createElement('li');
-                    if (j === 2 || j === 3) {
-                        li.innerHTML = `${uncle_jack_name[j]}: ${Math.round(uncle_jack_data[j] * 100) / 100}%`;
-                    } else {
-                        li.innerHTML = `${uncle_jack_name[j]}: ${uncle_jack_data[j]}`;
-                    }
+                    li.innerHTML = `${uncle_jack_name[j]}: ${Math.round(uncle_jack_data[j] * 10000) / 100}%`;
                     ul.appendChild(li);
                 }
                 span.appendChild(ul);

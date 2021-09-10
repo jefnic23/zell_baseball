@@ -249,12 +249,13 @@ def modelPred(game):
     X = df.loc[:,'park':'CloseOU']
     preds = []
     pred = model.predict(X)
+    prob = prob_model.predict_proba(X)
     if game['innings'] == 7:
         preds.append(float(pred[0] * (7/9)))
     else:
         preds.append(float(pred[0]))
-    prob = prob_model.predict_proba(X)
-    preds.append(prob)
+    for p in prob[0]:
+        preds.append(float(p))
     return preds
 
 def modelData(park, pred, line):
@@ -269,7 +270,7 @@ def modelData(park, pred, line):
         larry = None
 
     try:
-        o = prob_over_thresholds.loc[park]['thresholds']
+        o = prob_over_thresholds.loc[park]['threshold']
         o_pct = prob_over_thresholds.loc[park]['pct']
         u = prob_under_thresholds.loc[park]['threshold']
         u_pct = prob_under_thresholds.loc[park]['pct']
@@ -337,7 +338,7 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': model_pred[0], 'larry_data': model_data[0], 'uncle_jack_pred': model_pred[1], 'uncle_jack_data': model_data[1]})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': round(model_pred[0], 2), 'larry_data': model_data[0], 'uncle_jack_pred': model_pred[1:], 'uncle_jack_data': model_data[1]})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'larry_pred': "TBD", 'larry_data': None, 'uncle_jack_pred': "TBD", 'uncle_jack_data': None})
 
