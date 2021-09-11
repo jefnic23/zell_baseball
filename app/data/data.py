@@ -28,8 +28,9 @@ def getUmps():
     df_strikes = df[df['description'] == 'called_strike'].groupby('id').agg(wrong_strike=('ball', 'mean'))
     df = pd.merge(df_balls, df_strikes, on="id")
     df = pd.merge(df, ump_count, on="id")
+    df = df[df['game_pk'] >= 10]
     df['ratio'] = df['wrong_strike'] / df['wrong_ball']
-    scaler = MinMaxScaler(feature_range=(-0.5, 0.5))
+    scaler = MinMaxScaler(feature_range=(-0.187, 0.5))
     df['runs'] = scaler.fit_transform(df['ratio'].to_numpy().reshape(-1,1))
     return df.to_csv('umps.csv')
 
