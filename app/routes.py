@@ -367,9 +367,9 @@ def change_line(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('lineChange', {'over_under': over_under, 'adj_line': adj_line, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'adj_line': adj_line, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
     except:
-        emit('lineChange', {'over_under': over_under, 'adj_line': 'TBD', 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': 'TBD', "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'adj_line': 'TBD', 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': 'TBD', "ids": ids})
 
 if __name__ == '__main__':
     socketio.run(app)

@@ -309,23 +309,34 @@ function populateTables(data) {
     table.appendChild(row);
 }
 
-function changePrice(el_id, odds_type, ou=false) {
+function updateLine(el_id, odds_type, o, u) {
+    var el = document.querySelector(`#${CSS.escape(el_id)}`);
+    var over = el.nextSibling.childNodes[0];
+    var under = el.nextSibling.childNodes[1];
+    if (over.innerHTML !== o || under.innerHTML !== u) {
+        over.innerHTML = `${o} O`;
+        under.innerHTML = `${u} U`;
+    }
+    if (el.innerHTML !== odds_type) {
+        el.innerHTML = odds_type;
+    }
+    if (el.innerHTML > odds_type) {
+        changeClass(el.parentElement.parentElement, 'price-down');
+    }
+    if (el.innerHTML < odds_type) {
+        changeClass(el.parentElement.parentElement, 'price-up');
+    }
+}
+
+function changePrice(el_id, odds_type) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > odds_type) {
         el.innerHTML = odds_type;
-        if (ou) {
-            changeClass(el.parentElement, 'price-down');
-        } else {
-            changeClass(el, 'price-down');
-        }
+        changeClass(el, 'price-down');
     }
     if (el.innerHTML < odds_type) {
         el.innerHTML = odds_type;
-        if (ou) {
-            changeClass(el.parentElement, 'price-up');
-        } else {
-            changeClass(el, 'price-up');
-        }
+        changeClass(el, 'price-up');
     }
 }
 
@@ -507,7 +518,7 @@ socket.on("predictionData", data => {
 
 socket.on("lineChange", data => {
     // console.log(data);
-    changePrice(data.ids.actual_id, data.over_under, ou=true);
+    updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
     // changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
     changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
