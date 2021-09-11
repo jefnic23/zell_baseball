@@ -239,7 +239,7 @@ function populateTables(data) {
                 span.classList.add('tooltiptext');
                 var ul = document.createElement('ul');
                 for (var j = 0; j < pred_data.length; j++) {
-                    if (pred_name[j] === 'Wind' && game.venue !== 'Wrigley Field') { continue; }
+                    if (pred_name[j] === 'Wind' && game.venue !== 'Chicago Cubs') { continue; }
                     var li = document.createElement('li');
                     li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
                     ul.appendChild(li);
