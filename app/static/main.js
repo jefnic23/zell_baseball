@@ -48,8 +48,8 @@ function sendData(game) {
     socket.emit('game', {'game': game});
 }
 
-function changeLine(over_under, prediction, over_threshold, under_threshold, over, under, ids) {
-    socket.emit('changeLine', {'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over': over, 'under': under, 'ids': ids});
+function changeLine(game, over_under, larry, uncle_jack, prediction, over_threshold, under_threshold, over, under, ids) {
+    socket.emit('changeLine', {'game': game, 'over_under': over_under, 'larry': larry, 'uncle_jack': uncle_jack, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over': over, 'under': under, 'ids': ids});
 }
 
 function callApi(url, date) {
@@ -202,7 +202,7 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 3) {
-            // td.setAttribute("id", game.market.idfomarket);
+            td.setAttribute("id", game.market.idfomarket);
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             if (larry_data) {
@@ -532,10 +532,13 @@ socket.on("predictionData", data => {
 
 socket.on("lineChange", data => {
     // console.log(data);
-    updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
-    // changePrice(data.ids.adj_id, data.adj_line);
-    changePrice(data.ids.total_id, data.new_total);
-    changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
+    try {
+        updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
+        // changePrice(data.ids.adj_id, data.adj_line);
+        changePrice(data.ids.total_id, data.new_total);
+        changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
+    }
+    catch (error) {}
 });
 
 function updateOdds() {
@@ -547,7 +550,7 @@ function updateOdds() {
                 var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                 var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                 var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
+                var ids = {"actual_id": market.idfoevent, "larry_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
                 var now = new Date();
                 var game_time = new Date(market.tsstart);
                 if (now.getTime() >= game_time.getTime()) {
@@ -559,7 +562,7 @@ function updateOdds() {
                         }
                     })
                 }
-                changeLine(market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
+                changeLine(game.game, market.currentmatchhandicap, game.larry_pred, game.uncle_jack_pred, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
             }
         });
     });

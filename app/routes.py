@@ -347,13 +347,20 @@ def send_data(data):
 @socketio.on('changeLine')
 def change_line(data):
     ids = data['ids']
+    uncle_jack = data['uncle_jack']
+    larry = data['larry']
     prediction = data['prediction']
     over_threshold = data['over_threshold']
     under_threshold = data['under_threshold']
     over_under = data['over_under']
     over = data['over']
     under = data['under']
+    game = data['game']
+    game['over_under'] = over_under
     try:
+        model_pred = modelPred(game)
+        model_data = modelData(game['park'], model_pred, over_under)
+
         line = abs(over) + abs(under)
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over]['mod'], 2)
