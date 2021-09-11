@@ -311,20 +311,34 @@ function populateTables(data) {
 
 function updateLine(el_id, odds_type, o, u) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
-    var over = el.nextSibling.childNodes[0];
-    var under = el.nextSibling.childNodes[1];
-    if (over.innerHTML !== o || under.innerHTML !== u) {
-        over.innerHTML = `${o} O`;
-        under.innerHTML = `${u} U`;
+    var over_el = el.nextSibling.childNodes[0];
+    var under_el = el.nextSibling.childNodes[1];
+    var over = parseInt(over_el.innerHTML.split(' ')[0]);
+    var under = parseInt(under_el.innerHTML.split(' ')[0]);
+    if (over !== o || under !== u) {
+        over_el.innerHTML = `${o} O`;
+        under_el.innerHTML = `${u} U`;
+        if (o > over) {
+            changeClass(over_el, 'price-up');
+        }
+        if (o < over) {
+            changeClass(over_el, 'price-down');
+        }
+        if (u > under) {
+            changeClass(under_el, 'price-up');
+        }
+        if (u < under) {
+            changeClass(under_el, 'price-down');
+        }
     }
     if (el.innerHTML !== odds_type) {
         el.innerHTML = odds_type;
-    }
-    if (el.innerHTML > odds_type) {
-        changeClass(el.parentElement.parentElement, 'price-down');
-    }
-    if (el.innerHTML < odds_type) {
-        changeClass(el.parentElement.parentElement, 'price-up');
+        if (el.innerHTML > odds_type) {
+            changeClass(el.parentElement.parentElement, 'price-down');
+        }
+        if (el.innerHTML < odds_type) {
+            changeClass(el.parentElement.parentElement, 'price-up');
+        }
     }
 }
 
