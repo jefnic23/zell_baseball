@@ -69,10 +69,34 @@ tbody > tr:nth-child(odd) {
     display: flex;
     align-items: center;
     flex-basis: 45%;
+    white-space: nowrap;
 }
 
 .teams > span {
+    padding-left: 8px;
     padding-right: 13px;
+}
+
+.lines {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.lines > div:nth-child(odd) {
+    padding-right: 13px;
+}
+
+.lines > div:nth-child(even) {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+    row-gap: 0.34rem;
+    align-items: center;
+}
+
+.lines > div div {
+    font-size: x-small;
 }
 
 .tooltip {

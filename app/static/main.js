@@ -108,7 +108,7 @@ function populateTables(data) {
     var larry_data = data.larry_data;
     var larry_name = ['Over threshold', 'Under threshold', 'Over Percentage', 'Under Percentage', 'Total']
     var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', "Ump", 
+    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', 'Ump', 
         `${teams.home_name} Defense`, `${teams.away_name} Defense`, 
         `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`
     ];
@@ -178,12 +178,12 @@ function populateTables(data) {
             td.classList.add('tooltip');
             if (uncle_jack_data) {
                 if (uncle_jack_pred[0] > uncle_jack_pred[1]) {
-                    td.innerHTML = `<strong>U</strong>, ${Math.round(uncle_jack_pred[0] * 10000) / 100}%`;
+                    td.innerHTML = `<strong>U</strong> ${Math.round(uncle_jack_pred[0] * 10000) / 100}%`;
                     if (uncle_jack_pred[0] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.67) {
                         td.classList.add("betunder");
                     }
                 } else {
-                    td.innerHTML = `<strong>O</strong>, ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
+                    td.innerHTML = `<strong>O</strong> ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
                     if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
                         td.classList.add("betover");
                     }
@@ -250,13 +250,23 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 5) {
-            td.setAttribute("id", game.market.idfoevent);
-            td.innerHTML = items[i];
             var div = document.createElement("div");
+            var line_div = document.createElement("div");
+            var ou_div = document.createElement("div");
             var over_div = document.createElement("div");
             var under_div = document.createElement("div");
-            over_div.innerHTML = over_line;
-            under_div.innerHTML = under_line;
+            line_div.setAttribute("id", game.market.idfoevent);
+            line_div.innerHTML = items[i];
+            over_div.innerHTML = `${over_line} O`;
+            under_div.innerHTML = `${under_line} U`;
+            td.style.height = '0px';
+            div.style.height = "100%";
+            div.classList.add('lines');
+            ou_div.appendChild(over_div);
+            ou_div.appendChild(under_div);
+            div.appendChild(line_div);
+            div.appendChild(ou_div);
+            td.appendChild(div);
             row.appendChild(td);
         }
         if (i === 6) {
@@ -299,15 +309,23 @@ function populateTables(data) {
     table.appendChild(row);
 }
 
-function changePrice(el_id, odds_type) {
+function changePrice(el_id, odds_type, ou=false) {
     var el = document.querySelector(`#${CSS.escape(el_id)}`);
     if (el.innerHTML > odds_type) {
         el.innerHTML = odds_type;
-        changeClass(el, 'price-down');
+        if (ou) {
+            changeClass(el.parentElement, 'price-down');
+        } else {
+            changeClass(el, 'price-down');
+        }
     }
     if (el.innerHTML < odds_type) {
         el.innerHTML = odds_type;
-        changeClass(el, 'price-up');
+        if (ou) {
+            changeClass(el.parentElement, 'price-up');
+        } else {
+            changeClass(el, 'price-up');
+        }
     }
 }
 
@@ -342,7 +360,7 @@ function noGames() {
     var row = document.createElement("tr");
     var td = document.createElement("td");
     td.innerHTML = "No games";
-    td.colSpan = "7";
+    td.colSpan = "8";
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);
@@ -489,7 +507,7 @@ socket.on("predictionData", data => {
 
 socket.on("lineChange", data => {
     // console.log(data);
-    changePrice(data.ids.actual_id, data.over_under);
+    changePrice(data.ids.actual_id, data.over_under, ou);
     // changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
     changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
