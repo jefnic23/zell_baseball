@@ -232,7 +232,8 @@ def getDefense(lineup):
     return runs
 
 def modelPred(game):
-    d = {'park': game['park'],
+    d = {'innings': game['innings'],
+         'park': game['park'],
          'temp': int(game['weather']['temp']),
          'wind_spd': int(game['weather']['wind'].split()[0]),
          'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
@@ -246,10 +247,11 @@ def modelPred(game):
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X = df.loc[:,'park':'CloseOU']
+    X_pred = df.loc[:,'park':'CloseOU']
+    X_prob = df.loc[:,'innings':'CloseOU']
     preds = []
-    pred = model.predict(X)
-    prob = prob_model.predict_proba(X)
+    pred = model.predict(X_pred)
+    prob = prob_model.predict_proba(X_prob)
     if game['innings'] == 7:
         preds.append(float(pred[0] * (7/9)))
     else:

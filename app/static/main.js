@@ -527,11 +527,13 @@ function updateOdds() {
                 var game_time = new Date(market.tsstart);
                 if (now.getTime() >= game_time.getTime()) {
                     $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
-                    active_games--;
-                    if (active_games === 0) {
-                        noGames();
-                    }
-                } 
+                    callApi(main_url, find_date).then(data => {
+                        active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
+                        if (active_games === 0) {
+                            noGames();
+                        }
+                    })
+                }
                 changeLine(market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
             }
         });
