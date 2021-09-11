@@ -507,43 +507,43 @@ socket.on("predictionData", data => {
 
 socket.on("lineChange", data => {
     // console.log(data);
-    changePrice(data.ids.actual_id, data.over_under, ou);
+    changePrice(data.ids.actual_id, data.over_under, ou=true);
     // changePrice(data.ids.adj_id, data.adj_line);
     changePrice(data.ids.total_id, data.new_total);
     changeValue(data.ids.value_id, data.bet, data.new_total, data.over_threshold, data.under_threshold);
 });
 
 function updateOdds() {
-    if (!no_games) {
-        getFanduel(odds_url).then(data => {
-            $.each(data.events, (i, e) => {
-                // console.log(e);
-                if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
-                    var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
-                    var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                    var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
-                    var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                    var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
-                    var now = new Date();
-                    var game_time = new Date(market.tsstart);
-                    if (now.getTime() >= game_time.getTime()) {
-                        $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
-                        active_games--;
-                        if (active_games === 0) {
-                            noGames();
-                        }
-                    } 
-                    changeLine(market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
-                }
-            });
+    getFanduel(odds_url).then(data => {
+        $.each(data.events, (i, e) => {
+            // console.log(e);
+            if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
+                var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
+                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+                var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
+                var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
+                var ids = {"actual_id": market.idfoevent, "adj_id": market.idfomarket, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id": game.gamePk};
+                var now = new Date();
+                var game_time = new Date(market.tsstart);
+                if (now.getTime() >= game_time.getTime()) {
+                    $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
+                    active_games--;
+                    if (active_games === 0) {
+                        noGames();
+                    }
+                } 
+                changeLine(market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, over, under, ids);
+            }
         });
-    } 
+    });
 }
 
 (function mainLoop() {
     let rand = Math.floor(Math.random() * 10) + 10;
-    setTimeout(() => {
-        updateOdds();
-        mainLoop();
-    }, rand * 1000);
+    if (!no_games) {
+        setTimeout(() => {
+            updateOdds();
+            mainLoop();
+        }, rand * 1000);
+    }
 }());
