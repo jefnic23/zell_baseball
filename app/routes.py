@@ -3,9 +3,9 @@ from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 import pandas as pd
 from xgboost import XGBRegressor
-import json
+from pygam import LogisticGAM
+import json, pickle
 
-from xgboost.sklearn import XGBClassifier
 from app import app
 
 Payload.max_decode_packets = 500
@@ -162,8 +162,8 @@ model.load_model('app/data/model.txt')
 
 prob_over_thresholds = pd.read_csv('app/data/prob_over_thresholds.csv', index_col='park')
 prob_under_thresholds = pd.read_csv('app/data/prob_under_thresholds.csv', index_col='park')
-prob_model = XGBClassifier()
-prob_model.load_model('app/data/prob_model.txt')
+with open('app/data/prob_model.pkl', 'rb') as f:
+    prob_model = pickle.load(f)
 
 wind_map = {' None': 0,
             ' R To L': 1,
@@ -248,7 +248,7 @@ def modelPred(game):
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
     X_pred = df.loc[:,'park':'CloseOU']
-    X_prob = df.loc[:,'innings':'CloseOU']
+    X_prob = df[['park', 'ump', 'pitchers', 'sp_innings', 'offense', 'bullpens', 'defense', 'CloseOU']]
     preds = []
     pred = model.predict(X_pred)
     prob = prob_model.predict_proba(X_prob)
@@ -256,8 +256,8 @@ def modelPred(game):
         preds.append(float(pred[0] * (7/9)))
     else:
         preds.append(float(pred[0]))
-    for p in prob[0]:
-        preds.append(float(p))
+    for p in prob:
+        preds.append(float(p), float(1-p))
     return preds
 
 def modelData(park, pred, line):
