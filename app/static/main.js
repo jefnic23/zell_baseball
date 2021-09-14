@@ -184,7 +184,7 @@ function populateTables(data) {
                     }
                 } else {
                     td.innerHTML = `<strong>O</strong> ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
-                    if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
+                    if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.73) {
                         td.classList.add("betover");
                     }
                 }
