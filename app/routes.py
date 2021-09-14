@@ -154,6 +154,8 @@ model predictions
 '''
 
 defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
+model_batters = pd.read_csv('app/data/model_batters.csv', index_col='batter')
+model_pitchers = pd.read_csv('app/data/model_pitchers.csv', index_col='pitcher')
 under_thresholds = pd.read_csv('app/data/under_thresholds.csv', index_col='park')
 over_thresholds = pd.read_csv('app/data/over_thresholds.csv', index_col='park')
 with open('app/data/model.pkl', 'rb') as f:
@@ -191,14 +193,14 @@ condition_map = {'Dome': 0,
 
 def pitcherHEV(pitcher):
     try:
-        return pitchers.loc[pitcher]['wHEV']
+        return model_pitchers.loc[pitcher]['wHEV']
     except:
-        return pitchers['wHEV'].quantile(0.33)
+        return model_pitchers['wHEV'].quantile(0.33)
 
 def starterInnings(pitcher):
     innings = 5.1
     try:
-        innings = pitchers.loc[pitcher]['innings']
+        innings = model_pitchers.loc[pitcher]['innings']
         return round(innings,1)
     except:
         return innings
@@ -207,18 +209,18 @@ def batterHEV(lineup):
     hev = []
     for batter in lineup:
         try:
-            hev.append(batters.loc[batter['id']]['wHEV'])
+            hev.append(model_batters.loc[batter['id']]['wHEV'])
         except:
-            hev.append(batters['wHEV'].quantile(0.33))
+            hev.append(model_batters['wHEV'].quantile(0.33))
     return round(sum(hev)/len(hev), 2)
 
 def getRelievers(bullpen):
     runs = []
     for player in bullpen:
         try:
-            runs.append(pitchers.loc[player['id']]['wHEV'])
+            runs.append(model_pitchers.loc[player['id']]['wHEV'])
         except:
-            runs.append(pitchers['wHEV'].quantile(0.33))
+            runs.append(model_pitchers['wHEV'].quantile(0.33))
     return round(sum(runs)/len(runs), 2)
 
 def getDefense(lineup):
@@ -246,16 +248,15 @@ def modelPred(game):
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X = df.loc[:,'park':'CloseOU']
+    X = df.loc[:,'park':'CloseOU'].values
     preds = []
     pred = model.predict(X)
     prob = prob_model.predict_proba(X)
     if game['innings'] == 7:
-        preds.append(float(pred[0] * (7/9)))
+        preds.append(float(pred * (7/9)))
     else:
-        preds.append(float(pred[0]))
-    for p in prob:
-        preds.append(float(p), float(1-p))
+        preds.append(float(pred))
+    preds.append([float(prob), float(1-prob)])
     return preds
 
 def modelData(park, pred, line):
@@ -338,7 +339,7 @@ def send_data(data):
         adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': round(model_pred[0], 2), 'larry_data': model_data[0], 'uncle_jack_pred': model_pred[1:], 'uncle_jack_data': model_data[1]})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': round(model_pred[0], 2), 'larry_data': model_data[0], 'uncle_jack_pred': model_pred[1], 'uncle_jack_data': model_data[1]})
     else:
         emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'larry_pred': "TBD", 'larry_data': None, 'uncle_jack_pred': "TBD", 'uncle_jack_data': None})
 
