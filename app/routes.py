@@ -2,7 +2,6 @@ from flask import render_template
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 import pandas as pd
-from xgboost import XGBRegressor
 from pygam import LogisticGAM
 import json, pickle
 
@@ -157,8 +156,8 @@ model predictions
 defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
 under_thresholds = pd.read_csv('app/data/under_thresholds.csv', index_col='park')
 over_thresholds = pd.read_csv('app/data/over_thresholds.csv', index_col='park')
-model = XGBRegressor()
-model.load_model('app/data/model.txt')
+with open('app/data/model.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 prob_over_thresholds = pd.read_csv('app/data/prob_over_thresholds.csv', index_col='park')
 prob_under_thresholds = pd.read_csv('app/data/prob_under_thresholds.csv', index_col='park')
@@ -234,10 +233,10 @@ def getDefense(lineup):
 def modelPred(game):
     d = {'innings': game['innings'],
          'park': game['park'],
-         'temp': int(game['weather']['temp']),
-         'wind_spd': int(game['weather']['wind'].split()[0]),
-         'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
-         'condition': condition_map[game['weather']['condition']],
+        #  'temp': int(game['weather']['temp']),
+        #  'wind_spd': int(game['weather']['wind'].split()[0]),
+        #  'wind_dir': wind_map[game['weather']['wind'].split(',')[1]],
+        #  'condition': condition_map[game['weather']['condition']],
          'ump': umps.loc[game['ump']['official']['id']]['ratio'].round(2),
          'pitchers': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
          'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
@@ -247,11 +246,10 @@ def modelPred(game):
          'CloseOU': game['over_under'] 
          }
     df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X_pred = df.loc[:,'park':'CloseOU']
-    X_prob = df[['park', 'ump', 'pitchers', 'sp_innings', 'offense', 'bullpens', 'defense', 'CloseOU']]
+    X = df.loc[:,'park':'CloseOU']
     preds = []
-    pred = model.predict(X_pred)
-    prob = prob_model.predict_proba(X_prob)
+    pred = model.predict(X)
+    prob = prob_model.predict_proba(X)
     if game['innings'] == 7:
         preds.append(float(pred[0] * (7/9)))
     else:
