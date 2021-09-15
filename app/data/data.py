@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import glob
 from sklearn.preprocessing import MinMaxScaler
-from collections import Counter
+from functools import reduce
 
 
 def getUmps():
@@ -64,8 +64,7 @@ def getFielding():
     return df.to_csv('fielding.csv', index=False)
   
   
-def getBullpens():
-    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
+def getBullpens(df):
     walks = df[df['events'] == 'walk'].groupby('pitcher').agg(walks=('events', 'count'))
     hits = df[df['events'].isin(['single', 
                                  'home_run', 
@@ -106,11 +105,11 @@ def getBullpens():
     return df.to_csv('bullpens.csv')
 
 
-def getPitching():
-    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
-    out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
+def getPitching(df):
+    out_1 = ['strikeout', 'field_out', 'caught_stealing_2b', 'force_out', 'sac_bunt', 'sac_fly', 'fielders_choice_out', 'caught_stealing_3b', 'other_out']
     out_2 = ['grounded_into_double_play', 'strikeout_double_play', 'double_play', 'sac_fly_double_play']
     out_3 = ['triple_play']
+    
     df['hev'] = round(df['launch_speed'] * np.cos(np.radians(df['launch_angle']-25)))
     df['hev'] = np.where(df['description'] == 'foul', np.nan, df['hev'])
     df['hev'] = np.where((df['description'] == 'swinging_strike') & (df['events'] == 'strikeout'), 0.0, df['hev'])
@@ -118,88 +117,34 @@ def getPitching():
     df['outs'] = np.where(df['events'].isin(out_2), 2, df['outs'])
     df['outs'] = np.where(df['events'].isin(out_3), 3, df['outs'])
     
-    d = {'pitcher': [],
-         'p_throws': [],
-         'tbf': [],
-         'hev_R': [],
-         'ab_R': [],
-         'hev_L': [],
-         'ab_L': [],
-         'wHEV': []
-         }
+    p_throws = df.groupby(['pitcher']).agg(p_throws=('p_throws', lambda x: np.unique(x)[0])).reset_index()
+    hev_R = df[df['stand'] == 'R'].dropna(subset=['hev']).groupby(['pitcher']).agg(hev_R=('hev', lambda x: round(sum(x) / len(x), 2)),
+                                                                                                ab_R=('hev', 'count')).reset_index()
+    hev_L = df[df['stand'] == 'L'].dropna(subset=['hev']).groupby(['pitcher']).agg(hev_L=('hev', lambda x: round(sum(x) / len(x), 2)),
+                                                                                                ab_L=('hev', 'count')).reset_index()
+    innings = df.groupby(['pitcher', 'game_pk']).agg(innings=('outs', lambda x: round(sum(x) / 3, 1))).groupby(['pitcher']).agg(ip=('innings', lambda x: round(sum(x) / len(x), 1))).reset_index()
+    dfs = [p_throws, hev_R, hev_L, innings]
+    df = reduce(lambda left, right: pd.merge(left, right, on=['pitcher']), dfs)
+    df['wHEV'] = round((df['hev_R'] * df['ab_R'] + df['hev_L'] * df['ab_L'])/(df['ab_R'] + df['ab_L']), 2)
     
-    for player in df['pitcher'].unique():
-        try:
-            df_new = df[df['pitcher'] == player].dropna(subset=['hev'])
-            stand = df_new['p_throws'].unique()
-            df_R = df_new[df_new['stand'] == 'R']
-            df_L = df_new[df_new['stand'] == 'L']
-            hev_R = round(df_R['hev'].mean()/100,3)
-            hev_L = round(df_L['hev'].mean()/100,3)
-            ab_R = len(df_R.index)
-            ab_L = len(df_L.index)
-            wHEV = round((hev_R * ab_R + hev_L * ab_L)/(ab_R + ab_L), 3)
-            
-            group = df[df['pitcher'] == player].groupby(['game_pk']).agg({'at_bat_number': 'unique'})
-            tbf = []
-            for i in group['at_bat_number']:
-                tbf.append(len(i))
-            tbf = Counter(tbf)
-            d['tbf'].append(round(np.average(list(tbf.keys()), weights=list(tbf.values()))))
-            
-            d['pitcher'].append(player)
-            d['p_throws'].append(stand[0])
-            d['hev_R'].append(hev_R)
-            d['hev_L'].append(hev_L)
-            d['ab_R'].append(ab_R)
-            d['ab_L'].append(ab_L)
-            d['wHEV'].append(wHEV)
-        except:
-            pass
-    df1 = pd.DataFrame(d, columns=list(d.keys()))
-    
-    df2 = df.groupby(['pitcher', 'game_pk']).agg({'outs': 'sum'})
-    df2['innings'] = round(df2['outs'] / 3, 2)
-    df2 = df2.groupby('pitcher').agg({'innings': 'mean'})
-    df = pd.merge(df1, df2, on='pitcher')
     return df.to_csv('pitchers.csv', index=False)
 
 
-def getHitters():
-    df = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
+def getBatters(df):
     df['hev'] = round(df['launch_speed'] * np.cos(np.radians(df['launch_angle']-25)))
     df['hev'] = np.where(df['description'] == 'foul', np.nan, df['hev'])
     df = df.dropna(subset=['hev'])
     
-    d = {'batter': [],
-         'stand': [],
-         'hev_R': [],
-         'ab_R': [],
-         'hev_L': [],
-         'ab_L': []
-         }
-    
-    for player in df['batter'].unique():
-        try:
-            df_new = df[df['batter'] == player]
-            stand = df_new['stand'].unique()
-            df_R = df_new[df_new['p_throws'] == 'R']
-            df_L = df_new[df_new['p_throws'] == 'L']
-            ab_R = len(df_R.index)
-            ab_L = len(df_L.index)
-            d['batter'].append(player)
-            if len(stand) > 1:
-                d['stand'].append('S')
-            else:
-                d['stand'].append(stand[0])
-            d['hev_R'].append(round(df_R['hev'].mean()/100,3))
-            d['ab_R'].append(ab_R)
-            d['hev_L'].append(round(df_L['hev'].mean()/100,3))
-            d['ab_L'].append(ab_L)
-        except:
-            pass
-    
-    df = pd.DataFrame(d, columns=list(d.keys()))
+    stand = df.groupby(['batter']).agg(stand=('stand', lambda x: list(np.unique(x)))).reset_index()
+    stand['stand'] = stand['stand'].apply(lambda x: x[0] if len(x)==1 else 'S')
+    hev_R = df[df['p_throws'] == 'R'].groupby(['batter']).agg(hev_R=('hev', lambda x: round(sum(x) / len(x), 2)),
+                                                                                                ab_R=('hev', 'count')).reset_index()
+    hev_L = df[df['p_throws'] == 'L'].groupby(['batter']).agg(hev_L=('hev', lambda x: round(sum(x) / len(x), 2)),
+                                                                                                ab_L=('hev', 'count')).reset_index()
+    dfs = [stand, hev_R, hev_L]
+    df = reduce(lambda left, right: pd.merge(left, right, on=['batter']), dfs)
+    df['wHEV'] = round((df['hev_R'] * df['ab_R'] + df['hev_L'] * df['ab_L'])/(df['ab_R'] + df['ab_L']), 2)
+
     return df.to_csv('batters.csv', index=False)
 
 
@@ -225,10 +170,10 @@ def getMatchups():
     matchups = {'matchup': ['LL', 'LR', 'RL', 'RR'],
                 'odds': []
                 }
-    matchups['odds'].append(LL.mean() / (1 - LL.mean()))
-    matchups['odds'].append(LR.mean() / (1 - LR.mean()))
-    matchups['odds'].append(RL.mean() / (1 - RL.mean()))
-    matchups['odds'].append(RR.mean() / (1 - RR.mean()))
+    matchups['odds'].append((LL.mean()/100) / (1 - (LL.mean()/100)))
+    matchups['odds'].append((LR.mean()/100) / (1 - (LR.mean()/100)))
+    matchups['odds'].append((RL.mean()/100) / (1 - (RL.mean()/100)))
+    matchups['odds'].append((RR.mean()/100) / (1 - (RR.mean()/100)))
     df = pd.DataFrame(matchups, columns=matchups.keys())
     return df.to_csv('matchups.csv', index=False)
 
@@ -270,12 +215,13 @@ def getHEV():
     df = pd.DataFrame(d, columns=d.keys())
     return df.to_csv('hev.csv', index=False)
 
+savant = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
 # getUmps()
 # getBets()
 # getFielding()
-# getBullpens()
-# getPitching()
-# getHitters()
+# getBullpens(all_savant)
+# getPitching(savant)
+# getBatters(savant)
 # getMatchups()
 # getParks()
 # getHEV()

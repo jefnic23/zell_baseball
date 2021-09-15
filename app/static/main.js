@@ -177,14 +177,14 @@ function populateTables(data) {
             td.innerHTML = items[i];
             td.classList.add('tooltip');
             if (uncle_jack_data) {
-                if (uncle_jack_pred[0] > uncle_jack_pred[1]) {
-                    td.innerHTML = `<strong>O</strong> ${Math.round(uncle_jack_pred[0] * 10000) / 100}%`;
-                    if (uncle_jack_pred[0] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
+                if (uncle_jack_pred[1] > uncle_jack_pred[0]) {
+                    td.innerHTML = `<strong>O</strong> ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
+                    if (uncle_jack_pred[1] >= uncle_jack_data[0] && uncle_jack_data[2] >= 0.67) {
                         td.classList.add("betover");
                     }
                 } else {
-                    td.innerHTML = `<strong>U</strong> ${Math.round(uncle_jack_pred[1] * 10000) / 100}%`;
-                    if (uncle_jack_pred[1] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.73) {
+                    td.innerHTML = `<strong>U</strong> ${Math.round(uncle_jack_pred[0] * 10000) / 100}%`;
+                    if (uncle_jack_pred[0] >= uncle_jack_data[1] && uncle_jack_data[3] >= 0.67) {
                         td.classList.add("betunder");
                     }
                 }
