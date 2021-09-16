@@ -237,8 +237,7 @@ def modelPred(game):
          'ump': umps.loc[game['ump']['official']['id']]['ratio'].round(2),
          'sp_hev': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
          'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
-         'offense_hev': batterHEV(game['away_lineup'])[0] + batterHEV(game['home_lineup'])[0],
-         'offense_osw': batterHEV(game['away_lineup'])[1] + batterHEV(game['home_lineup'])[1],
+         'offense': batterHEV(game['away_lineup'])[0] + batterHEV(game['home_lineup'])[0] + batterHEV(game['away_lineup'])[1] + batterHEV(game['home_lineup'])[1],
          'defense': getDefense(game['away_lineup']) + getDefense(game['home_lineup']),
          'bullpens': getRelievers(game['away_bullpen']) + getRelievers(game['home_bullpen']),
          'CloseOU': game['over_under'] 
