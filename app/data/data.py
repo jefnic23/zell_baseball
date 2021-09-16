@@ -3,6 +3,7 @@ import numpy as np
 import glob
 from sklearn.preprocessing import MinMaxScaler
 from functools import reduce
+from statistics import mean
 
 
 def getUmps():
@@ -131,17 +132,20 @@ def getPitching(df):
 
 
 def getBatters(df):
+    swing = ['called_strike', 'ball', 'blocked_ball', 'hit_by_pitch', 'pitchout']
+    
+    df['oswing'] = np.where((df['zone'].isin([11,12,13,14])) & (~df['description'].isin(swing)), 1, 0)
     df['hev'] = round(df['launch_speed'] * np.cos(np.radians(df['launch_angle']-25)))
     df['hev'] = np.where(df['description'] == 'foul', np.nan, df['hev'])
-    df = df.dropna(subset=['hev'])
     
     stand = df.groupby(['batter']).agg(stand=('stand', lambda x: list(np.unique(x)))).reset_index()
     stand['stand'] = stand['stand'].apply(lambda x: x[0] if len(x)==1 else 'S')
-    hev_R = df[df['p_throws'] == 'R'].groupby(['batter']).agg(hev_R=('hev', lambda x: round(sum(x) / len(x), 2)),
+    oswing = df.groupby(['batter']).agg(oswing=('oswing', lambda x: round(100 - mean(x) * 100, 2))).reset_index()
+    hev_R = df[df['p_throws'] == 'R'].dropna(subset=['hev']).groupby(['batter']).agg(hev_R=('hev', lambda x: round(sum(x) / len(x), 2)),
                                                                                                 ab_R=('hev', 'count')).reset_index()
-    hev_L = df[df['p_throws'] == 'L'].groupby(['batter']).agg(hev_L=('hev', lambda x: round(sum(x) / len(x), 2)),
+    hev_L = df[df['p_throws'] == 'L'].dropna(subset=['hev']).groupby(['batter']).agg(hev_L=('hev', lambda x: round(sum(x) / len(x), 2)),
                                                                                                 ab_L=('hev', 'count')).reset_index()
-    dfs = [stand, hev_R, hev_L]
+    dfs = [stand, oswing, hev_R, hev_L]
     df = reduce(lambda left, right: pd.merge(left, right, on=['batter']), dfs)
     df['wHEV'] = round((df['hev_R'] * df['ab_R'] + df['hev_L'] * df['ab_L'])/(df['ab_R'] + df['ab_L']), 2)
 
@@ -221,7 +225,7 @@ savant = pd.read_csv('D:/Documents/Pitcher List/statcast_data/savant_2021.csv')
 # getFielding()
 # getBullpens(all_savant)
 # getPitching(savant)
-# getBatters(savant)
+getBatters(savant)
 # getMatchups()
 # getParks()
 # getHEV()
