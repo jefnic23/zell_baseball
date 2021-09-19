@@ -140,7 +140,7 @@ def getBatters(df):
     
     stand = df.groupby(['batter']).agg(stand=('stand', lambda x: list(np.unique(x)))).reset_index()
     stand['stand'] = stand['stand'].apply(lambda x: x[0] if len(x)==1 else 'S')
-    oswing = df.groupby(['batter']).agg(oswing=('oswing', lambda x: round(100 - mean(x) * 100, 2))).reset_index()
+    oswing = df.groupby(['batter']).agg(oswing=('oswing', lambda x: round(mean(x), 3))).reset_index()
     hev_R = df[df['p_throws'] == 'R'].dropna(subset=['hev']).groupby(['batter']).agg(hev_R=('hev', lambda x: round(sum(x) / len(x), 2)),
                                                                                                 ab_R=('hev', 'count')).reset_index()
     hev_L = df[df['p_throws'] == 'L'].dropna(subset=['hev']).groupby(['batter']).agg(hev_L=('hev', lambda x: round(sum(x) / len(x), 2)),
