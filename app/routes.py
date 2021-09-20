@@ -303,7 +303,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (1.024 * venue) + (0.30 * (over_under - venue)) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
+        prediction = (1.023 * venue) + (0.35 * (over_under - venue)) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         pred_data = [venue, handicap, weather, wind, ump, home_fielding, away_fielding, away_matchups, home_matchups]
         model_pred = modelPred(game)
         model_data = modelData(game['park'], model_pred, over_under)
