@@ -43,10 +43,10 @@ def getWind(game, speed, direction, innings):
     wind = 0
     if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "In":
         for i in range(0, speed - 10 + 1):
-            wind -= 0.20
+            wind -= 0.15
     if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "Out":
         for i in range(0, speed - 10 + 1):
-            wind += 0.20
+            wind += 0.15
     return round(wind * (innings/9), 2)
 
 def getUmp(ump, innings):
@@ -303,7 +303,7 @@ def send_data(data):
         home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
         away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
         home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = (1.017 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
+        prediction = (1.016 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         prediction += 0.35 * (over_under - prediction)
         pred_data = [venue, handicap, weather, wind, ump, home_fielding, away_fielding, away_matchups, home_matchups]
         model_pred = modelPred(game)
