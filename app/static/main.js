@@ -18,7 +18,7 @@ const logos = {'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-
     'Boston Red Sox': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/111.svg',
     'Chicago Cubs': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/112.svg',
     'Cincinnati Reds': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/113.svg',
-    'Cleveland Indians': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg',
+    'Cleveland Guardians': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg',
     'Colorado Rockies': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/115.svg',
     'Detroit Tigers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/116.svg',
     'Houston Astros': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/117.svg',
