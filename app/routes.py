@@ -234,7 +234,7 @@ def getDefense(lineup):
 def modelPred(game):
     d = {'innings': game['innings'],
          'park': game['park'],
-         'ump': umps.loc[game['ump']['official']['id']]['ratio'].round(2),
+         'ump': umps.loc[game['ump']['official']['id']]['runs'].round(2),
          'sp_hev': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
          'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
          'offense': batterHEV(game['away_lineup'])[0] + batterHEV(game['home_lineup'])[0] + batterHEV(game['away_lineup'])[1] + batterHEV(game['home_lineup'])[1],
