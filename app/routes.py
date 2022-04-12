@@ -2,9 +2,7 @@ from flask import render_template
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 import pandas as pd
-from xgboost import XGBClassifier, XGBRegressor
 from statistics import mean
-import json, pickle
 
 from app import app
 
@@ -151,119 +149,6 @@ def getValue(total, over_threshold, under_threshold):
     return bet
 
 '''
-model predictions
-'''
-
-defense = pd.read_csv('app/data/outs_above_average.csv', index_col='player_id')
-
-reg_under_thresholds = pd.read_csv('app/data/reg_under_thresholds.csv', index_col='park')
-reg_over_thresholds = pd.read_csv('app/data/reg_over_thresholds.csv', index_col='park')
-reg_model = XGBRegressor()
-reg_model.load_model('app/data/reg_model.txt')
-
-wind_map = {' None': 0,
-            ' R To L': 1,
-            ' Varies': 2,
-            ' Out To RF': 3,
-            ' Out To CF': 4,
-            ' L To R': 5,
-            ' In From RF': 6,
-            ' In From CF': 7,
-            ' Out To LF': 8,
-            ' In From LF': 9,
-            ' Calm': 10
-            }
-
-condition_map = {'Dome': 0,
-                 'Partly Cloudy': 1,
-                 'Sunny': 2,
-                 'Roof Closed': 3,
-                 'Overcast': 4,
-                 'Cloudy': 5,
-                 'Clear': 6,
-                 'Snow': 7,
-                 'Drizzle': 8,
-                 'Rain': 9
-                 }
-
-def pitcherHEV(pitcher):
-    try:
-        return pitchers.loc[pitcher]['wHEV']
-    except:
-        return pitchers['wHEV'].quantile(0.33)
-
-def starterInnings(pitcher):
-    innings = 5.1
-    try:
-        innings = pitchers.loc[pitcher]['ip']
-        return round(innings,1)
-    except:
-        return innings
-
-def batterHEV(lineup):
-    hev = []
-    osw = []
-    for batter in lineup:
-        try:
-            b = batters.loc[batter]
-            hev.append(b['wHEV'])
-            osw.append(b['oswing'])
-        except:
-            hev.append(batters['wHEV'].quantile(0.33))
-            osw.append(batters['oswing'].quantile(0.33))
-    return round(mean(hev), 2), round(mean(osw), 2)
-
-def getRelievers(bullpen):
-    runs = []
-    for player in bullpen:
-        try:
-            runs.append(pitchers.loc[player['id']]['wHEV'])
-        except:
-            runs.append(pitchers['wHEV'].quantile(0.33))
-    return round(sum(runs)/len(runs), 2)
-
-def getDefense(lineup):
-    runs = 0
-    for player in lineup:
-        try:
-            runs += defense.loc[player['id']]['outs_above_average']
-        except:
-            runs += 0
-    return runs
-
-def modelPred(game):
-    d = {'innings': game['innings'],
-         'park': game['park'],
-         'ump': umps.loc[game['ump']['official']['id']]['runs'].round(2),
-         'sp_hev': pitcherHEV(game['away_pitcher']['id']) + pitcherHEV(game['home_pitcher']['id']),
-         'sp_innings': starterInnings(game['away_pitcher']['id']) + starterInnings(game['home_pitcher']['id']),
-         'offense': batterHEV(game['away_lineup'])[0] + batterHEV(game['home_lineup'])[0] + batterHEV(game['away_lineup'])[1] + batterHEV(game['home_lineup'])[1],
-         'defense': getDefense(game['away_lineup']) + getDefense(game['home_lineup']),
-         'bullpens': getRelievers(game['away_bullpen']) + getRelievers(game['home_bullpen']),
-         'CloseOU': game['over_under'] 
-         }
-    df = pd.DataFrame(d, columns=d.keys(), index=[0])
-    X = df.loc[:,'park':'CloseOU']
-    pred = reg_model.predict(X)
-    if game['innings'] == 7:
-        return float(pred * (7/9))
-    else:
-        return float(pred)
-
-def modelData(park, pred, line):
-    try:
-        o = reg_over_thresholds.loc[park]['threshold']
-        o_pct = reg_over_thresholds.loc[park]['pct']
-        u = reg_under_thresholds.loc[park]['threshold']
-        u_pct = reg_under_thresholds.loc[park]['pct']
-        total = round(pred - line, 2)
-        larry = [o, u, o_pct, u_pct, total]
-    except:
-        larry = None
-
-    return larry
-
-'''
 sockets
 '''
 
@@ -306,8 +191,6 @@ def send_data(data):
         prediction = (1.0 * venue) + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
         prediction += 0.35 * (over_under - prediction)
         pred_data = [venue, handicap, weather, wind, ump, home_fielding, away_fielding, away_matchups, home_matchups]
-        model_pred = modelPred(game)
-        model_data = modelData(game['park'], model_pred, over_under)
 
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
@@ -318,17 +201,16 @@ def send_data(data):
                 adj_line = -0.25
 
         total = round(prediction - over_under, 2)
-        adj_total = round(prediction - adj_line, 2)
+        # adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet, 'larry_pred': round(model_pred, 2), 'larry_data': model_data})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'prediction': round(prediction, 2), 'total': total, 'adj_line': adj_line, 'bet': bet})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD", 'larry_pred': "TBD", 'larry_data': None})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'prediction': "TBD", 'total': "TBD", 'adj_line': 'TBD', 'bet': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
     ids = data['ids']
-    larry = data['larry']
     prediction = data['prediction']
     over_threshold = data['over_threshold']
     under_threshold = data['under_threshold']
@@ -338,9 +220,6 @@ def change_line(data):
     game = data['game']
     game['over_under'] = over_under
     try:
-        model_pred = modelPred(game)
-        model_data = modelData(game['park'], model_pred, over_under)
-
         line = abs(over) + abs(under)
         if line == 220:
             adj_line = round(over_under + lines_20.loc[over]['mod'], 2)
@@ -351,7 +230,7 @@ def change_line(data):
                 adj_line = -0.25
 
         total = round(prediction - over_under, 2)
-        adj_total = round(prediction - adj_line, 2)
+        # adj_total = round(prediction - adj_line, 2)
         bet = getValue(total, over_threshold, under_threshold)
 
         emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'adj_line': adj_line, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'bet': bet, "ids": ids})
