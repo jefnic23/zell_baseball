@@ -372,10 +372,6 @@ function notEmpty(obj) {
 
 document.querySelector("#date").innerHTML = `Games on ${main_date}`;
 
-getFanduel("https://sbapi.nj.sportsbook.fanduel.com/api/content-managed-page?betexRegion=GBR&capiJurisdiction=intl&currencyCode=USD&exchangeLocale=en_US&includePrices=true&includeRaceCards=false&includeSeo=true&language=en&regionCode=NAMERICA&timezone=America/New_York&includeMarketBlurbs=true&_ak=FhMFpcPWXMeyZxOx&page=CUSTOM&customPageId=mlb").then(data => {
-    console.log(data);
-});
-
 getFanduel(odds_url).then(data => {
     // console.log(data);
     bet_games = data.events.length;
