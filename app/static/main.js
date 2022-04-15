@@ -8,6 +8,7 @@ var find_date = `${yyyy}-${mm}-${dd}`; // used when getting games from main_url
 var base_url = "https://statsapi.mlb.com";
 var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
 var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
+var bet_urls = "https://ips.sportsbook.fanduel.com/stats/eventIds";
 var num_games = 0; // set this from callapi on dom load
 var active_games = 0; // set this from callapi on dom load
 var live_games = 0;
@@ -356,7 +357,7 @@ function noGames() {
     var row = document.createElement("tr");
     var td = document.createElement("td");
     td.innerHTML = "No games";
-    td.colSpan = "7";
+    td.colSpan = "8";
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);
@@ -370,6 +371,10 @@ function notEmpty(obj) {
 // main loop //
 
 document.querySelector("#date").innerHTML = `Games on ${main_date}`;
+
+getFanduel("https://sbapi.nj.sportsbook.fanduel.com/api/content-managed-page?betexRegion=GBR&capiJurisdiction=intl&currencyCode=USD&exchangeLocale=en_US&includePrices=true&includeRaceCards=false&includeSeo=true&language=en&regionCode=NAMERICA&timezone=America/New_York&includeMarketBlurbs=true&_ak=FhMFpcPWXMeyZxOx&page=CUSTOM&customPageId=mlb").then(data => {
+    console.log(data);
+});
 
 getFanduel(odds_url).then(data => {
     // console.log(data);
