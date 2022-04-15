@@ -157,7 +157,6 @@ function populateTables(data) {
             home_div.appendChild(home_logo_div);
             home_div.appendChild(home_name_div);
             
-            td.style.height = "0";
             div.style.height = "100%";
             div.classList.add("teams");
             div.appendChild(away_div);
@@ -198,7 +197,6 @@ function populateTables(data) {
             line_div.innerHTML = items[i];
             over_div.innerHTML = `${over_line} O`;
             under_div.innerHTML = `${under_line} U`;
-            td.style.height = '0px';
             div.style.height = "100%";
             div.classList.add('lines');
             ou_div.appendChild(over_div);
