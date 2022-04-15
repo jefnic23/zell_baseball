@@ -317,8 +317,9 @@ tbody > tr:nth-child(odd) {
     }
 
     .tooltip .tooltiptext {
-        top: 34px;
-        left: 66%;
+        width: 95%;
+        top: 21px;
+        left: 50%;
         transform: translateX(-50%);
         margin: 0;
         padding: 0;
@@ -338,11 +339,7 @@ tbody > tr:nth-child(odd) {
     }
 
     .tooltip .tooltiptext::after {
-        bottom: 100%;
-        left: 50%;
-        margin-left: -5px;
-        top: 0;
-        margin-top: 0;
+        display: none;
     }
 
     .tooltip:active .tooltiptext {

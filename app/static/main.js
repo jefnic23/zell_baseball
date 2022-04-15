@@ -88,10 +88,6 @@ function changeClass(el, _class) {
     }, 5500);
 }
 
-function showTooltip(el) {
-    console.log(el);
-}
-
 function populateTables(data) {
     // console.log(data);
     var game = data.game;
