@@ -1,23 +1,21 @@
 from flask import render_template
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
-import pandas as pd
 from app import app
+import pandas as pd
 
 Payload.max_decode_packets = 500
 socketio = SocketIO(app)
 
-umps = pd.read_csv("app/data/umps.csv", index_col='id')
-parks = pd.read_csv("app/data/parks.csv", index_col='park')
-bets = pd.read_csv("app/data/bets.csv", index_col='total')
-lines_20 = pd.read_csv("app/data/lines_20.csv", index_col='line')
-lines_22 = pd.read_csv("app/data/lines_22.csv", index_col='line')
-fielding = pd.read_csv("app/data/fielding.csv", index_col="player")
-bullpens = pd.read_csv("app/data/bullpens.csv", index_col='pitcher')
-pitchers = pd.read_csv("app/data/pitchers.csv", index_col='pitcher')
-batters = pd.read_csv('app/data/batters.csv', index_col='batter')
-matchups = pd.read_csv('app/data/matchups.csv', index_col='matchup')
-hev = pd.read_csv('app/data/hev.csv', index_col='hev')
+umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
+bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
+fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
+bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
+hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
 
 def getTemp(temp, innings):
     if temp <= 46:
