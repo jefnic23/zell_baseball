@@ -167,7 +167,6 @@ def send_data(data):
         speed = int(wind_data[0])
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
-        line = abs(over_line) + abs(under_line)
         venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
         handicap = getHandicap(game['away_team_full'], game['home_team_full'], innings)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
@@ -190,6 +189,7 @@ def send_data(data):
         prediction += 0.35 * (over_under - prediction)
         pred_data = [venue, handicap, weather, wind, ump, home_fielding, away_fielding, away_matchups, home_matchups]
 
+        # line = abs(over_line) + abs(under_line)
         # if line == 220:
         #     adj_line = round(over_under + lines_20.loc[over_line]['mod'], 2)
         # else:
