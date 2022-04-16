@@ -170,8 +170,11 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 2) {
-            td.innerHTML = items[i];
-            td.classList.add('tooltip');
+            var pred_div = document.createElement("div");
+            pred_div.innerHTML = items[i];
+            pred_div.classList.add('tooltip');
+            td.appendChild(pred_div);
+            td.classList.add("tooltip-container");
             if (pred_data) {
                 var span = document.createElement('span');
                 span.classList.add('tooltiptext');
@@ -183,7 +186,7 @@ function populateTables(data) {
                     ul.appendChild(li);
                 }
                 span.appendChild(ul);
-                td.appendChild(span);
+                pred_div.appendChild(span);
             }
             row.appendChild(td);
         }
@@ -207,8 +210,11 @@ function populateTables(data) {
             row.appendChild(td);
         }
         if (i === 4) {
-            td.innerHTML = items[i];
-            td.classList.add('tooltip');
+            var total_div = document.createElement("div");
+            total_div.innerHTML = items[i];
+            total_div.classList.add('tooltip');
+            td.appendChild(total_div);
+            td.classList.add("tooltip-container");
             var over_el = game.market.selections.find(x => x.name === "Over");
             td.setAttribute('id', over_el.idfoselection);
             if (over_threshold && under_threshold) {
@@ -223,7 +229,7 @@ function populateTables(data) {
                     ul.appendChild(li);
                 }
                 span.appendChild(ul);
-                td.appendChild(span);
+                total_div.appendChild(span);
             }
             row.appendChild(td);
         }
