@@ -20,6 +20,7 @@ class LogoutView(MenuLink):
 
 class DataView(ModelView):
     column_display_pk = True
+    page_size = 50
     
     def is_accessible(self):
         return current_user.is_authenticated

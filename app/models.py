@@ -30,6 +30,7 @@ class User(UserMixin, db.Model):
 class Batters(db.Model):
     __tablename__ = "batters"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
     stand = db.Column(db.String(), nullable=False)
     hev_r = db.Column(db.Float, nullable=False)
     hev_l = db.Column(db.Float, nullable=False)
@@ -42,11 +43,13 @@ class Bets(db.Model):
 class Bullpens(db.Model):
     __tablename__ = "bullpens"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
 
 class Fielding(db.Model):
     __tablename__ = "fielding"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
 
 class HEV(db.Model):
@@ -71,6 +74,7 @@ class Parks(db.Model):
 class Pitchers(db.Model):
     __tablename__ = "pitchers"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
     p_throws = db.Column(db.String(), nullable=False)
     hev_r = db.Column(db.Float, nullable=False)
     hev_l = db.Column(db.Float, nullable=False)
@@ -79,5 +83,6 @@ class Pitchers(db.Model):
 class Umps(db.Model):
     __tablename__ ="umps"
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), unique=True, nullable=False)
     runs = db.Column(db.Float, nullable=False)
     
