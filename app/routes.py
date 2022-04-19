@@ -44,7 +44,7 @@ def getTemp(temp, innings):
     if 72 <= temp <= 79:
         return round(0.1 * (innings/9), 2)
     if 80 <= temp <= 87:
-        return round(0. * (innings/9), 2)
+        return round(0.2 * (innings/9), 2)
     if temp >= 88:
         return round(0.3 * (innings/9), 2)
 
