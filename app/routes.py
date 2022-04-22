@@ -59,7 +59,10 @@ def getWind(game, speed, direction, innings):
     return round(wind * (innings/9), 2)
 
 def getUmp(ump, innings):
-    runs = umps.loc[ump]['runs']
+    try:
+        runs = umps.loc[ump]['runs']
+    except:
+        runs = 0
     return round(runs * (innings/9), 2)
 
 def getFielding(lineup, innings):
