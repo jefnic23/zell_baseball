@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, DecimalField
 from wtforms.validators import InputRequired, Email, Length, EqualTo
 
 class LoginForm(FlaskForm):
@@ -21,3 +21,8 @@ class ResetPasswordForm(FlaskForm):
         validators=[InputRequired(message="Password required"), 
         EqualTo("password", message="Passwords must match")])
     submit_button = SubmitField("Submit new password")
+
+class MiscForm(FlaskForm):
+    name = StringField("Name", validators=[InputRequired(message="Enter the name of the variable")], render_kw={"autofocus": True})
+    value = DecimalField("Value", validators=[InputRequired(message="Enter a value")])
+    

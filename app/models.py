@@ -86,3 +86,7 @@ class Umps(db.Model):
     name = db.Column(db.String(), unique=True, nullable=False)
     runs = db.Column(db.Float, nullable=False)
     
+class Misc(db.Model):
+    __tablename__ = "misc"
+    name = db.Column(db.String(), primary_key=True)
+    value = db.Column(db.Float, nullable=False)

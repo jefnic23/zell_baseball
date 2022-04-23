@@ -28,3 +28,7 @@ class DataView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         # redirect to login page if user doesn't have access
         return redirect(url_for('login'))
+
+    def create_form(self):
+        form = MiscForm()
+        return form

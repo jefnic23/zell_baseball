@@ -20,6 +20,7 @@ admin.add_view(DataView(Matchups, db.session))
 admin.add_view(DataView(Parks, db.session))
 admin.add_view(DataView(Pitchers, db.session))
 admin.add_view(DataView(Umps, db.session))
+admin.add_view(DataView(Misc, db.session))
 
 import pandas as pd
 umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
@@ -31,6 +32,7 @@ pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], 
 batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
 matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
 hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
 
 def getTemp(temp, innings):
     if temp <= 46:
@@ -242,7 +244,7 @@ def send_data(data):
         speed = int(wind_data[0])
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
-        venue = round(parks.loc[game['venue']]['runs'] * (innings/9), 2)
+        venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'], 2)
         handicap = getHandicap(game['away_team_full'], game['home_team_full'], innings)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
