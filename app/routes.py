@@ -244,7 +244,7 @@ def send_data(data):
         speed = int(wind_data[0])
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
-        venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'], 2)
+        venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'].item(), 2)
         handicap = getHandicap(game['away_team_full'], game['home_team_full'], innings)
         over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
