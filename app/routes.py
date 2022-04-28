@@ -7,7 +7,7 @@ from app.models import *
 from app.views import *
 from app.email import *
 from app import app, login, socketio, admin
-import pandas as pd
+
 
 Payload.max_decode_packets = 50
 login.init_app(app)
@@ -23,19 +23,17 @@ admin.add_view(DataView(Pitchers, db.session))
 admin.add_view(DataView(Umps, db.session))
 admin.add_view(DataView(Misc, db.session))
 
-# initial pandas dataframe variables.
-# these need to be set so that database changes
-# can propogate without refreshing the server.
-umps = ''
-parks = ''
-bets = ''
-fielding = ''
-bullpens = ''
-pitchers = ''
-batters = ''
-matchups = ''
-hev = ''
-misc = ''
+import pandas as pd
+umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
+bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
+fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
+bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
+hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
 
 def getTemp(temp, innings):
     if temp <= 46:
@@ -173,17 +171,6 @@ def load_user(id):
 
 @app.route('/')
 def index():
-    import pandas as pd
-    umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-    parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
-    bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
-    fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
-    bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-    pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-    batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-    matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
-    hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-    misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
