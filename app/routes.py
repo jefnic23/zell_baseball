@@ -6,6 +6,7 @@ from app.forms import *
 from app.models import *
 from app.views import *
 from app.email import *
+from app.game import *
 from app import app, login, socketio, admin
 
 
@@ -16,150 +17,23 @@ admin.add_view(DataView(Batters, db.session))
 admin.add_view(DataView(Bets, db.session))
 admin.add_view(DataView(Bullpens, db.session))
 admin.add_view(DataView(Fielding, db.session))
-admin.add_view(DataView(HEV, db.session))
+admin.add_view(DataView(Hev, db.session))
 admin.add_view(DataView(Matchups, db.session))
 admin.add_view(DataView(Parks, db.session))
 admin.add_view(DataView(Pitchers, db.session))
 admin.add_view(DataView(Umps, db.session))
 admin.add_view(DataView(Misc, db.session))
 
-import pandas as pd
-umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
-bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
-fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
-bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
-hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
-
-def getTemp(temp, innings):
-    if temp <= 46:
-        return round(-0.225 * (innings/9), 2)
-    if 47 <= temp <= 53:
-        return round(-0.15 * (innings/9), 2)
-    if 54 <= temp <= 62:
-        return round(-0.075 * (innings/9), 2)
-    if 63 <= temp <= 71:
-        return 0.0
-    if 72 <= temp <= 79:
-        return round(0.1 * (innings/9), 2)
-    if 80 <= temp <= 87:
-        return round(0.2 * (innings/9), 2)
-    if temp >= 88:
-        return round(0.3 * (innings/9), 2)
-
-def getWind(game, speed, direction, innings):
-    wind = 0
-    if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "In":
-        for i in range(0, speed - 10 + 1):
-            wind -= 0.15
-    if game['venue'] == "Chicago Cubs" and speed >= 10 and direction == "Out":
-        for i in range(0, speed - 10 + 1):
-            wind += 0.15
-    return round(wind * (innings/9), 2)
-
-def getUmp(ump, innings):
-    try:
-        runs = umps.loc[ump]['runs']
-    except:
-        runs = 0
-    return round(runs * (innings/9), 2)
-
-def getFielding(lineup, innings):
-    runs = 0
-    players = [id["id"] for id in lineup]
-    for player in players:
-        try:
-            runs += fielding.loc[player]['runs']
-        except:
-            runs += 0
-    return round(runs * (innings/9), 2)
-
-def getBullpen(bullpen):
-    runs = 0
-    players = [id['id'] for id in bullpen]
-    for player in players:
-        try:
-            runs += bullpens.loc[player]['runs']
-        except:
-            runs += 0
-    return round(runs, 2)
-
-def oddsRatio(hitter, pitcher, matchup):
-    h = (hitter/100) / (1 - (hitter/100))
-    p = (pitcher/100) / (1 - (pitcher/100))
-    l = matchups.loc[matchup]['odds']
-    odds = h * p / l
-    rate = round(odds / (odds + 1), 3)
-    if 0.657 <= rate <= 0.824:
-        return round(hev.loc[rate]['runs'], 2)
-    else:
-        if rate < 0.657:
-            return -0.15
-        if rate > 0.824:
-            return 0.15
-
-def getInnings(pitcher, pvb, bullpen, scheduled): 
-    p_id = pitcher['id']
-    try:
-        innings = pitchers.loc[p_id]['ip'] / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
-    except:
-        innings = pitchers['ip'].median() / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
-
-def PvB(pitcher, lineup):
-    runs = 0
-    p_id = pitcher['id']
-    p_hand = pitcher['pitchHand']['code']
-    for hitter in lineup:
-        try:
-            b_id = hitter['id']
-            b_hand = hitter['batSide']['code']
-            if b_hand == "S" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_L']
-                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_R']
-                runs += oddsRatio(b_runs, p_runs, 'RL')
-            if b_hand == "S" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_R']
-                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_L']
-                runs += oddsRatio(b_runs, p_runs, 'LR')
-            if b_hand == "L" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_L']
-                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_L']
-                runs += oddsRatio(b_runs, p_runs, 'LL')
-            if b_hand == "L" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_L']
-                b_runs = batters[batters['stand'] == "L"].loc[b_id]['hev_R']
-                runs += oddsRatio(b_runs, p_runs, 'RL')
-            if b_hand == "R" and p_hand == "R":
-                p_runs = pitchers[pitchers['p_throws'] == "R"].loc[p_id]['hev_R']
-                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_R']
-                runs += oddsRatio(b_runs, p_runs, 'RR')
-            if b_hand == "R" and p_hand == "L":
-                p_runs = pitchers[pitchers['p_throws'] == "L"].loc[p_id]['hev_R']
-                b_runs = batters[batters['stand'] == "R"].loc[b_id]['hev_L']
-                runs += oddsRatio(b_runs, p_runs, 'LR')
-        except:
-            runs += 0
-    return round(runs, 2)
-
-def getHandicap(away_team, home_team, innings):
-    handicap = parks.loc[home_team]['handicap'] - parks.loc[away_team]['handicap']
-    return round(handicap * (innings/9), 2)
-
-def getValue(total, over_threshold, under_threshold):
-    bet = 'No Value'
-    if total < 0 and abs(total) - under_threshold >= 0.01:
-        value = round(abs(total) - under_threshold, 2)
-        bet = int(bets.loc[value]['bet'])
-    if total > 0 and total - over_threshold >= 0.01:
-        value = round(abs(total) - over_threshold, 2)
-        bet = int(bets.loc[value]['bet'])
-    return bet
+# umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+# parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
+# bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
+# fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
+# bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+# pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+# batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+# matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
+# hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
+# misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
 
 '''
 routes
@@ -234,8 +108,8 @@ def send_data(data):
     gamePk = game['gamePk']
     game_time = game['game_time']
     over_under = game['over_under']
-    # over_line = game['over_line']
-    # under_line = game['under_line']
+    home_team = Parks.query.filter_by(park=game['home_team_full']).first()
+    away_team = Parks.query.filter_by(park=game['away_team_full']).first()
     starters = {'away': "TBA", 'home': "TBA"}
     if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
         starters['away'] = game['away_pitcher']['boxscoreName']
@@ -245,10 +119,11 @@ def send_data(data):
         speed = int(wind_data[0])
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
-        venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'].item(), 2)
-        handicap = getHandicap(game['away_team_full'], game['home_team_full'], innings)
-        over_threshold = round(parks.loc[game['venue']]['over_threshold'] * (innings/9), 2)
-        under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
+        venue = round(home_team.runs * Misc.query.get('modifier').value, 2)
+        # venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'].item(), 2)
+        handicap = getHandicap(away_team, home_team, innings)
+        over_threshold = round(home_team.over_threshold * (innings/9), 2)
+        under_threshold = round(home_team.under_threshold * (innings/9), 2)
         over_80 = round(over_threshold * 0.8, 2)
         under_80 = round(under_threshold * 0.8, 2)
         over_120 = round(over_threshold * 1.2, 2)

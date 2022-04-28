@@ -52,7 +52,7 @@ class Fielding(db.Model):
     name = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
 
-class HEV(db.Model):
+class Hev(db.Model):
     __tablename__ = "hev"
     id = db.Column(db.Float, primary_key=True)
     runs = db.Column(db.Float, nullable=False)
@@ -61,6 +61,11 @@ class Matchups(db.Model):
     __tablename__ = "matchups"
     matchup = db.Column(db.String(), primary_key=True)
     odds = db.Column(db.Float, nullable=False)
+
+class Misc(db.Model):
+    __tablename__ = "misc"
+    name = db.Column(db.String(), primary_key=True)
+    value = db.Column(db.Float, nullable=False)
 
 class Parks(db.Model):
     __tablename__ = "parks"
@@ -85,8 +90,3 @@ class Umps(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), unique=True, nullable=False)
     runs = db.Column(db.Float, nullable=False)
-    
-class Misc(db.Model):
-    __tablename__ = "misc"
-    name = db.Column(db.String(), primary_key=True)
-    value = db.Column(db.Float, nullable=False)
