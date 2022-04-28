@@ -29,7 +29,6 @@ def getWind(game, speed, direction, innings):
 def getUmp(ump, innings):
     try:
         runs = Umps.query.filter_by(id=ump).first().runs
-        # runs = umps.loc[ump]['runs']
     except:
         runs = 0
     return round(runs * (innings/9), 2)
@@ -40,7 +39,6 @@ def getFielding(lineup, innings):
     for player in players:
         try:
             runs += Fielding.query.filter_by(id=player).first().runs
-            # runs += fielding.loc[player]['runs']
         except:
             runs += 0
     return round(runs * (innings/9), 2)
@@ -51,7 +49,6 @@ def getBullpen(bullpen):
     for player in players:
         try:
             runs += Bullpens.query.filter_by(id=player).first().runs
-            # runs += bullpens.loc[player]['runs']
         except:
             runs += 0
     return round(runs, 2)
@@ -60,12 +57,10 @@ def oddsRatio(hitter, pitcher, matchup):
     h = (hitter/100) / (1 - (hitter/100))
     p = (pitcher/100) / (1 - (pitcher/100))
     l = Matchups.query.get(matchup).odds
-    # l = matchups.loc[matchup]['odds']
     odds = h * p / l
     rate = round(odds / (odds + 1), 3)
     if 0.657 <= rate <= 0.824:
         return Hev.query.get(rate).runs
-        # return round(hev.loc[rate]['runs'], 2)
     else:
         if rate < 0.657:
             return -0.15
@@ -76,7 +71,6 @@ def getInnings(pitcher, pvb, bullpen, scheduled):
     p_id = pitcher['id']
     try:
         innings = Pitchers.query.filter_by(id=p_id).first().ip / scheduled
-        # innings = pitchers.loc[p_id]['ip'] / scheduled
         return round((pvb * innings) + (bullpen * (1 - innings)), 2)
     except:
         # ip/gs
@@ -123,7 +117,6 @@ def PvB(pitcher, lineup):
 
 def getHandicap(away_team, home_team, innings):
     handicap = home_team.handicap - away_team.handicap
-    # handicap = parks.loc[home_team]['handicap'] - parks.loc[away_team]['handicap']
     return round(handicap * (innings/9), 2)
 
 def getValue(total, over_threshold, under_threshold):

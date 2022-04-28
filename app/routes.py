@@ -24,17 +24,6 @@ admin.add_view(DataView(Pitchers, db.session))
 admin.add_view(DataView(Umps, db.session))
 admin.add_view(DataView(Misc, db.session))
 
-# umps = pd.read_sql_table("umps", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-# parks = pd.read_sql_table("parks", app.config['SQLALCHEMY_DATABASE_URI'], index_col='park')
-# bets = pd.read_sql_table("bets", app.config['SQLALCHEMY_DATABASE_URI'], index_col='total')
-# fielding = pd.read_sql_table("fielding", app.config['SQLALCHEMY_DATABASE_URI'], index_col="id")
-# bullpens = pd.read_sql_table("bullpens", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-# pitchers = pd.read_sql_table("pitchers", app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-# batters = pd.read_sql_table('batters', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-# matchups = pd.read_sql_table('matchups', app.config['SQLALCHEMY_DATABASE_URI'], index_col='matchup')
-# hev = pd.read_sql_table('hev', app.config['SQLALCHEMY_DATABASE_URI'], index_col='id')
-# misc = pd.read_sql_table('misc', app.config['SQLALCHEMY_DATABASE_URI'], index_col='name')
-
 '''
 routes
 '''
@@ -120,7 +109,6 @@ def send_data(data):
         direction = wind_data[2]
         wind = getWind(game, speed, direction, innings)
         venue = round(home_team.runs * Misc.query.get('modifier').value, 2)
-        # venue = round(parks.loc[game['venue']]['runs'] * misc.loc['modifier'].item(), 2)
         handicap = getHandicap(away_team, home_team, innings)
         over_threshold = round(home_team.over_threshold * (innings/9), 2)
         under_threshold = round(home_team.under_threshold * (innings/9), 2)
