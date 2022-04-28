@@ -250,8 +250,8 @@ def send_data(data):
         under_threshold = round(parks.loc[game['venue']]['under_threshold'] * (innings/9), 2)
         over_80 = round(over_threshold * 0.8, 2)
         under_80 = round(under_threshold * 0.8, 2)
-        over_60 = round(over_threshold * 0.6, 2)
-        under_60 = round(under_threshold * 0.6, 2)
+        over_120 = round(over_threshold * 1.2, 2)
+        under_120 = round(under_threshold * 1.2, 2)
         ump = getUmp(game['ump']['official']['id'], innings)
         weather = getTemp(int(game['weather']['temp']), innings)
         away_fielding = getFielding(game['away_lineup'], innings)
@@ -278,11 +278,11 @@ def send_data(data):
         total = round(prediction - over_under, 2)
         bet_100 = getValue(total, over_threshold, under_threshold)
         bet_80 = getValue(total, over_80, under_80)
-        bet_60 = getValue(total, over_60, under_60)
+        bet_120 = getValue(total, over_120, under_120)
 
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_60': over_60, 'under_60': under_60, 'prediction': round(prediction, 2), 'total': total, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_60': bet_60})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'prediction': round(prediction, 2), 'total': total, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_120': bet_120})
     else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'over_80': None, 'under_80': None, 'over_60': None, 'under_60': None,  'prediction': "TBD", 'total': "TBD", 'bet_100': "TBD", 'bet_80': "TBD", 'bet_60': "TBD"})
+        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'over_80': None, 'under_80': None, 'over_120': None, 'under_120': None,  'prediction': "TBD", 'total': "TBD", 'bet_100': "TBD", 'bet_80': "TBD", 'bet_120': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):
@@ -292,8 +292,8 @@ def change_line(data):
     under_threshold = data['under_threshold']
     over_80 = data['over_80']
     under_80 = data['under_80']
-    over_60 = data['over_60']
-    under_60 = data['under_60']
+    over_120 = data['over_120']
+    under_120 = data['under_120']
     over_under = data['over_under']
     over = data['over']
     under = data['under']
@@ -313,11 +313,11 @@ def change_line(data):
         total = round(prediction - over_under, 2)
         bet_100 = getValue(total, over_threshold, under_threshold)
         bet_80 = getValue(total, over_80, under_80)
-        bet_60 = getValue(total, over_60, under_60)
+        bet_120 = getValue(total, over_120, under_120)
 
-        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_60': over_60, 'under_60': under_60, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_60': bet_60, "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_120': bet_120, "ids": ids})
     except:
-        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_60': over_60, 'under_60': under_60, 'bet_100': "TBD", 'bet_80': "TBD", 'bet_60': "TBD", "ids": ids})
+        emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'bet_100': "TBD", 'bet_80': "TBD", 'bet_120': "TBD", "ids": ids})
 
 if __name__ == '__main__':
     socketio.run(app)
