@@ -1,18 +1,5 @@
-var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-var today = new Date();
-var mm = String(today.getMonth() + 1).padStart(2, '0');
-var dd = String(today.getDate()).padStart(2, '0');
-var yyyy = today.getFullYear();
-var main_date = `${mm}/${dd}/${yyyy}`; // used in main_url
-var find_date = `${yyyy}-${mm}-${dd}`; // used when getting games from main_url
-var base_url = "https://statsapi.mlb.com";
-var main_url = `https://statsapi.mlb.com/api/v1/schedule/games/?sportId=1&date=${main_date}&hydrate=lineups`;
-var odds_url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json";
-var bet_urls = "https://ips.sportsbook.fanduel.com/stats/eventIds";
-var num_games = 0; // set this from callapi on dom load
-var active_games = 0; // set this from callapi on dom load
-var live_games = 0;
-var no_games = false;
+const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+const table = document.querySelector("#slate");
 const logos = {
     'Los Angeles Angels': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg',
     'Arizona Diamondbacks': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg',
@@ -46,40 +33,246 @@ const logos = {
     'Milwaukee Brewers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/158.svg'
 }
 
-function sendData(game) {
-    socket.emit('game', {'game': game});
+async function getFanduel(url="https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json") {
+    const res = await fetch(url);
+    return await res.json();
 }
 
-function changeLine(game, over_under, prediction, over_threshold, under_threshold, over_80, under_80, over_120, under_120, over, under, ids) {
-    socket.emit('changeLine', {'game': game, 'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'over': over, 'under': under, 'ids': ids});
+function createTeams(row, away_name, away_logo, home_name, home_logo) {
+    let td = document.createElement("td");
+    let div = document.createElement("div");
+    let away_div = document.createElement("div");
+    let away_name_div = document.createElement("div");
+    let away_logo_div = document.createElement("div");
+    let away_logo_img = document.createElement("img");
+    away_name_div.innerHTML = away_name;
+    away_logo_img.setAttribute("src", away_logo);
+    away_logo_img.classList.add("logo");
+    away_logo_div.appendChild(away_logo_img);
+    away_div.appendChild(away_logo_div);
+    away_div.appendChild(away_name_div);
+
+    let at_span = document.createElement("span");
+    at_span.innerHTML = " @ ";
+
+    let home_div = document.createElement("div");
+    let home_name_div = document.createElement("div");
+    let home_logo_div = document.createElement("div");
+    let home_logo_img = document.createElement("img");
+    home_name_div.innerHTML = home_name;
+    home_logo_img.setAttribute("src", home_logo);
+    home_logo_img.classList.add("logo");
+    home_logo_div.appendChild(home_logo_img);
+    home_div.appendChild(home_logo_div);
+    home_div.appendChild(home_name_div);
+    
+    div.style.height = "100%";
+    div.classList.add("teams");
+    div.appendChild(away_div);
+    div.appendChild(at_span);
+    div.appendChild(home_div);
+    td.appendChild(div);
+    return row.appendChild(td);
 }
 
-function callApi(url, date) {
-    return $.getJSON(url).then(data => {
-        return data.dates.find(x => x.date === date);
-    });
+function createGameTime(row, game_time) {
+    let td = document.createElement("td");
+    td.innerHTML = game_time;
+    return row.appendChild(td);
 }
 
-function getData(base, link) {
-    return $.getJSON(base + link).then(data => {
-        return data;
-    });
-}
-
-function getFanduel(url) {
-    return $.getJSON(url).then(data => {
-        return data;
-    });
-}
-
-function getMoneyLine(data) {
-    var e = 1 + data.currentpriceup / data.currentpricedown;
-    if (e >= 2) {
-        var line = 100 * (e - 1);
-    } else {
-        var line = -100 / (e - 1);
+function createPrediction(row, prediction, predData, pred_name, home_team) {
+    let td = document.createElement("td");
+    let pred_div = document.createElement("div");
+    pred_div.innerHTML = prediction;
+    pred_div.classList.add('tooltip');
+    td.appendChild(pred_div);
+    td.classList.add("tooltip-container");
+    if (prediction !== "TBD") {
+        let span = document.createElement('span');
+        span.classList.add('tooltiptext');
+        let ul = document.createElement('ul');
+        let pred_data = [
+            predData.park_factor,
+            predData.wind_factor,
+            predData.temp_factor,
+            predData.ump_factor,
+            predData.home_fielding,
+            predData.away_fielding,
+            predData.home_matchups,
+            predData.away_matchups,
+            predData.handicap
+        ];
+        for (let j = 0; j < pred_data.length; j++) {
+            if (pred_name[j] === 'Wind' && home_team !== 'Chicago Cubs') { continue; }
+            let li = document.createElement('li');
+            li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
+            ul.appendChild(li);
+        }
+        span.appendChild(ul);
+        pred_div.appendChild(span);
     }
-    return Math.round(line);
+    return row.appendChild(td);
+}
+
+function createLines(row, idfoevent, over_under, over_line, under_line) {
+    let td = document.createElement("td");
+    let div = document.createElement("div");
+    let line_div = document.createElement("div");
+    let ou_div = document.createElement("div");
+    let over_div = document.createElement("div");
+    let under_div = document.createElement("div");
+    line_div.setAttribute("id", idfoevent);
+    line_div.innerHTML = over_under;
+    over_div.innerHTML = `${over_line} O`;
+    under_div.innerHTML = `${under_line} U`;
+    div.style.height = "100%";
+    div.classList.add('lines');
+    ou_div.appendChild(over_div);
+    ou_div.appendChild(under_div);
+    div.appendChild(line_div);
+    div.appendChild(ou_div);
+    td.appendChild(div);
+    return row.appendChild(td);
+}
+
+function createTotal(row, total, market, thresholds) {
+    let td = document.createElement("td");
+    let total_div = document.createElement("div");
+    total_div.innerHTML = total;
+    total_div.classList.add('tooltip');
+    td.appendChild(total_div);
+    td.classList.add("tooltip-container");
+    td.setAttribute('id', market);
+    if (total !== "TBD") {
+        let span = document.createElement('span');
+        span.classList.add('tooltiptext');
+        let ul = document.createElement('ul');
+        let threshold_names = ['Over 120%', 'Under 120%', 'Over 100%', 'Under 100%', 'Over 80%', 'Under 80%']
+        for (let j = 0; j < thresholds.length; j++) {
+            let li = document.createElement('li');
+            li.innerHTML = `<strong>${threshold_names[j]}</strong>: ${thresholds[j]}`;
+            ul.appendChild(li);
+        }
+        span.appendChild(ul);
+        total_div.appendChild(span);
+    }
+    return row.appendChild(td);
+}
+
+function createValues(row, bet, value, prediction, total, over_under, over_threshold, under_threshold) {
+    let td = document.createElement("td");
+    td.setAttribute('id', `${data.gamePk}_${value}`);
+    if (bet !== "TBD" && bet !== "No Value") {
+        if (prediction > over_under && total > over_threshold) {
+            td.innerHTML = `${bet}`
+            td.classList.add("betover");
+        } 
+        if (over_under > prediction && total < 0-under_threshold) {
+            td.innerHTML = `${bet}`
+            td.classList.add("betunder");
+        }
+    } else {
+        td.innerHTML = bet;
+    }
+    return row.appendChild(td);
+}
+
+function populateTables(game) {
+    let row = document.createElement("tr");
+    let game_time = new Date(game.gameData.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
+    let prediction = game.valueData.prediction;
+    let pred_name = [
+        'Park', 
+        'Temp', 
+        'Wind', 
+        'Ump', 
+        `${game.gameData.home_team_short} Defense`, 
+        `${game.gameData.away_team_short} Defense`, 
+        `${game.gameData.home_team_short} vs. ${game.gameData.away_pitcher.fullName}`, 
+        `${game.gameData.away_team_short} vs. ${game.gameData.home_pitcher.fullName}`,
+        'Handicap'
+    ];
+    let total = game.valueData.total;
+    let over_under = game.betData.over_under;
+    let over_120 = game.valueData.over_120, over_100 = game.valueData.over_100, over_80 = game.valueData.over_80;
+    let under_120 = game.valueData.under_120, under_100 = game.valueData.under_100, under_80 = game.valueData.under_80;
+    let thresholds = [
+        over_120, under_120, 
+        over_100, under_100, 
+        over_80, under_80
+    ];
+    let weather = game.gameData.weather;
+    if (weather !== "TBD") {
+        if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
+            row.style.border = "3px solid #dc3545";
+        }
+        if (game.gameData.home_team_full === "Chicago Cubs" && data.direction === "In" && data.speed >= 10) {
+            row.style.border = "3px solid #dc3545";
+        }
+    }
+    if (prediction === "TBD") {
+        row.classList.add('grayout');
+    }
+    createTeams(
+        row, 
+        game.gameData.away_team_short, 
+        logos[game.gameData.away_team_full], 
+        game.gameData.home_team_short, 
+        logos[game.gameData.home_team_full]
+    );
+    createGameTime(row, game_time);
+    createPrediction(
+        row, 
+        prediction, 
+        game.predData, 
+        pred_name, 
+        game.gameData.home_team_full
+    );
+    createLines(
+        row, 
+        game.betData.market.idfoevent, 
+        over_under, 
+        game.betData.over_line, 
+        game.betData.under_line
+    );
+    createTotal(
+        row, 
+        total,
+        game.betData.market.selections.find(x => x.name === "Over").idfoselection,
+        thresholds
+    );
+    createValues(
+        row, 
+        game.valueData.value_120, 
+        "120", 
+        prediction, 
+        total, 
+        over_under, 
+        over_120, 
+        under_120
+    );
+    createValues(
+        row, 
+        game.valueData.value_100, 
+        "100", 
+        prediction, 
+        total, 
+        over_under, 
+        over_100, 
+        under_100
+    );
+    createValues(
+        row, 
+        game.valueData.value_80, 
+        "80", 
+        prediction, 
+        total, 
+        over_under, 
+        over_80, 
+        under_80
+    );
+    return table.appendChild(row);
 }
 
 function changeClass(el, _class) {
@@ -87,203 +280,6 @@ function changeClass(el, _class) {
     setTimeout(() => {
         el.classList.remove(_class);
     }, 5500);
-}
-
-function populateTables(data) {
-    // console.log(data);
-    var game = data.game;
-    var table = document.querySelector("#slate");
-    var row = document.createElement("tr");
-    var away_team_logo = logos[game.away_team_full];
-    var home_team_logo = logos[game.home_team_full];
-    var teams = {'away_name': game.away_team_short, "away_logo": away_team_logo, 'home_name': game.home_team_short, 'home_logo': home_team_logo};
-    var home_pitcher = data.pitchers.home;
-    var away_pitcher = data.pitchers.away;
-    var game_time = new Date(game.game_time).toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', hour12: true});
-    var over_threshold = data.over_threshold;
-    var under_threshold = data.under_threshold;
-    var over_80 = data.over_80, under_80 = data.under_80;
-    var over_120 = data.over_120, under_120 = data.under_120;
-    var prediction = data.prediction;
-    var pred_data = data.pred_data;
-    var pred_name = ['Park', 'Handicap', 'Weather', 'Wind', 'Ump', 
-        `${teams.home_name} Defense`, `${teams.away_name} Defense`, 
-        `${teams.home_name} vs. ${away_pitcher}`, `${teams.away_name} vs. ${home_pitcher}`
-    ];
-    var over_line = game.over_line;
-    var under_line = game.under_line;
-    // var adj_line = data.adj_line;
-    var total = data.total;
-    var bet_100 = data.bet_100, bet_80 = data.bet_80, bet_120 = data.bet_120;
-    var weather = game.weather;
-    var over_under = game.over_under;
-    if (weather !== "TBD") {
-        if (weather.condition === "Drizzle" || weather.condition === "Rain" || weather.condition === "Snow") {
-            row.style.border = "3px solid #dc3545";
-        }
-        if (game.venue === "Wrigley Field" && data.direction === "In" && data.speed >= 10) {
-            row.style.border = "3px solid #dc3545";
-        }
-    }
-    if (prediction === "TBD") {
-        row.classList.add('grayout');
-    }
-    var items = [teams, game_time, prediction, over_under, total, bet_120, bet_100, bet_80];
-    for (var i = 0; i < items.length; i++) {
-        var td = document.createElement("td");
-        if (i === 0) {
-            var div = document.createElement("div");
-            var away_div = document.createElement("div");
-            var away_name_div = document.createElement("div");
-            var away_logo_div = document.createElement("div");
-            var away_logo_img = document.createElement("img");
-            away_name_div.innerHTML = teams.away_name;
-            away_logo_img.setAttribute("src", teams.away_logo);
-            away_logo_img.classList.add("logo");
-            away_logo_div.appendChild(away_logo_img);
-            away_div.appendChild(away_logo_div);
-            away_div.appendChild(away_name_div);
-
-            var at_span = document.createElement("span");
-            at_span.innerHTML = " @ ";
-
-            var home_div = document.createElement("div");
-            var home_name_div = document.createElement("div");
-            var home_logo_div = document.createElement("div");
-            var home_logo_img = document.createElement("img");
-            home_name_div.innerHTML = teams.home_name;
-            home_logo_img.setAttribute("src", teams.home_logo);
-            home_logo_img.classList.add("logo");
-            home_logo_div.appendChild(home_logo_img);
-            home_div.appendChild(home_logo_div);
-            home_div.appendChild(home_name_div);
-            
-            div.style.height = "100%";
-            div.classList.add("teams");
-            div.appendChild(away_div);
-            div.appendChild(at_span);
-            div.appendChild(home_div);
-            td.appendChild(div);
-            row.appendChild(td);
-        } 
-        if (i === 1) {
-            td.innerHTML = items[i];
-            row.appendChild(td);
-        }
-        if (i === 2) {
-            var pred_div = document.createElement("div");
-            pred_div.innerHTML = items[i];
-            pred_div.classList.add('tooltip');
-            td.appendChild(pred_div);
-            td.classList.add("tooltip-container");
-            if (pred_data) {
-                var span = document.createElement('span');
-                span.classList.add('tooltiptext');
-                var ul = document.createElement('ul');
-                for (var j = 0; j < pred_data.length; j++) {
-                    if (pred_name[j] === 'Wind' && game.venue !== 'Chicago Cubs') { continue; }
-                    var li = document.createElement('li');
-                    li.innerHTML = `<strong>${pred_name[j]}</strong>: ${pred_data[j]}`;
-                    ul.appendChild(li);
-                }
-                span.appendChild(ul);
-                pred_div.appendChild(span);
-            }
-            row.appendChild(td);
-        }
-        if (i === 3) {
-            var div = document.createElement("div");
-            var line_div = document.createElement("div");
-            var ou_div = document.createElement("div");
-            var over_div = document.createElement("div");
-            var under_div = document.createElement("div");
-            line_div.setAttribute("id", game.market.idfoevent);
-            line_div.innerHTML = items[i];
-            over_div.innerHTML = `${over_line} O`;
-            under_div.innerHTML = `${under_line} U`;
-            div.style.height = "100%";
-            div.classList.add('lines');
-            ou_div.appendChild(over_div);
-            ou_div.appendChild(under_div);
-            div.appendChild(line_div);
-            div.appendChild(ou_div);
-            td.appendChild(div);
-            row.appendChild(td);
-        }
-        if (i === 4) {
-            var total_div = document.createElement("div");
-            total_div.innerHTML = items[i];
-            total_div.classList.add('tooltip');
-            td.appendChild(total_div);
-            td.classList.add("tooltip-container");
-            var over_el = game.market.selections.find(x => x.name === "Over");
-            td.setAttribute('id', over_el.idfoselection);
-            if (over_threshold && under_threshold) {
-                var span = document.createElement('span');
-                span.classList.add('tooltiptext');
-                var ul = document.createElement('ul');
-                var thresholds = [over_120, under_120, over_threshold, under_threshold, over_80, under_80]
-                var threshold_names = ['Over 120%', 'Under 120%', 'Over 100%', 'Under 100%', 'Over 80%', 'Under 80%']
-                for (var j = 0; j < thresholds.length; j++) {
-                    var li = document.createElement('li');
-                    li.innerHTML = `<strong>${threshold_names[j]}</strong>: ${thresholds[j]}`;
-                    ul.appendChild(li);
-                }
-                span.appendChild(ul);
-                total_div.appendChild(span);
-            }
-            row.appendChild(td);
-        }
-        // value 120
-        if (i === 5) {
-            td.innerHTML = items[i];
-            td.setAttribute('id', `${data.gamePk}_120`);
-            if (bet_120 !== "TBD" && bet_120 !== "No Value") {
-                if (prediction > over_under && total > over_120) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betover");
-                } 
-                if (over_under > prediction && total < 0-under_120) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betunder");
-                }
-            }
-            row.appendChild(td);
-        }
-        // value 100
-        if (i === 6) {
-            td.innerHTML = items[i];
-            td.setAttribute('id', `${data.gamePk}_100`);
-            if (bet_100 !== "TBD" && bet_100 !== "No Value") {
-                if (prediction > over_under && total > over_threshold) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betover");
-                } 
-                if (over_under > prediction && total < 0-under_threshold) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betunder");
-                }
-            }
-            row.appendChild(td);
-        }
-        // value 80
-        if (i === 7) {
-            td.innerHTML = items[i];
-            td.setAttribute('id', `${data.gamePk}_80`);
-            if (bet_80 !== "TBD" && bet_80 !== "No Value") {
-                if (prediction > over_under && total > over_80) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betover");
-                } 
-                if (over_under > prediction && total < 0-under_80) {
-                    td.innerHTML = `${items[i]}`
-                    td.classList.add("betunder");
-                }
-            }
-            row.appendChild(td);
-        }
-    }
-    table.appendChild(row);
 }
 
 function updateLine(el_id, odds_type, o, u) {
@@ -369,163 +365,16 @@ function noGames() {
     no_games = true;
 }
 
-function notEmpty(obj) {
-    return Object.keys(obj) != 0;
+function changeLine(game, over_under, prediction, over_threshold, under_threshold, over_80, under_80, over_120, under_120, over, under, ids) {
+    socket.emit('changeLine', {'game': game, 'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'over': over, 'under': under, 'ids': ids});
 }
 
-// main loop //
-
-document.querySelector("#date").innerHTML = `Games on ${main_date}`;
-
-getFanduel(odds_url).then(data => {
-    // console.log(data);
-    bet_games = data.events.length;
-    var fanduel = [];
-    $.each(data.events, (i, e) => {
-        var date = new Date(e.tsstart);
-        if (date.getDate() === today.getDate()) {
-            fanduel.push(e);
-        }
-    });
-    callApi(main_url, find_date).then(data => {
-        active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
-        num_games = data.totalGames;
-        if (active_games === 0) {
-            noGames();
-            document.querySelector("#slate").style.visibility = "visible";
-            document.querySelector(".loader").style.visibility = "hidden";
-        }
-        $.each(data.games, (i, g) => {
-            // console.log(g);
-            if (g.status.codedGameState === "P" || g.status.codedGameState === "S") {
-                var game = {};
-                game['gamePk'] = g.gamePk;
-                game["game_time"] = new Date(g.gameDate);
-                game['status'] = g.status.codedGameState;
-                game['double_header'] = g.doubleHeader;
-                game['game_number'] = g.gameNumber;
-                game['innings'] = g.scheduledInnings;
-                game['venue'] = g.teams.home.team.name;
-                game['weather'] = "TBD";
-                game['ump'] = "TBD";
-                game['away_team_full'] = g.teams.away.team.name;
-                game['away_pitcher'] = null;
-                game['away_lineup'] = [];
-                game['away_bullpen'] = [];
-                game['home_team_full'] = g.teams.home.team.name;
-                game['home_pitcher'] = null;
-                game['home_lineup'] = [];
-                game['home_bullpen'] = [];
-                game['market'] = null;
-                game['over_under'] = null;
-                game['over_line'] = null;
-                game['under_line'] = null;
-                // used for model predictions
-                game['park'] = g.venue.id;
-                game['teams'] = g.teams;
-        
-                getData(base_url, g.link).then(d => {
-                    // console.log(d);
-                    game['away_team_short'] = d.gameData.teams.away.teamName;
-                    game['home_team_short'] = d.gameData.teams.home.teamName;
-                    if (notEmpty(d.gameData.weather)) {
-                        game['weather'] = d.gameData.weather;
-                    }
-                    if (notEmpty(d.liveData.boxscore.officials)) {
-                        game["ump"] = d.liveData.boxscore.officials.find(x => x.officialType === "Home Plate");
-                    }
-                    if (notEmpty(d.gameData.probablePitchers)) {
-                        if (d.gameData.probablePitchers.away) {
-                            game["away_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.away.id];
-                        }
-                        if (d.gameData.probablePitchers.home) {
-                            game["home_pitcher"] = d.gameData.players["ID" + d.gameData.probablePitchers.home.id];
-                        }
-                    } 
-                    if (notEmpty(d.liveData.boxscore.teams.away.bullpen)) {
-                        $.each(d.liveData.boxscore.teams.away.bullpen, (i, id) => {
-                            game['away_bullpen'].push(d.gameData.players["ID" + id]);
-                        });
-                    }
-                    if (notEmpty(d.liveData.boxscore.teams.home.bullpen)) {
-                        $.each(d.liveData.boxscore.teams.home.bullpen, (i, id) => {
-                            game['home_bullpen'].push(d.gameData.players["ID" + id]);
-                        });
-                    }
-                    if (notEmpty(d.liveData.boxscore.teams.away.battingOrder)) {
-                        $.each(d.liveData.boxscore.teams.away.battingOrder, (i, id) => {
-                            game['away_lineup'].push(d.gameData.players['ID' + id]);
-                        });
-                    }
-                    if (notEmpty(d.liveData.boxscore.teams.home.battingOrder)) {
-                        $.each(d.liveData.boxscore.teams.home.battingOrder, (i, id) => {
-                            game['home_lineup'].push(d.gameData.players['ID' + id]);
-                        });
-                    }
-                    try {
-                        var odds = fanduel.filter(x => x.participantname_away === game['away_team_full'] || x.participantname_home === game['home_team_full']);
-                        // console.log(odds);
-                        if (game['game_number'] === 1) {
-                            game['game_time'] = new Date(odds[0].tsstart);
-                            game['market'] = odds[0].markets.find(x => x.idfomarkettype === 48555.1);
-                            game['over_under'] = game.market.currentmatchhandicap;
-                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                        } else {
-                            game['game_time'] = new Date(odds[1].tsstart);
-                            game['market'] = odds[1].markets.find(x => x.idfomarkettype === 48555.1);
-                            game['over_under'] = game.market.currentmatchhandicap;
-                            game['over_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Over"));
-                            game['under_line'] = getMoneyLine(game.market.selections.find(x => x.name === "Under"));
-                        }
-                        sendData(game);
-                        live_games++;
-                    }
-                    catch (error) {}
-                });
-            }
-        });
-    });
-});
-
-var games = [];
-var pks = [];
-socket.on("predictionData", data => {
-    // console.log(data);
-    games.push(data);
-    // console.log(games.length, live_games);
-    if (games.length === live_games) {
-        $.each(games.sort((a, b) => (a.game_time.localeCompare(b.game_time))), (i, g) => {
-            // console.log(g);
-            if (!pks.includes(g.gamePk)) {
-                populateTables(g);
-                pks.push(g.gamePk);
-            }
-        });
-        document.querySelector("#slate").style.visibility = "visible";
-        document.querySelector(".loader").style.visibility = "hidden";
-    }
-});
-
-socket.on("lineChange", data => {
-    // console.log(data);
-    try {
-        updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
-        // changePrice(data.ids.adj_id, data.adj_line);
-        changePrice(data.ids.total_id, data.new_total);
-        changeValue(data.ids.value_id_100, data.bet, data.new_total, data.over_threshold, data.under_threshold);
-        changeValue(data.ids.value_id_80, data.bet, data.new_total, data.over_80, data.under_80);
-        changeValue(data.ids.value_id_120, data.bet, data.new_total, data.over_120, data.under_120);
-    }
-    catch (error) {}
-});
-
 function updateOdds() {
-    getFanduel(odds_url).then(data => {
-        $.each(data.events, (i, e) => {
+    getFanduel().then(fd => {
+        fd.events.forEach(e => {
             // console.log(e);
-            if (games.find(x => x.game.market.idfoevent === e.idfoevent)) {
-                var game = games.find(x => x.game.market.idfoevent === e.idfoevent);
+            if (data.find(x => x.game.market.idfoevent === e.idfoevent)) {
+                var game = data.find(x => x.game.market.idfoevent === e.idfoevent);
                 var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                 var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                 var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
@@ -539,7 +388,7 @@ function updateOdds() {
                         if (active_games === 0) {
                             noGames();
                         }
-                    })
+                    });
                 }
                 changeLine(game.game, market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, game.over_80, game.under_80, game.over_120, game.under_120, over, under, ids);
             }
@@ -547,12 +396,35 @@ function updateOdds() {
     });
 }
 
-(function mainLoop() {
-    let rand = Math.floor(Math.random() * 10) + 10;
-    if (!no_games) {
-        setTimeout(() => {
-            updateOdds();
-            mainLoop();
-        }, rand * 1000);
+socket.on("lineChange", data => {
+    try {
+        updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
+        changePrice(data.ids.total_id, data.new_total);
+        changeValue(data.ids.value_id_100, data.bet, data.new_total, data.over_threshold, data.under_threshold);
+        changeValue(data.ids.value_id_80, data.bet, data.new_total, data.over_80, data.under_80);
+        changeValue(data.ids.value_id_120, data.bet, data.new_total, data.over_120, data.under_120);
     }
-}());
+    catch (error) {
+        console.log(error);
+    }
+});
+
+// main loop //
+
+document.addEventListener('DOMContentLoaded', () => {
+    data.forEach(game => {
+        populateTables(game);
+    });
+    document.querySelector("#slate").style.visibility = "visible";
+    document.querySelector(".loader").style.visibility = "hidden";
+});
+
+// (function mainLoop() {
+//     let rand = Math.floor(Math.random() * 10) + 10;
+//     if (!no_games) {
+//         setTimeout(() => {
+//             updateOdds();
+//             mainLoop();
+//         }, rand * 1000);
+//     }
+// }());
