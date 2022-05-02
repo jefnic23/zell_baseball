@@ -6,7 +6,7 @@ from app.forms import *
 from app.models import *
 from app.views import *
 from app.email import *
-from app.game import *
+from app.baseball import *
 from app import app, login, socketio, admin
 
 
@@ -14,7 +14,6 @@ Payload.max_decode_packets = 50
 login.init_app(app)
 admin.add_link(LogoutView(name='Logout', endpoint='logout'))
 admin.add_view(DataView(Batters, db.session))
-admin.add_view(DataView(Bets, db.session))
 admin.add_view(DataView(Bullpens, db.session))
 admin.add_view(DataView(Fielding, db.session))
 admin.add_view(DataView(Hev, db.session))
@@ -24,9 +23,6 @@ admin.add_view(DataView(Pitchers, db.session))
 admin.add_view(DataView(Umps, db.session))
 admin.add_view(DataView(Misc, db.session))
 
-'''
-routes
-'''
 
 @login.user_loader
 def load_user(id):
@@ -34,7 +30,13 @@ def load_user(id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    TODAY = datetime.today().strftime("%m/%d/%Y")
+    fd = fanduel()
+    sched = schedule(TODAY)
+    data = []
+    for game in sched:
+        data.append(Game(game, fd))
+    return render_template('index.html', data=data, today=TODAY)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -86,57 +88,6 @@ def reset_password(token):
         flash('Your password has been reset', "success")
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
-
-'''
-sockets
-'''
-
-@socketio.on('game')
-def send_data(data):
-    game = data['game']
-    gamePk = game['gamePk']
-    game_time = game['game_time']
-    over_under = game['over_under']
-    home_team = Parks.query.filter_by(park=game['home_team_full']).first()
-    away_team = Parks.query.filter_by(park=game['away_team_full']).first()
-    starters = {'away': "TBA", 'home': "TBA"}
-    if game['away_lineup'] and game['home_lineup'] and game['away_pitcher'] and game['home_pitcher']:
-        starters['away'] = game['away_pitcher']['boxscoreName']
-        starters['home'] = game['home_pitcher']['boxscoreName']
-        innings = game['innings']
-        wind_data = game['weather']['wind'].split()
-        speed = int(wind_data[0])
-        direction = wind_data[2]
-        wind = getWind(game, speed, direction, innings)
-        venue = round(home_team.runs * Misc.query.get('modifier').value, 2)
-        handicap = getHandicap(away_team, home_team, innings)
-        over_threshold = round(home_team.over_threshold * (innings/9), 2)
-        under_threshold = round(home_team.under_threshold * (innings/9), 2)
-        over_80 = round(over_threshold * 0.8, 2)
-        under_80 = round(under_threshold * 0.8, 2)
-        over_120 = round(over_threshold * 1.2, 2)
-        under_120 = round(under_threshold * 1.2, 2)
-        ump = getUmp(game['ump']['official']['id'], innings)
-        weather = getTemp(int(game['weather']['temp']), innings)
-        away_fielding = getFielding(game['away_lineup'], innings)
-        home_fielding = getFielding(game['home_lineup'], innings)
-        away_bullpen = getBullpen(game['away_bullpen'])
-        home_bullpen = getBullpen(game['home_bullpen'])
-        away_pvb = PvB(game['away_pitcher'], game['home_lineup'])
-        home_pvb = PvB(game['home_pitcher'], game['away_lineup'])
-        away_matchups = getInnings(game['away_pitcher'], away_pvb, away_bullpen, innings)
-        home_matchups = getInnings(game['home_pitcher'], home_pvb, home_bullpen, innings) 
-        prediction = venue + handicap + ump + away_fielding + home_fielding + weather + away_matchups + home_matchups + wind
-        pred_data = [venue, handicap, weather, wind, ump, home_fielding, away_fielding, away_matchups, home_matchups]
-
-        total = round(prediction - over_under, 2)
-        bet_120 = getValue(total, over_120, under_120)
-        bet_100 = getValue(total, over_threshold, under_threshold)
-        bet_80 = getValue(total, over_80, under_80)
-
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': pred_data, 'pitchers': starters, 'wind_speed': speed, 'wind_direction': direction, 'wind': wind, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'prediction': round(prediction, 2), 'total': total, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_120': bet_120})
-    else:
-        emit('predictionData', {'game': game, 'gamePk': gamePk, 'game_time': game_time, 'pred_data': None, 'pitchers': starters, 'wind_speed': None, 'wind_direction': None, 'wind': None, 'over_threshold': None, 'under_threshold': None, 'over_80': None, 'under_80': None, 'over_120': None, 'under_120': None,  'prediction': "TBD", 'total': "TBD", 'bet_100': "TBD", 'bet_80': "TBD", 'bet_120': "TBD"})
 
 @socketio.on('changeLine')
 def change_line(data):

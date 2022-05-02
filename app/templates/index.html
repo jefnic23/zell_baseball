@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+    <script>
+        const data = {{ data | tojson }};
+    </script>
     <div class="header">
-        <h2 id="date"></h2>
+        <h2 id="date">Games on {{ today }}</h2>
         <a href="{{ url_for('login') }}" target="_blank">Login</a>
     </div>
     <div id="table-container">

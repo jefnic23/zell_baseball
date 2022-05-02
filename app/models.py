@@ -35,11 +35,6 @@ class Batters(db.Model):
     hev_r = db.Column(db.Float, nullable=False)
     hev_l = db.Column(db.Float, nullable=False)
 
-class Bets(db.Model):
-    __tablename__ = "bets"
-    total = db.Column(db.Float, primary_key=True)
-    bet = db.Column(db.Integer, nullable=False)
-
 class Bullpens(db.Model):
     __tablename__ = "bullpens"
     id = db.Column(db.Integer, primary_key=True)

@@ -177,7 +177,7 @@ def schedule(date):
     if r.status_code not in [200, 201]:
         r.raise_for_status()
     else:
-        return list(filter(lambda game: game['status']['codedGameState'] == "P", r.json()['dates'][0]['games']))
+        return list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games']))
 
 def Game(g, fd):
     '''
@@ -280,53 +280,56 @@ def Game(g, fd):
         pass
 
     if game["gameData"]['hydrate'] and game["betData"]['live_bet']:
-        home_team = Parks.query.filter_by(park=game["gameData"]['home_team_full']).first()
-        home_pitcher = Pitchers.query.filter_by(id=game["gameData"]['home_pitcher']['id']).first()
-        away_team = Parks.query.filter_by(park=game["gameData"]['away_team_full']).first()
-        away_pitcher = Pitchers.query.filter_by(id=game["gameData"]['away_pitcher']['id']).first()
-        game["predData"]["park_factor"] = round(home_team.runs * MODIFIER, 2)
-        game["predData"]['wind_factor'] = getWind(game["gameData"]['home_team_full'], game["gameData"]['weather']['wind'].split(), game["gameData"]['innings'])
-        game["predData"]['temp_factor'] = getTemp(int(game["gameData"]['weather']['temp']), game["gameData"]['innings'])
-        game["predData"]["ump_factor"] = getUmp(game["gameData"]['ump']['official']['id'], game["gameData"]['innings'])
-        game["predData"]['home_fielding'] = getFielding(game["gameData"]['home_lineup'], game["gameData"]['innings'])
-        game["predData"]['home_bullpen'] = getBullpen(game["gameData"]['home_bullpen'])
-        game["predData"]['home_pvb'] = PvB(home_pitcher, game["gameData"]['away_lineup'])
-        game["predData"]['away_fielding'] = getFielding(game["gameData"]['away_lineup'], game["gameData"]['innings'])
-        game["predData"]['away_bullpen'] = getBullpen(game["gameData"]['away_bullpen'])
-        game["predData"]['away_pvb'] = PvB(away_pitcher, game["gameData"]['home_lineup'])
-        game["predData"]['home_matchups'] = getInnings(
-            home_pitcher, 
-            game["predData"]['home_pvb'], 
-            game["predData"]['home_bullpen'], 
-            game["gameData"]['innings']
-        )
-        game["predData"]['away_matchups'] = getInnings(
-            away_pitcher, 
-            game["predData"]['away_pvb'], 
-            game["predData"]['away_bullpen'], 
-            game["gameData"]['innings']
-        )
-        game["predData"]["handicap"] = getHandicap(home_team, away_team, game["gameData"]['innings'])
-        game["predData"]["prediction"] = sum([
-            game["predData"]["park_factor"], 
-            game["predData"]['wind_factor'], 
-            game["predData"]['temp_factor'], 
-            game["predData"]["ump_factor"], 
-            game["predData"]['home_fielding'], 
-            game["predData"]['away_fielding'], 
-            game["predData"]['home_matchups'], 
-            game["predData"]['away_matchups'], 
-            game["predData"]["handicap"]
-        ])
-        game["valueData"]["total"] = round(game["predData"]['prediction'] - game["betData"]['over_under'], 2)
-        game["valueData"]["over_100"] = round(home_team.over_threshold * (game["gameData"]['innings']/9), 2)
-        game["valueData"]["under_100"] = round(home_team.under_threshold * (game["gameData"]['innings']/9), 2)
-        game["valueData"]["over_120"] = round(game["valueData"]['over_100'] * 1.2, 2)
-        game["valueData"]["under_120"] = round(game["valueData"]['under_100'] * 1.2, 2)
-        game["valueData"]["over_80"] = round(game["valueData"]['over_100'] * 0.8, 2)
-        game["valueData"]["under_80"] = round(game["valueData"]['under_100'] * 0.8, 2)
-        game["valueData"]["value_120"] = getValue(game["valueData"]['total'], game["valueData"]['over_120'], game["valueData"]['under_120'])
-        game["valueData"]["value_100"] = getValue(game["valueData"]['total'], game["valueData"]['over_100'], game["valueData"]['under_100'])
-        game["valueData"]["value_80"] = getValue(game["valueData"]['total'], game["valueData"]['over_80'], game["valueData"]['under_80'])
-
+        try:
+            home_team = Parks.query.filter_by(park=game["gameData"]['home_team_full']).first()
+            home_pitcher = Pitchers.query.filter_by(id=game["gameData"]['home_pitcher']['id']).first()
+            away_team = Parks.query.filter_by(park=game["gameData"]['away_team_full']).first()
+            away_pitcher = Pitchers.query.filter_by(id=game["gameData"]['away_pitcher']['id']).first()
+            game["predData"]["park_factor"] = round(home_team.runs * MODIFIER, 2)
+            game["predData"]['wind_factor'] = getWind(game["gameData"]['home_team_full'], game["gameData"]['weather']['wind'].split(), game["gameData"]['innings'])
+            game["predData"]['temp_factor'] = getTemp(int(game["gameData"]['weather']['temp']), game["gameData"]['innings'])
+            game["predData"]["ump_factor"] = getUmp(game["gameData"]['ump']['official']['id'], game["gameData"]['innings'])
+            game["predData"]['home_fielding'] = getFielding(game["gameData"]['home_lineup'], game["gameData"]['innings'])
+            game["predData"]['home_bullpen'] = getBullpen(game["gameData"]['home_bullpen'])
+            game["predData"]['home_pvb'] = PvB(home_pitcher, game["gameData"]['away_lineup'])
+            game["predData"]['away_fielding'] = getFielding(game["gameData"]['away_lineup'], game["gameData"]['innings'])
+            game["predData"]['away_bullpen'] = getBullpen(game["gameData"]['away_bullpen'])
+            game["predData"]['away_pvb'] = PvB(away_pitcher, game["gameData"]['home_lineup'])
+            game["predData"]['home_matchups'] = getInnings(
+                home_pitcher, 
+                game["predData"]['home_pvb'], 
+                game["predData"]['home_bullpen'], 
+                game["gameData"]['innings']
+            )
+            game["predData"]['away_matchups'] = getInnings(
+                away_pitcher, 
+                game["predData"]['away_pvb'], 
+                game["predData"]['away_bullpen'], 
+                game["gameData"]['innings']
+            )
+            game["predData"]["handicap"] = getHandicap(home_team, away_team, game["gameData"]['innings'])
+            game["valueData"]["prediction"] = round(sum([
+                game["predData"]["park_factor"], 
+                game["predData"]['wind_factor'], 
+                game["predData"]['temp_factor'], 
+                game["predData"]["ump_factor"], 
+                game["predData"]['home_fielding'], 
+                game["predData"]['away_fielding'], 
+                game["predData"]['home_matchups'], 
+                game["predData"]['away_matchups'], 
+                game["predData"]["handicap"]
+            ]), 2)
+            game["valueData"]["total"] = round(game["valueData"]['prediction'] - game["betData"]['over_under'], 2)
+            game["valueData"]["over_100"] = round(home_team.over_threshold * (game["gameData"]['innings']/9), 2)
+            game["valueData"]["under_100"] = round(home_team.under_threshold * (game["gameData"]['innings']/9), 2)
+            game["valueData"]["over_120"] = round(game["valueData"]['over_100'] * 1.2, 2)
+            game["valueData"]["under_120"] = round(game["valueData"]['under_100'] * 1.2, 2)
+            game["valueData"]["over_80"] = round(game["valueData"]['over_100'] * 0.8, 2)
+            game["valueData"]["under_80"] = round(game["valueData"]['under_100'] * 0.8, 2)
+            game["valueData"]["value_120"] = getValue(game["valueData"]['total'], game["valueData"]['over_120'], game["valueData"]['under_120'])
+            game["valueData"]["value_100"] = getValue(game["valueData"]['total'], game["valueData"]['over_100'], game["valueData"]['under_100'])
+            game["valueData"]["value_80"] = getValue(game["valueData"]['total'], game["valueData"]['over_80'], game["valueData"]['under_80'])
+        except:
+            pass
+        
     return game
