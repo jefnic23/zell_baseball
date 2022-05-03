@@ -413,7 +413,9 @@ socket.on("lineChange", data => {
 
 document.addEventListener('DOMContentLoaded', () => {
     data.forEach(game => {
-        populateTables(game);
+        if (game.betData.live_bet) {
+            populateTables(game);
+        }
     });
     document.querySelector("#slate").style.visibility = "visible";
     document.querySelector(".loader").style.visibility = "hidden";
