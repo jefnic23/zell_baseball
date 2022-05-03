@@ -30,12 +30,15 @@ def load_user(id):
 
 @app.route('/')
 def index():
+    MODIFIER = Misc.query.get('modifier').value
+    BANKROLL = Misc.query.get('bankroll').value
+    BET_PCT = Misc.query.get('bet_pct').value
     TODAY = datetime.today().strftime("%m/%d/%Y")
     fd = fanduel()
     sched = schedule(TODAY)
     data = []
     for game in sched:
-        data.append(Game(game, fd))
+        data.append(Game(game, fd, MODIFIER, BANKROLL, BET_PCT))
     return render_template('index.html', data=data, today=TODAY)
 
 @app.route('/login', methods=['GET', 'POST'])

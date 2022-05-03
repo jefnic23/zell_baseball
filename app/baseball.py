@@ -5,10 +5,6 @@ from sqlalchemy import func
 from app.models import *
 
 
-# Query Misc table for bankroll and modifier values
-BANKROLL = Misc.query.get('bankroll').value
-MODIFIER = Misc.query.get('modifier').value
-
 def getTemp(temp, innings):
     '''Get run value based on game time temperature.'''
     if temp <= 46:
@@ -129,19 +125,19 @@ def getHandicap(home_team, away_team, innings):
     '''Returns difference between home and away team handicaps'''
     return round((home_team.handicap - away_team.handicap) * (innings/9), 2)
 
-def getBet(value=BANKROLL):
+def getBet(bankroll, bet_pct):
     '''Queries Bets table by value and returns bet amount.'''
-    return round(value * 0.05, 2)
+    return round(bankroll * bet_pct, 2)
 
-def getValue(total, over_threshold, under_threshold):
+def getValue(total, over_threshold, under_threshold, bankroll, bet_pct):
     '''
     Calculates amount of bet value by subtracting over and 
     under thresholds from total (prediction - money line). 
     '''
     if total < 0 and abs(total) - under_threshold >= 0.01:
-        return getBet()
+        return getBet(bankroll, bet_pct)
     elif total > 0 and total - over_threshold >= 0.01:
-        return getBet()
+        return getBet(bankroll, bet_pct)
     else:
         return 'No Value'
 
@@ -179,7 +175,7 @@ def schedule(date):
     else:
         return list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games']))
 
-def Game(g, fd):
+def Game(g, fd, modifier, bankroll, bet_pct):
     '''
     First, get game data from MLB Stats API and bet data from FanDuel.
     Then, calculate prediction factors. Returns game object.
@@ -285,7 +281,7 @@ def Game(g, fd):
             home_pitcher = Pitchers.query.filter_by(id=game["gameData"]['home_pitcher']['id']).first()
             away_team = Parks.query.filter_by(park=game["gameData"]['away_team_full']).first()
             away_pitcher = Pitchers.query.filter_by(id=game["gameData"]['away_pitcher']['id']).first()
-            game["predData"]["park_factor"] = round(home_team.runs * MODIFIER, 2)
+            game["predData"]["park_factor"] = round(home_team.runs * modifier, 2)
             game["predData"]['wind_factor'] = getWind(game["gameData"]['home_team_full'], game["gameData"]['weather']['wind'].split(), game["gameData"]['innings'])
             game["predData"]['temp_factor'] = getTemp(int(game["gameData"]['weather']['temp']), game["gameData"]['innings'])
             game["predData"]["ump_factor"] = getUmp(game["gameData"]['ump']['official']['id'], game["gameData"]['innings'])
@@ -326,9 +322,9 @@ def Game(g, fd):
             game["valueData"]["under_120"] = round(game["valueData"]['under_100'] * 1.2, 2)
             game["valueData"]["over_80"] = round(game["valueData"]['over_100'] * 0.8, 2)
             game["valueData"]["under_80"] = round(game["valueData"]['under_100'] * 0.8, 2)
-            game["valueData"]["value_120"] = getValue(game["valueData"]['total'], game["valueData"]['over_120'], game["valueData"]['under_120'])
-            game["valueData"]["value_100"] = getValue(game["valueData"]['total'], game["valueData"]['over_100'], game["valueData"]['under_100'])
-            game["valueData"]["value_80"] = getValue(game["valueData"]['total'], game["valueData"]['over_80'], game["valueData"]['under_80'])
+            game["valueData"]["value_120"] = getValue(game["valueData"]['total'], game["valueData"]['over_120'], game["valueData"]['under_120'], bankroll, bet_pct)
+            game["valueData"]["value_100"] = getValue(game["valueData"]['total'], game["valueData"]['over_100'], game["valueData"]['under_100'], bankroll, bet_pct
+            game["valueData"]["value_80"] = getValue(game["valueData"]['total'], game["valueData"]['over_80'], game["valueData"]['under_80'], bankroll, bet_pct)
         except:
             pass
         
