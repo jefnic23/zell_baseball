@@ -1,6 +1,5 @@
-import pytz
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import func
 from app.models import *
 
@@ -183,9 +182,7 @@ def Game(g, fd, modifier, bankroll, bet_pct):
     game = {
         "gameData": {
             "gamePk": g['gamePk'],
-            "game_time": datetime.strptime(g['gameDate'], "%Y-%m-%dT%H:%M:%SZ") \
-            .replace(tzinfo=pytz.UTC) \
-            .astimezone(pytz.timezone("America/New_York")),
+            "game_time": datetime.strptime(g['gameDate'], "%Y-%m-%dT%H:%M:%SZ"),
             "link": g['link'],
             "double_header": g['doubleHeader'],
             "game_number": g["gameNumber"],
@@ -264,10 +261,13 @@ def Game(g, fd, modifier, bankroll, bet_pct):
 
     odds = list(filter(lambda x: x['participantname_home'] == game["gameData"]['home_team_full'] or x['participantname_away'] == game["gameData"]['away_team_full'], fd))
     try:
-        if game["gameData"]['game_number'] == 1:
-            game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[0]['markets']), None)
+        if len(odds) > 1:
+            if game["gameData"]['game_number'] == 1:
+                game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[0]['markets']), None)
+            else:
+                game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[1]['markets']), None)
         else:
-            game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[1]['markets']), None)
+            game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[0]['markets']), None)
         game["betData"]['over_under'] = game["betData"]['market']['currentmatchhandicap']
         game["betData"]['over_line'] = getMoneyLine(next(filter(lambda x: x['name'] == "Over", game["betData"]['market']['selections']), None))
         game["betData"]['under_line'] = getMoneyLine(next(filter(lambda x: x['name'] == "Under", game["betData"]['market']['selections']), None))
