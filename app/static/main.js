@@ -417,8 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
             populateTables(game);
         }
     });
-    document.querySelector("#slate").style.visibility = "visible";
-    document.querySelector(".loader").style.visibility = "hidden";
 });
 
 // (function mainLoop() {
