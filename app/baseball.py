@@ -85,7 +85,7 @@ def oddsRatio(hitter, pitcher, matchup):
     else:
         return int(Hev.query.get(func.max(Hev.runs)).runs)
 
-def getInnings(pitcher, pvb, bullpen, scheduled): 
+def getInnings(pitcher, pvb, bullpen, scheduled, pvb_modifier): 
     '''
     Query Pitchers table by starting pitcher id and 
     return average innings pitched per start. On error
@@ -93,11 +93,11 @@ def getInnings(pitcher, pvb, bullpen, scheduled):
     '''
     try:
         innings = pitcher.ip / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+        return round((pvb * innings) + (bullpen * (1 - innings)) * pvb_modifier, 2)
     except:
         # ip/gs
         innings = 4.8 / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)), 2)
+        return round((pvb * innings) + (bullpen * (1 - innings)) * pvb_modifier, 2)
 
 def PvB(pitcher, lineup):
     '''Queries Pitchers and Batters tables by player id and returns run value.'''
@@ -175,7 +175,7 @@ def schedule(date):
     else:
         return list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games']))
 
-def Game(g, fd, modifier, bankroll, bet_pct):
+def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
     '''
     First, get game data from MLB Stats API and bet data from FanDuel.
     Then, calculate prediction factors. Returns game object.
@@ -296,13 +296,15 @@ def Game(g, fd, modifier, bankroll, bet_pct):
                 home_pitcher, 
                 game["predData"]['home_pvb'], 
                 game["predData"]['home_bullpen'], 
-                game["gameData"]['innings']
+                game["gameData"]['innings'],
+                pvb_modifier
             )
             game["predData"]['away_matchups'] = getInnings(
                 away_pitcher, 
                 game["predData"]['away_pvb'], 
                 game["predData"]['away_bullpen'], 
-                game["gameData"]['innings']
+                game["gameData"]['innings'],
+                pvb_modifier
             )
             game["predData"]["handicap"] = getHandicap(home_team, away_team, game["gameData"]['innings'])
             game["valueData"]["prediction"] = round(sum([

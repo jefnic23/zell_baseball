@@ -33,12 +33,13 @@ def index():
     MODIFIER = Misc.query.get('modifier').value
     BANKROLL = Misc.query.get('bankroll').value
     BET_PCT = Misc.query.get('bet_pct').value
+    PVB_MODIFIER = Misc.query.get('pvb_modifier').value
     TODAY = datetime.now(pytz.timezone('America/New_York')).strftime("%m/%d/%Y")
     fd = fanduel()
     sched = schedule(TODAY)
     data = []
     for game in sched:
-        data.append(Game(game, fd, MODIFIER, BANKROLL, BET_PCT))
+        data.append(Game(game, fd, MODIFIER, BANKROLL, BET_PCT, PVB_MODIFIER))
     return render_template('index.html', data=data, today=TODAY)
 
 @app.route('/login', methods=['GET', 'POST'])
