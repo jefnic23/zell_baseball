@@ -33,7 +33,7 @@ def index():
     MODIFIER = Misc.query.get('modifier').value
     BANKROLL = Misc.query.get('bankroll').value
     BET_PCT = Misc.query.get('bet_pct').value
-    TODAY = datetime.today().strftime("%m/%d/%Y")
+    TODAY = datetime.now(pytz.timezone('America/New_York')).strftime("%m/%d/%Y")
     fd = fanduel()
     sched = schedule(TODAY)
     data = []

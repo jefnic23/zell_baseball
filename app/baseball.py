@@ -1,5 +1,6 @@
 import requests
-from datetime import datetime, timezone
+import pytz
+from datetime import datetime
 from sqlalchemy import func
 from app.models import *
 
