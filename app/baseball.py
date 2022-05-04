@@ -127,7 +127,7 @@ def getHandicap(home_team, away_team, innings):
 
 def getBet(bankroll, bet_pct):
     '''Queries Bets table by value and returns bet amount.'''
-    return round(bankroll * bet_pct, 2)
+    return round(bankroll * bet_pct)
 
 def getValue(total, over_threshold, under_threshold, bankroll, bet_pct):
     '''

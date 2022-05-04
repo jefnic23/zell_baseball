@@ -160,9 +160,9 @@ function createTotal(row, total, market, thresholds) {
     return row.appendChild(td);
 }
 
-function createValues(row, bet, value, prediction, total, over_under, over_threshold, under_threshold) {
+function createValues(row, gamePk, bet, value, prediction, total, over_under, over_threshold, under_threshold) {
     let td = document.createElement("td");
-    td.setAttribute('id', `${data.gamePk}_${value}`);
+    td.setAttribute('id', `${gamePk}_${value}`);
     if (bet !== "TBD" && bet !== "No Value") {
         if (prediction > over_under && total > over_threshold) {
             td.innerHTML = `${bet}`
@@ -244,6 +244,7 @@ function populateTables(game) {
     );
     createValues(
         row, 
+        game.gameData.gamePk,
         game.valueData.value_120, 
         "120", 
         prediction, 
@@ -254,6 +255,7 @@ function populateTables(game) {
     );
     createValues(
         row, 
+        game.gameData.gamePk,
         game.valueData.value_100, 
         "100", 
         prediction, 
@@ -264,6 +266,7 @@ function populateTables(game) {
     );
     createValues(
         row, 
+        game.gameData.gamePk,
         game.valueData.value_80, 
         "80", 
         prediction, 
