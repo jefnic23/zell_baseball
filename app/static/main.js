@@ -415,11 +415,16 @@ socket.on("lineChange", data => {
 // main loop //
 
 document.addEventListener('DOMContentLoaded', () => {
-    data.forEach(game => {
-        if (game.betData.live_bet) {
-            populateTables(game);
-        }
-    });
+    if (data.length !== 0) {
+        data.forEach(game => {
+            if (game.betData.live_bet) {
+                populateTables(game);
+            }
+        });
+    } else {
+        noGames();
+    }
+    
 });
 
 // (function mainLoop() {

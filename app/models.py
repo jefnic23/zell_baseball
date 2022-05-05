@@ -32,14 +32,9 @@ class Batters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     stand = db.Column(db.String(), nullable=False)
-    hev_r = db.Column(db.Float, nullable=False)
-    hev_l = db.Column(db.Float, nullable=False)
-
-class Bullpens(db.Model):
-    __tablename__ = "bullpens"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    runs = db.Column(db.Float, nullable=False)
+    woba_r = db.Column(db.Float, nullable=False)
+    woba_l = db.Column(db.Float, nullable=False)
+    woba = db.Column(db.Float, nullable=False)
 
 class Fielding(db.Model):
     __tablename__ = "fielding"
@@ -47,9 +42,9 @@ class Fielding(db.Model):
     name = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
 
-class Hev(db.Model):
-    __tablename__ = "hev"
-    id = db.Column(db.Float, primary_key=True)
+class Woba(db.Model):
+    __tablename__ = "woba"
+    woba = db.Column(db.Float, primary_key=True)
     runs = db.Column(db.Float, nullable=False)
 
 class Matchups(db.Model):
@@ -76,9 +71,10 @@ class Pitchers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     p_throws = db.Column(db.String(), nullable=False)
-    hev_r = db.Column(db.Float, nullable=False)
-    hev_l = db.Column(db.Float, nullable=False)
-    ip = db.Column(db.Float, nullable=False)
+    woba_r = db.Column(db.Float, nullable=False)
+    woba_l = db.Column(db.Float, nullable=False)
+    woba = db.Column(db.Float, nullable=False)
+    ips = db.Column(db.Float, nullable=False)
 
 class Umps(db.Model):
     __tablename__ ="umps"

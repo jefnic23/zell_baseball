@@ -1,5 +1,4 @@
 import requests
-import pytz
 from datetime import datetime
 from sqlalchemy import func
 from app.models import *
@@ -49,41 +48,33 @@ def getUmp(ump, innings):
 def getFielding(lineup, innings):
     '''Query Fielding table by player id and return team defense run value.'''
     runs = 0
-    players = Fielding.query.filter(Fielding.id.in_([id for id in lineup])).all()
-    for player in players:
+    for player in lineup:
         try:
             runs += player.runs
         except:
             runs += 0
     return round(runs * (innings/9), 2)
 
-def getBullpen(bullpen):
+def getBullpen(bullpen, lineup):
     '''Query Bullpen table by player id and return team bullpen run value.'''
-    runs = 0
-    players = Bullpens.query.filter(Bullpens.id.in_([id for id in bullpen])).all()
-    for player in players:
-        try:
-            runs += player.runs
-        except:
-            runs += 0
-    return round(runs, 2)
+    bullpen_woba = [player.woba for player in bullpen]
+    offense_woba = [player.woba for player in lineup]
+    return oddsRatio((sum(offense_woba) / len(offense_woba)), (sum(bullpen_woba) / len(bullpen_woba)), 'league')
 
 def oddsRatio(hitter, pitcher, matchup):
     '''
     Calculate odds ratio of a batter/pitcher matchup.
     Query Matchups table by odds ratio and return run value.
     '''
-    h = (hitter/100) / (1 - (hitter/100))
-    p = (pitcher/100) / (1 - (pitcher/100))
-    l = Matchups.query.get(matchup).odds
-    odds = h * p / l
+    league = Matchups.query.get(matchup).odds
+    odds = hitter * pitcher / league
     rate = round(odds / (odds + 1), 3)
-    if 0.657 <= rate <= 0.824:
-        return Hev.query.get(rate).runs
-    elif rate < 0.657:
-        return int(Hev.query.get(func.min(Hev.runs)).runs)
+    if 0.192 <= rate <= 0.337:
+        return Woba.query.get(rate).runs
+    elif rate < 0.192:
+        return int(Woba.query.get(func.min(Woba.runs)).runs)
     else:
-        return int(Hev.query.get(func.max(Hev.runs)).runs)
+        return int(Woba.query.get(func.max(Woba.runs)).runs)
 
 def getInnings(pitcher, pvb, bullpen, scheduled, pvb_modifier): 
     '''
@@ -102,21 +93,20 @@ def getInnings(pitcher, pvb, bullpen, scheduled, pvb_modifier):
 def PvB(pitcher, lineup):
     '''Queries Pitchers and Batters tables by player id and returns run value.'''
     runs = 0
-    hitters = Batters.query.filter(Batters.id.in_([id for id in lineup])).all()
-    for hitter in hitters:
+    for hitter in lineup:
         try:
             if hitter.stand == "S" and pitcher.p_throws == "R":
-                runs += oddsRatio(hitter.hev_r, pitcher.hev_l, 'RL')
+                runs += oddsRatio(hitter.woba_r, pitcher.woba_l, 'RL')
             if hitter.stand == "S" and pitcher.p_throws == "L":
-                runs += oddsRatio(hitter.hev_l, pitcher.hev_r, 'LR')
+                runs += oddsRatio(hitter.woba_l, pitcher.woba_r, 'LR')
             if hitter.stand == "L" and pitcher.p_throws == "L":
-                runs += oddsRatio(hitter.hev_l, pitcher.hev_l, 'LL')
+                runs += oddsRatio(hitter.woba_l, pitcher.woba_l, 'LL')
             if hitter.stand == "L" and pitcher.p_throws == "R":
-                runs += oddsRatio(hitter.hev_r, pitcher.hev_l, 'RL')
+                runs += oddsRatio(hitter.woba_r, pitcher.woba_l, 'RL')
             if hitter.stand == "R" and pitcher.p_throws == "R":
-                runs += oddsRatio(hitter.hev_r, pitcher.hev_r, 'RR')
+                runs += oddsRatio(hitter.woba_r, pitcher.woba_r, 'RR')
             if hitter.stand == "R" and pitcher.p_throws == "L":
-                runs += oddsRatio(hitter.hev_l, pitcher.hev_r, 'LR')
+                runs += oddsRatio(hitter.woba_l, pitcher.woba_r, 'LR')
         except:
             runs += 0
     return round(runs, 2)
@@ -280,18 +270,22 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
         try:
             home_team = Parks.query.filter_by(park=game["gameData"]['home_team_full']).first()
             home_pitcher = Pitchers.query.filter_by(id=game["gameData"]['home_pitcher']['id']).first()
+            home_bullpen = Pitchers.query.filter(Pitchers.id.in_([id for id in game["gameData"]['home_bullpen']])).all()
+            home_offense = Batters.query.filter(Batters.id.in_([id for id in game["gameData"]['home_lineup']])).all()
             away_team = Parks.query.filter_by(park=game["gameData"]['away_team_full']).first()
             away_pitcher = Pitchers.query.filter_by(id=game["gameData"]['away_pitcher']['id']).first()
+            away_bullpen = Pitchers.query.filter(Pitchers.id.in_([id for id in game["gameData"]['away_bullpen']])).all()
+            away_offense = Batters.query.filter(Batters.id.in_([id for id in game["gameData"]['away_lineup']])).all()
             game["predData"]["park_factor"] = round(home_team.runs * modifier, 2)
             game["predData"]['wind_factor'] = getWind(game["gameData"]['home_team_full'], game["gameData"]['weather']['wind'].split(), game["gameData"]['innings'])
             game["predData"]['temp_factor'] = getTemp(int(game["gameData"]['weather']['temp']), game["gameData"]['innings'])
             game["predData"]["ump_factor"] = getUmp(game["gameData"]['ump']['official']['id'], game["gameData"]['innings'])
-            game["predData"]['home_fielding'] = getFielding(game["gameData"]['home_lineup'], game["gameData"]['innings'])
-            game["predData"]['home_bullpen'] = getBullpen(game["gameData"]['home_bullpen'])
-            game["predData"]['home_pvb'] = PvB(home_pitcher, game["gameData"]['away_lineup'])
-            game["predData"]['away_fielding'] = getFielding(game["gameData"]['away_lineup'], game["gameData"]['innings'])
-            game["predData"]['away_bullpen'] = getBullpen(game["gameData"]['away_bullpen'])
-            game["predData"]['away_pvb'] = PvB(away_pitcher, game["gameData"]['home_lineup'])
+            game["predData"]['home_fielding'] = getFielding(home_offense, game["gameData"]['innings'])
+            game["predData"]['home_bullpen'] = getBullpen(home_bullpen, away_offense)
+            game["predData"]['home_pvb'] = PvB(home_pitcher, away_offense)
+            game["predData"]['away_fielding'] = getFielding(away_offense, game["gameData"]['innings'])
+            game["predData"]['away_bullpen'] = getBullpen(away_bullpen, home_offense)
+            game["predData"]['away_pvb'] = PvB(away_pitcher, home_offense)
             game["predData"]['home_matchups'] = getInnings(
                 home_pitcher, 
                 game["predData"]['home_pvb'], 

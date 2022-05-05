@@ -1,3 +1,4 @@
+import pytz
 from flask import render_template, redirect, url_for, flash
 from flask_socketio import emit
 from flask_login import login_user, current_user, logout_user
@@ -14,9 +15,8 @@ Payload.max_decode_packets = 50
 login.init_app(app)
 admin.add_link(LogoutView(name='Logout', endpoint='logout'))
 admin.add_view(DataView(Batters, db.session))
-admin.add_view(DataView(Bullpens, db.session))
 admin.add_view(DataView(Fielding, db.session))
-admin.add_view(DataView(Hev, db.session))
+admin.add_view(DataView(Woba, db.session))
 admin.add_view(DataView(Matchups, db.session))
 admin.add_view(DataView(Parks, db.session))
 admin.add_view(DataView(Pitchers, db.session))
