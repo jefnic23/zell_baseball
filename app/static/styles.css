@@ -152,6 +152,10 @@ tbody > tr:nth-child(odd) {
     border-color: transparent transparent transparent rgba(0, 0, 0, 0.89);
 }
 
+.tooltiptext > table > tr > td {
+    border: none;
+}
+
 .price-up {
     animation: fadeOut-up 2s forwards;
     animation-delay: 3s;

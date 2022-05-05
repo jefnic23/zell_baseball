@@ -147,14 +147,19 @@ function createTotal(row, total, market, thresholds) {
     if (total !== "TBD") {
         let span = document.createElement('span');
         span.classList.add('tooltiptext');
-        let ul = document.createElement('ul');
-        let threshold_names = ['Over 120%', 'Under 120%', 'Over 100%', 'Under 100%', 'Over 80%', 'Under 80%']
+        span.style.padding = "13px";
+        let tbl = document.createElement('table');
+        tbl
         for (let j = 0; j < thresholds.length; j++) {
-            let li = document.createElement('li');
-            li.innerHTML = `<strong>${threshold_names[j]}</strong>: ${thresholds[j]}`;
-            ul.appendChild(li);
+            let tr = document.createElement('tr');
+            for (let i = 0; i < thresholds[j].length; i++){
+                let t = document.createElement('td');
+                t.innerHTML = thresholds[j][i];
+                tr.appendChild(t);
+            }
+            tbl.appendChild(tr);
         }
-        span.appendChild(ul);
+        span.appendChild(tbl);
         total_div.appendChild(span);
     }
     return row.appendChild(td);
@@ -198,9 +203,10 @@ function populateTables(game) {
     let over_120 = game.valueData.over_120, over_100 = game.valueData.over_100, over_80 = game.valueData.over_80;
     let under_120 = game.valueData.under_120, under_100 = game.valueData.under_100, under_80 = game.valueData.under_80;
     let thresholds = [
-        over_120, under_120, 
-        over_100, under_100, 
-        over_80, under_80
+        ['', 'Over', 'Under'],
+        ['120%', over_120, under_120], 
+        ['100%', over_100, under_100], 
+        ['80%', over_80, under_80]
     ];
     let weather = game.gameData.weather;
     if (weather !== "TBD") {
