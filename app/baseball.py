@@ -48,7 +48,8 @@ def getUmp(ump, innings):
 def getFielding(lineup, innings):
     '''Query Fielding table by player id and return team defense run value.'''
     runs = 0
-    for player in lineup:
+    fielders = Fielding.query.filter(Fielding.id.in_([id for id in lineup])).all()
+    for player in fielders:
         try:
             runs += player.runs
         except:
@@ -280,10 +281,10 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             game["predData"]['wind_factor'] = getWind(game["gameData"]['home_team_full'], game["gameData"]['weather']['wind'].split(), game["gameData"]['innings'])
             game["predData"]['temp_factor'] = getTemp(int(game["gameData"]['weather']['temp']), game["gameData"]['innings'])
             game["predData"]["ump_factor"] = getUmp(game["gameData"]['ump']['official']['id'], game["gameData"]['innings'])
-            game["predData"]['home_fielding'] = getFielding(home_offense, game["gameData"]['innings'])
+            game["predData"]['home_fielding'] = getFielding(game["gameData"]['home_lineup'], game["gameData"]['innings'])
             game["predData"]['home_bullpen'] = getBullpen(home_bullpen, away_offense)
             game["predData"]['home_pvb'] = PvB(home_pitcher, away_offense)
-            game["predData"]['away_fielding'] = getFielding(away_offense, game["gameData"]['innings'])
+            game["predData"]['away_fielding'] = getFielding(game["gameData"]['away_lineup'], game["gameData"]['innings'])
             game["predData"]['away_bullpen'] = getBullpen(away_bullpen, home_offense)
             game["predData"]['away_pvb'] = PvB(away_pitcher, home_offense)
             game["predData"]['home_matchups'] = getInnings(
