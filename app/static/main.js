@@ -149,7 +149,6 @@ function createTotal(row, total, market, thresholds) {
         span.classList.add('tooltiptext');
         span.style.padding = "13px";
         let tbl = document.createElement('table');
-        tbl
         for (let j = 0; j < thresholds.length; j++) {
             let tr = document.createElement('tr');
             for (let i = 0; i < thresholds[j].length; i++){
@@ -189,8 +188,8 @@ function populateTables(game) {
     let prediction = game.valueData.prediction;
     let pred_name = [
         'Park', 
-        'Temp', 
         'Wind', 
+        'Temp', 
         'Ump', 
         `${game.gameData.home_team_short} Defense`, 
         `${game.gameData.away_team_short} Defense`, 
