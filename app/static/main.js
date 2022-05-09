@@ -202,10 +202,10 @@ function populateTables(game) {
     let over_120 = game.valueData.over_120, over_100 = game.valueData.over_100, over_80 = game.valueData.over_80;
     let under_120 = game.valueData.under_120, under_100 = game.valueData.under_100, under_80 = game.valueData.under_80;
     let thresholds = [
-        ['', 'Over', 'Under'],
-        ['120%', over_120, under_120], 
-        ['100%', over_100, under_100], 
-        ['80%', over_80, under_80]
+        ['', '<strong>Over</strong>', '<strong>Under</strong>'],
+        ['<strong>120%</strong>', over_120, under_120], 
+        ['<strong>100%</strong>', over_100, under_100], 
+        ['<strong>80%</strong>', over_80, under_80]
     ];
     let weather = game.gameData.weather;
     if (weather !== "TBD") {
