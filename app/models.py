@@ -60,7 +60,6 @@ class Misc(db.Model):
 class Parks(db.Model):
     __tablename__ = "parks"
     park = db.Column(db.String(), primary_key=True)
-    lg = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
     over_threshold = db.Column(db.Float, nullable=False)
     under_threshold = db.Column(db.Float, nullable=False)
