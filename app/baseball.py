@@ -306,7 +306,7 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             game["valueData"]["prediction"] = round(sum([
                 game["predData"]["park_factor"], 
                 game["predData"]['wind_factor'], 
-                game["predData"]['temp_factor'], 
+                # game["predData"]['temp_factor'], add back in later
                 game["predData"]["ump_factor"], 
                 game["predData"]['home_fielding'], 
                 game["predData"]['away_fielding'], 
