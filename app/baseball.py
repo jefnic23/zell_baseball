@@ -73,6 +73,7 @@ def oddsRatio(hitter, pitcher, matchup):
     if 0.192 <= rate <= 0.337:
         return Woba.query.get(rate).runs
     elif rate < 0.192:
+        # syntax change? db.session.query(func.min(Product.id)).first()[0]
         return int(Woba.query.get(func.min(Woba.runs)).runs)
     else:
         return int(Woba.query.get(func.max(Woba.runs)).runs)
@@ -164,7 +165,7 @@ def schedule(date):
     if r.status_code not in [200, 201]:
         r.raise_for_status()
     else:
-        return list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games']))
+        return sorted(list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games'])), key=lambda game: game['gameDate'])
 
 def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
     '''
