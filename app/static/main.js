@@ -81,7 +81,7 @@ function createGameTime(row, game_time) {
     return row.appendChild(td);
 }
 
-function createPrediction(row, prediction, predData, pred_name, home_team) {
+function createPrediction(row, prediction, predData, pred_name, home_team, ump) {
     let td = document.createElement("td");
     let pred_div = document.createElement("div");
     pred_div.innerHTML = prediction;
@@ -95,8 +95,8 @@ function createPrediction(row, prediction, predData, pred_name, home_team) {
         let pred_data = [
             predData.park_factor,
             predData.wind_factor,
-            predData.temp_factor,
-            predData.ump_factor,
+            `${predData.temp_factor} (N/A)`,
+            `${predData.ump_factor} (${ump})`,
             predData.home_fielding,
             predData.away_fielding,
             predData.home_matchups,
@@ -232,7 +232,8 @@ function populateTables(game) {
         prediction, 
         game.predData, 
         pred_name, 
-        game.gameData.home_team_full
+        game.gameData.home_team_full,
+        game.gameData.ump.official.fullName
     );
     createLines(
         row, 
