@@ -96,7 +96,7 @@ function createPrediction(row, prediction, predData, pred_name, home_team, ump) 
             predData.park_factor,
             predData.wind_factor,
             `${predData.temp_factor} (N/A)`,
-            `${predData.ump_factor} (${ump})`,
+            `${predData.ump_factor} (${ump.official.fullName})`,
             predData.home_fielding,
             predData.away_fielding,
             predData.home_matchups,
@@ -233,7 +233,7 @@ function populateTables(game) {
         game.predData, 
         pred_name, 
         game.gameData.home_team_full,
-        game.gameData.ump.official.fullName
+        game.gameData.ump
     );
     createLines(
         row, 
