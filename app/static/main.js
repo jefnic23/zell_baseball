@@ -97,8 +97,8 @@ function createPrediction(row, prediction, predData, pred_name, home_team, ump) 
             predData.wind_factor,
             `${predData.temp_factor} (N/A)`,
             `${predData.ump_factor} (${ump.official.fullName})`,
-            predData.home_fielding,
             predData.away_fielding,
+            predData.home_fielding,
             predData.home_matchups,
             predData.away_matchups,
             predData.handicap
@@ -191,10 +191,10 @@ function populateTables(game) {
         'Wind', 
         'Temp', 
         'Ump', 
-        `${game.gameData.home_team_short} Defense`, 
         `${game.gameData.away_team_short} Defense`, 
-        `${game.gameData.home_team_short} vs. ${game.gameData.away_pitcher.fullName}`, 
-        `${game.gameData.away_team_short} vs. ${game.gameData.home_pitcher.fullName}`,
+        `${game.gameData.home_team_short} Defense`, 
+        `${game.gameData.away_team_short} vs. ${game.gameData.home_pitcher.fullName}`, 
+        `${game.gameData.home_team_short} vs. ${game.gameData.away_pitcher.fullName}`,
         'Handicap'
     ];
     let total = game.valueData.total;
