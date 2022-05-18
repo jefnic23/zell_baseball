@@ -199,13 +199,12 @@ function populateTables(game) {
     ];
     let total = game.valueData.total;
     let over_under = game.betData.over_under;
-    let over_120 = game.valueData.over_120, over_100 = game.valueData.over_100, over_80 = game.valueData.over_80;
-    let under_120 = game.valueData.under_120, under_100 = game.valueData.under_100, under_80 = game.valueData.under_80;
+    let over_120 = game.valueData.over_120, over_100 = game.valueData.over_100;
+    let under_120 = game.valueData.under_120, under_100 = game.valueData.under_100;
     let thresholds = [
         ['', '<strong>Over</strong>', '<strong>Under</strong>'],
         ['<strong>120%</strong>', over_120, under_120], 
-        ['<strong>100%</strong>', over_100, under_100], 
-        ['<strong>80%</strong>', over_80, under_80]
+        ['<strong>100%</strong>', over_100, under_100]
     ];
     let weather = game.gameData.weather;
     if (weather !== "TBD") {
@@ -269,17 +268,6 @@ function populateTables(game) {
         over_under, 
         over_100, 
         under_100
-    );
-    createValues(
-        row, 
-        game.gameData.gamePk,
-        game.valueData.value_80, 
-        "80", 
-        prediction, 
-        total, 
-        over_under, 
-        over_80, 
-        under_80
     );
     return table.appendChild(row);
 }
@@ -367,15 +355,15 @@ function noGames() {
     var row = document.createElement("tr");
     var td = document.createElement("td");
     td.innerHTML = "No games";
-    td.colSpan = "8";
+    td.colSpan = "7";
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);
     no_games = true;
 }
 
-function changeLine(game, over_under, prediction, over_threshold, under_threshold, over_80, under_80, over_120, under_120, over, under, ids) {
-    socket.emit('changeLine', {'game': game, 'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'over': over, 'under': under, 'ids': ids});
+function changeLine(game, over_under, prediction, over_threshold, under_threshold, over_120, under_120, over, under, ids) {
+    socket.emit('changeLine', {'game': game, 'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_120': over_120, 'under_120': under_120, 'over': over, 'under': under, 'ids': ids});
 }
 
 function updateOdds() {
@@ -387,7 +375,7 @@ function updateOdds() {
                 var market = e.markets.find(x => x.idfomarkettype === 48555.1);
                 var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
                 var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                var ids = {"actual_id": market.idfoevent, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id_100": `${game.gamePk}_100`, "value_id_80": `${game.gamePk}_80`, "value_id_120": `${game.gamePk}_120`};
+                var ids = {"actual_id": market.idfoevent, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id_100": `${game.gamePk}_100`, "value_id_120": `${game.gamePk}_120`};
                 var now = new Date();
                 var game_time = new Date(market.tsstart);
                 if (now.getTime() >= game_time.getTime()) {
@@ -399,7 +387,7 @@ function updateOdds() {
                         }
                     });
                 }
-                changeLine(game.game, market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, game.over_80, game.under_80, game.over_120, game.under_120, over, under, ids);
+                changeLine(game.game, market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, game.over_120, game.under_120, over, under, ids);
             }
         });
     });
@@ -410,7 +398,6 @@ socket.on("lineChange", data => {
         updateLine(data.ids.actual_id, data.over_under, data.over, data.under);
         changePrice(data.ids.total_id, data.new_total);
         changeValue(data.ids.value_id_100, data.bet, data.new_total, data.over_threshold, data.under_threshold);
-        changeValue(data.ids.value_id_80, data.bet, data.new_total, data.over_80, data.under_80);
         changeValue(data.ids.value_id_120, data.bet, data.new_total, data.over_120, data.under_120);
     }
     catch (error) {
@@ -430,7 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         noGames();
     }
-    
 });
 
 // (function mainLoop() {

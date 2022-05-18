@@ -290,7 +290,6 @@ tbody > tr:nth-child(odd) {
 	td:nth-of-type(5):before { content: "Total"; }
 	td:nth-of-type(6):before { content: "Value 120"; }
 	td:nth-of-type(7):before { content: "Value 100"; }
-	td:nth-of-type(8):before { content: "Value 80"; }
 
     .teams > div {
         flex-direction: column;

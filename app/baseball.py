@@ -213,11 +213,8 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             "under_120": "",
             "over_100": "",
             "under_100": "",
-            "over_80": "",
-            "under_80": "",
             "value_120": "TBD",
-            "value_100": "TBD",
-            "value_80": "TBD"  
+            "value_100": "TBD" 
         }  
     }
 
@@ -309,11 +306,8 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             game["valueData"]["under_100"] = round(home_team.under_threshold * (game["gameData"]['innings']/9), 2)
             game["valueData"]["over_120"] = round(game["valueData"]['over_100'] * 1.2, 2)
             game["valueData"]["under_120"] = round(game["valueData"]['under_100'] * 1.2, 2)
-            game["valueData"]["over_80"] = round(game["valueData"]['over_100'] * 0.8, 2)
-            game["valueData"]["under_80"] = round(game["valueData"]['under_100'] * 0.8, 2)
             game["valueData"]["value_120"] = getValue(game["valueData"]['total'], game["valueData"]['over_120'], game["valueData"]['under_120'], bankroll, bet_pct)
             game["valueData"]["value_100"] = getValue(game["valueData"]['total'], game["valueData"]['over_100'], game["valueData"]['under_100'], bankroll, bet_pct)
-            game["valueData"]["value_80"] = getValue(game["valueData"]['total'], game["valueData"]['over_80'], game["valueData"]['under_80'], bankroll, bet_pct)
         except:
             pass
         
