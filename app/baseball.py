@@ -86,29 +86,25 @@ def getInnings(pitcher, pvb, bullpen, scheduled, pvb_modifier):
     '''
     try:
         innings = pitcher.ip / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)) * pvb_modifier, 2)
+        return round(((pvb * innings) + (bullpen * (1 - innings))) * pvb_modifier, 2)
     except:
         # ip/gs
         innings = 4.8 / scheduled
-        return round((pvb * innings) + (bullpen * (1 - innings)) * pvb_modifier, 2)
+        return round(((pvb * innings) + (bullpen * (1 - innings))) * pvb_modifier, 2)
 
 def PvB(pitcher, lineup):
     '''Queries Pitchers and Batters tables by player id and returns run value.'''
     runs = 0
     for hitter in lineup:
         try:
-            if hitter.stand == "S" and pitcher.p_throws == "R":
+            if hitter.stand == "S" or hitter.stand == "L" and pitcher.p_throws == "R":
                 runs += oddsRatio(hitter.woba_r, pitcher.woba_l, 'RL')
-            if hitter.stand == "S" and pitcher.p_throws == "L":
+            if hitter.stand == "S" or hitter.stand == "R" and pitcher.p_throws == "L":
                 runs += oddsRatio(hitter.woba_l, pitcher.woba_r, 'LR')
             if hitter.stand == "L" and pitcher.p_throws == "L":
                 runs += oddsRatio(hitter.woba_l, pitcher.woba_l, 'LL')
-            if hitter.stand == "L" and pitcher.p_throws == "R":
-                runs += oddsRatio(hitter.woba_r, pitcher.woba_l, 'RL')
             if hitter.stand == "R" and pitcher.p_throws == "R":
                 runs += oddsRatio(hitter.woba_r, pitcher.woba_r, 'RR')
-            if hitter.stand == "R" and pitcher.p_throws == "L":
-                runs += oddsRatio(hitter.woba_l, pitcher.woba_r, 'LR')
         except:
             runs += 0
     return round(runs, 2)
@@ -126,9 +122,7 @@ def getValue(total, over_threshold, under_threshold, bankroll, bet_pct):
     Calculates amount of bet value by subtracting over and 
     under thresholds from total (prediction - money line). 
     '''
-    if total < 0 and abs(total) - under_threshold >= 0.01:
-        return getBet(bankroll, bet_pct)
-    elif total > 0 and total - over_threshold >= 0.01:
+    if (total < 0 and abs(total) - under_threshold >= 0.01) or (total > 0 and total - over_threshold >= 0.01):
         return getBet(bankroll, bet_pct)
     else:
         return 'No Value'
@@ -136,15 +130,11 @@ def getValue(total, over_threshold, under_threshold, bankroll, bet_pct):
 def getMoneyLine(data):
     '''Calculates over/under lines.'''
     e = 1 + data['currentpriceup'] / data['currentpricedown']
-    if e >= 2:
-        line = 100 * (e - 1)
-    else:
-        line = -100 / (e - 1)
-    return round(line);
+    return round(100 * (e - 1) if e >=2 else -100 / (e - 1))
 
 def filterPitcher(pid, r):
     '''Filters MLB Stats API for in-depth pitcher info.'''
-    return r['gameData']['players']['ID' + str(pid)]
+    return r['gameData']['players'][f'ID{pid}']
 
 # Requests data
 BASE_URL = "https://statsapi.mlb.com"
@@ -306,7 +296,7 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             game["valueData"]["prediction"] = round(sum([
                 game["predData"]["park_factor"], 
                 game["predData"]['wind_factor'], 
-                # game["predData"]['temp_factor'], add back in later
+                # game["predData"]['temp_factor'], add back in later?
                 game["predData"]["ump_factor"], 
                 game["predData"]['home_fielding'], 
                 game["predData"]['away_fielding'], 
