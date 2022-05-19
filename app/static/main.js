@@ -355,7 +355,7 @@ function noGames() {
     var row = document.createElement("tr");
     var td = document.createElement("td");
     td.innerHTML = "No games";
-    td.colSpan = "7";
+    td.colSpan = document.getElementsByTagName('th').length;
     td.style.textAlign = "center";
     row.appendChild(td);
     table.appendChild(row);

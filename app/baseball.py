@@ -68,15 +68,13 @@ def oddsRatio(hitter, pitcher, matchup):
     Query Matchups table by odds ratio and return run value.
     '''
     league = Matchups.query.get(matchup).odds
-    odds = hitter * pitcher / league
-    rate = round(odds / (odds + 1), 3)
-    if 0.192 <= rate <= 0.337:
-        return Woba.query.get(rate).runs
-    elif rate < 0.192:
-        # syntax change? db.session.query(func.min(Product.id)).first()[0]
-        return int(Woba.query.get(func.min(Woba.runs)).runs)
+    odds = round(hitter * pitcher / league, 3)
+    if 0.269 <= odds <= 0.399:
+        return Woba.query.get(odds).runs
+    elif odds < 0.269:
+        return -0.1
     else:
-        return int(Woba.query.get(func.max(Woba.runs)).runs)
+        return 0.1
 
 def getInnings(pitcher, pvb, bullpen, scheduled, pvb_modifier): 
     '''
