@@ -156,6 +156,20 @@ tbody > tr:nth-child(odd) {
     border: none;
 }
 
+.table {
+    display: table;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.table-cell {
+    display: table-cell;
+    padding: 3px;
+    text-align: center;
+}
+
 .price-up {
     animation: fadeOut-up 2s forwards;
     animation-delay: 3s;

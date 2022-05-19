@@ -148,13 +148,16 @@ function createTotal(row, total, market, thresholds) {
         let span = document.createElement('span');
         span.classList.add('tooltiptext');
         span.style.padding = "13px";
-        let tbl = document.createElement('table');
+        let tbl = document.createElement('div');
+        tbl.classList.add('table');
         for (let j = 0; j < thresholds.length; j++) {
-            let tr = document.createElement('tr');
+            let tr = document.createElement('div');
+            tr.classList.add('table-row');
             for (let i = 0; i < thresholds[j].length; i++){
-                let t = document.createElement('td');
-                t.innerHTML = thresholds[j][i];
-                tr.appendChild(t);
+                let tc = document.createElement('div');
+                tc.classList.add('table-cell');
+                tc.innerHTML = thresholds[j][i];
+                tr.appendChild(tc);
             }
             tbl.appendChild(tr);
         }
