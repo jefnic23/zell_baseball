@@ -90,7 +90,7 @@ function createPrediction(row, prediction, predData, pred_name, home_team, ump) 
     td.classList.add("tooltip-container");
     if (prediction !== "TBD") {
         let span = document.createElement('span');
-        span.classList.add('tooltiptext');
+        span.classList.add('tooltiptext', 'pred-data');
         let ul = document.createElement('ul');
         let pred_data = [
             predData.park_factor,

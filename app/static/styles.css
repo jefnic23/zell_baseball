@@ -318,13 +318,16 @@ tbody > tr:nth-child(odd) {
     }
 
     .tooltip .tooltiptext {
-        width: 95%;
         top: 21px;
         left: 50%;
         transform: translateX(-50%);
         margin: 0;
         padding: 0;
         right: 0;
+    }
+
+    .pred-data{
+        width: 95%;
     }
 
     .lines {
@@ -346,5 +349,9 @@ tbody > tr:nth-child(odd) {
     .tooltip:active .tooltiptext {
         visibility: visible;
         opacity: 1;
+    }
+
+    .table {
+        margin: auto;
     }
 }
