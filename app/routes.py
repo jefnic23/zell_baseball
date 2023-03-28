@@ -28,6 +28,7 @@ admin.add_view(DataView(Misc, db.session))
 def load_user(id):
     return User.query.get(int(id))
 
+
 @app.route('/')
 def index():
     MODIFIER = Misc.query.get('modifier').value
@@ -42,6 +43,7 @@ def index():
         data.append(Game(game, fd, MODIFIER, BANKROLL, BET_PCT, PVB_MODIFIER))
     return render_template('index.html', data=data, today=TODAY)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm()
@@ -55,6 +57,7 @@ def login():
         return redirect(url_for('admin.index'))
     return render_template("login.html", form=login_form)
 
+
 @app.route('/logout', methods=['GET'])
 def logout():
     if current_user.is_anonymous:
@@ -62,6 +65,7 @@ def logout():
     logout_user()
     flash("You have logged out successfully", "success")
     return redirect(url_for("login"))
+
 
 @app.route("/reset_password_request", methods=['GET', 'POST'])
 def reset_password_request():
@@ -75,6 +79,7 @@ def reset_password_request():
         flash("Check your email for instructions on how to reset your password", 'info')
         return redirect(url_for('login'))
     return render_template("reset_password_request.html", form=form)
+
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -92,6 +97,7 @@ def reset_password(token):
         flash('Your password has been reset', "success")
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
+
 
 @socketio.on('changeLine')
 def change_line(data):
@@ -117,6 +123,7 @@ def change_line(data):
         emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': total, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'bet_100': bet_100, 'bet_80': bet_80, 'bet_120': bet_120, "ids": ids})
     except:
         emit('lineChange', {'over_under': over_under, 'over': over, 'under': under, 'new_total': 'TBD', 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_80': over_80, 'under_80': under_80, 'over_120': over_120, 'under_120': under_120, 'bet_100': "TBD", 'bet_80': "TBD", 'bet_120': "TBD", "ids": ids})
+
 
 if __name__ == '__main__':
     socketio.run(app)
