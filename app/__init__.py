@@ -1,4 +1,3 @@
-from ensurepip import bootstrap
 from flask import Flask
 from config import Config
 from flask_talisman import Talisman
