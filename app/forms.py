@@ -2,15 +2,18 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, BooleanField, DecimalField
 from wtforms.validators import InputRequired, Email, Length, EqualTo
 
+
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(message="Please enter your email"), Email(message="Please enter a valid email")], render_kw={'autofocus': True})
     password = PasswordField('Password', validators=[InputRequired(message="Password required")])
     remember_me = BooleanField('Remember me')
     submit_button = SubmitField('Login')
 
+
 class ResetPasswordRequestForm(FlaskForm):
     email = StringField("Enter your email", validators=[InputRequired(message="Please enter your email"), Email(message="Please enter a valid email")], render_kw={'autofocus': True})
     submit_button = SubmitField("Request Password Reset")
+
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('New password',
@@ -21,6 +24,7 @@ class ResetPasswordForm(FlaskForm):
         validators=[InputRequired(message="Password required"), 
         EqualTo("password", message="Passwords must match")])
     submit_button = SubmitField("Submit new password")
+
 
 class MiscForm(FlaskForm):
     name = StringField("Name", validators=[InputRequired(message="Enter the name of the variable")], render_kw={"autofocus": True})

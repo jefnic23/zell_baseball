@@ -1,7 +1,6 @@
 import requests
 from datetime import datetime
-from sqlalchemy import func
-from app.models import *
+from app.models import Batters, Fielding, Matchups, Parks, Pitchers, Umps, Woba
 
 
 def getTemp(temp, innings):

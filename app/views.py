@@ -3,8 +3,7 @@ from flask_login import current_user
 from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
-from app.forms import *
-from app.models import *
+from app.forms import MiscForm
 
 class AdminView(AdminIndexView):
     def is_accessible(self):
