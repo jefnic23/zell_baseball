@@ -136,15 +136,6 @@ def filterPitcher(pid, r):
 # Requests data
 BASE_URL = "https://statsapi.mlb.com"
 
-def fanduel():
-    '''Returns FanDuel data.'''
-    url = "https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json"
-    r = requests.get(url)
-    if r.status_code not in [200, 201]:
-        r.raise_for_status()
-    else:
-        return [event for event in r.json()['events']]
-
 def schedule(date):
     '''Returns scheduled games yet to go live.'''
     url = f"{BASE_URL}/api/v1/schedule/games/?sportId=1&date={date}"

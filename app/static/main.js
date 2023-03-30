@@ -33,10 +33,10 @@ const logos = {
     'Milwaukee Brewers': 'https://www.mlbstatic.com/team-logos/team-cap-on-light/158.svg'
 }
 
-async function getFanduel(url="https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json") {
-    const res = await fetch(url);
-    return await res.json();
-}
+// async function getFanduel(url="https://sportsbook.fanduel.com/cache/psmg/UK/60826.3.json") {
+//     const res = await fetch(url);
+//     return await res.json();
+// }
 
 function createTeams(row, away_name, away_logo, home_name, home_logo) {
     let td = document.createElement("td");
@@ -369,32 +369,32 @@ function changeLine(game, over_under, prediction, over_threshold, under_threshol
     socket.emit('changeLine', {'game': game, 'over_under': over_under, 'prediction': prediction, 'over_threshold': over_threshold, 'under_threshold': under_threshold, 'over_120': over_120, 'under_120': under_120, 'over': over, 'under': under, 'ids': ids});
 }
 
-function updateOdds() {
-    getFanduel().then(fd => {
-        fd.events.forEach(e => {
-            // console.log(e);
-            if (data.find(x => x.game.market.idfoevent === e.idfoevent)) {
-                var game = data.find(x => x.game.market.idfoevent === e.idfoevent);
-                var market = e.markets.find(x => x.idfomarkettype === 48555.1);
-                var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
-                var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
-                var ids = {"actual_id": market.idfoevent, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id_100": `${game.gamePk}_100`, "value_id_120": `${game.gamePk}_120`};
-                var now = new Date();
-                var game_time = new Date(market.tsstart);
-                if (now.getTime() >= game_time.getTime()) {
-                    $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
-                    callApi(main_url, find_date).then(data => {
-                        active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
-                        if (active_games === 0) {
-                            noGames();
-                        }
-                    });
-                }
-                changeLine(game.game, market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, game.over_120, game.under_120, over, under, ids);
-            }
-        });
-    });
-}
+// function updateOdds() {
+//     getFanduel().then(fd => {
+//         fd.events.forEach(e => {
+//             // console.log(e);
+//             if (data.find(x => x.game.market.idfoevent === e.idfoevent)) {
+//                 var game = data.find(x => x.game.market.idfoevent === e.idfoevent);
+//                 var market = e.markets.find(x => x.idfomarkettype === 48555.1);
+//                 var over = getMoneyLine(market.selections.find(x => x.name === "Over"));
+//                 var under = getMoneyLine(market.selections.find(x => x.name === "Under"));
+//                 var ids = {"actual_id": market.idfoevent, "total_id": market.selections.find(x => x.name === "Over").idfoselection, "value_id_100": `${game.gamePk}_100`, "value_id_120": `${game.gamePk}_120`};
+//                 var now = new Date();
+//                 var game_time = new Date(market.tsstart);
+//                 if (now.getTime() >= game_time.getTime()) {
+//                     $(document.querySelector(`#${CSS.escape(game.gamePk)}`)).closest('tr').remove();
+//                     callApi(main_url, find_date).then(data => {
+//                         active_games = data.games.filter(x => x.status.codedGameState === "P" || x.status.codedGameState === "S" ).length;
+//                         if (active_games === 0) {
+//                             noGames();
+//                         }
+//                     });
+//                 }
+//                 changeLine(game.game, market.currentmatchhandicap, game.prediction, game.over_threshold, game.under_threshold, game.over_120, game.under_120, over, under, ids);
+//             }
+//         });
+//     });
+// }
 
 socket.on("lineChange", data => {
     try {
