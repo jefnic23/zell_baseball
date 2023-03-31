@@ -9,8 +9,8 @@ from app.forms import LoginForm, ResetPasswordRequestForm, ResetPasswordForm
 from app.models import User, Batters, Fielding, Woba, Matchups, Parks, Pitchers, Umps, Misc
 from app.views import LogoutView, DataView
 from app.email import send_password_reset_email
-from app.baseball import schedule, Game, getValue
-from app.odds import betting_data
+from app.baseball import Game, getValue
+from app.apis import betting_data, schedule
 from app import app, login, socketio, admin, db
 
 
@@ -38,14 +38,13 @@ def index():
     BANKROLL = Misc.query.get('bankroll').value
     BET_PCT = Misc.query.get('bet_pct').value
     PVB_MODIFIER = Misc.query.get('pvb_modifier').value
-    TODAY = datetime.now(pytz.timezone('America/New_York')).strftime("%m/%d/%Y")
-    odds = betting_data(datetime.now())
-    print(odds)
+    TODAY = datetime.now(pytz.timezone('America/New_York'))
+    odds = betting_data(TODAY)
     sched = schedule(TODAY)
     data = []
     for game in sched:
         data.append(Game(game, odds, MODIFIER, BANKROLL, BET_PCT, PVB_MODIFIER))
-    return render_template('index.html', data=data, today=TODAY)
+    return render_template('index.html', data=data, today=TODAY.strftime('%m/%d/%Y'))
 
 
 @app.route('/login', methods=['GET', 'POST'])

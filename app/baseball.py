@@ -136,15 +136,6 @@ def filterPitcher(pid, r):
 # Requests data
 BASE_URL = "https://statsapi.mlb.com"
 
-def schedule(date):
-    '''Returns scheduled games yet to go live.'''
-    url = f"{BASE_URL}/api/v1/schedule/games/?sportId=1&date={date}"
-    r = requests.get(url)
-    if r.status_code not in [200, 201]:
-        r.raise_for_status()
-    else:
-        return sorted(list(filter(lambda game: game['status']['codedGameState'] in ["P", "S"], r.json()['dates'][0]['games'])), key=lambda game: game['gameDate'])
-
 def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
     '''
     First, get game data from MLB Stats API and bet data from FanDuel.
@@ -152,18 +143,18 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
     '''
     game = {
         "gameData": {
-            "gamePk": g['gamePk'],
-            "game_time": datetime.strptime(g['gameDate'], "%Y-%m-%dT%H:%M:%SZ"),
-            "link": g['link'],
-            "double_header": g['doubleHeader'],
-            "game_number": g["gameNumber"],
-            "innings": g['scheduledInnings'],
-            "home_team_full": g['teams']['home']['team']['name'],
+            "gamePk": g.gamePk,
+            "game_time": datetime.strptime(g.gameDate, "%Y-%m-%dT%H:%M:%SZ"),
+            "link": g.link,
+            "double_header": g.doubleHeader,
+            "game_number": g.gameNumber,
+            "innings": g.scheduledInnings,
+            "home_team_full": g.teams.home.team.name,
             "home_team_short": "",
             "home_pitcher": "",
             "home_lineup": [],
             "home_bullpen": [],
-            "away_team_full": g['teams']['away']['team']['name'],
+            "away_team_full": g.teams.away.team.name,
             "away_team_short": "",
             "away_pitcher": "",
             "away_lineup": [],
@@ -173,7 +164,8 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
             "hydrate": False
         },
         "betData": {
-            'market': "",
+            'idfoevent': '',
+            'idfoselection': '',
             'over_under': "",
             'over_line': "",
             'under_line': "",
@@ -210,38 +202,34 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
     r = requests.get(url)
     if r.status_code not in [200, 201]:
         r.raise_for_status()
-    else:
-        r = r.json()
-        try:
-            game["gameData"]['home_team_short'] = r['gameData']['teams']['home']['teamName']
-            game["gameData"]['away_team_short'] = r['gameData']['teams']['away']['teamName']
-            game["gameData"]['home_pitcher'] = filterPitcher(r['gameData']['probablePitchers']['home']['id'], r)
-            game["gameData"]['home_lineup'] = r['liveData']['boxscore']['teams']['home']['battingOrder']
-            game["gameData"]['home_bullpen'] = r['liveData']['boxscore']['teams']['home']['bullpen']
-            game["gameData"]['away_pitcher'] = filterPitcher(r['gameData']['probablePitchers']['away']['id'], r)
-            game["gameData"]['away_lineup'] = r['liveData']['boxscore']['teams']['away']['battingOrder']
-            game["gameData"]['away_bullpen'] = r['liveData']['boxscore']['teams']['away']['bullpen']
-            game["gameData"]['weather'] = r['gameData']['weather']
-            game["gameData"]['ump'] = next(filter(lambda x: x['officialType'] == "Home Plate", r['liveData']['boxscore']['officials']), None)
-            game["gameData"]['hydrate'] = True
-        except:
-            pass
 
-    odds = list(filter(lambda x: x['participantname_home'] == game["gameData"]['home_team_full'] or x['participantname_away'] == game["gameData"]['away_team_full'], fd))
+    r = r.json()
     try:
-        if len(odds) > 1:
-            if game["gameData"]['game_number'] == 1:
-                game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[0]['markets']), None)
-            else:
-                game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[1]['markets']), None)
-        else:
-            game["betData"]['market'] = next(filter(lambda x: x['idfomarkettype'] == 48555.1, odds[0]['markets']), None)
-        game["betData"]['over_under'] = game["betData"]['market']['currentmatchhandicap']
-        game["betData"]['over_line'] = getMoneyLine(next(filter(lambda x: x['name'] == "Over", game["betData"]['market']['selections']), None))
-        game["betData"]['under_line'] = getMoneyLine(next(filter(lambda x: x['name'] == "Under", game["betData"]['market']['selections']), None))
+        game["gameData"]['home_team_short'] = r['gameData']['teams']['home']['teamName']
+        game["gameData"]['away_team_short'] = r['gameData']['teams']['away']['teamName']
+        game["gameData"]['home_pitcher'] = filterPitcher(r['gameData']['probablePitchers']['home']['id'], r)
+        game["gameData"]['home_lineup'] = r['liveData']['boxscore']['teams']['home']['battingOrder']
+        game["gameData"]['home_bullpen'] = r['liveData']['boxscore']['teams']['home']['bullpen']
+        game["gameData"]['away_pitcher'] = filterPitcher(r['gameData']['probablePitchers']['away']['id'], r)
+        game["gameData"]['away_lineup'] = r['liveData']['boxscore']['teams']['away']['battingOrder']
+        game["gameData"]['away_bullpen'] = r['liveData']['boxscore']['teams']['away']['bullpen']
+        game["gameData"]['weather'] = r['gameData']['weather']
+        game["gameData"]['ump'] = next(filter(lambda x: x['officialType'] == "Home Plate", r['liveData']['boxscore']['officials']), None)
+        game["gameData"]['hydrate'] = True
+    except:
+        pass
+
+    odds = list(filter(lambda x: x.HomeTeamDetails.FullName == game["gameData"]['home_team_full'] or x.AwayTeamDetails.FullName == game["gameData"]['away_team_full'], fd))
+    try:
+        game["betData"]['idfoevent'] = odds[0].Consensus.GameID
+        game["betData"]['idfoselection'] = odds[0].Consensus.GameOddId
+        game["betData"]['over_under'] = odds[0].Consensus.OverUnder
+        game["betData"]['over_line'] = odds[0].Consensus.OverPayout
+        game["betData"]['under_line'] = odds[0].Consensus.UnderPayout
         game["betData"]['live_bet'] = True
     except:
         pass
+
 
     if game["gameData"]['hydrate'] and game["betData"]['live_bet']:
         try:

@@ -239,7 +239,7 @@ function populateTables(game) {
     );
     createLines(
         row, 
-        game.betData.market.idfoevent, 
+        game.betData.idfoevent, 
         over_under, 
         game.betData.over_line, 
         game.betData.under_line
@@ -247,7 +247,7 @@ function populateTables(game) {
     createTotal(
         row, 
         total,
-        game.betData.market.selections.find(x => x.name === "Over").idfoselection,
+        game.betData.idfoselection,
         thresholds
     );
     createValues(

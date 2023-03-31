@@ -3,6 +3,7 @@
 {% block app_content %}
     <script>
         const data = {{ data | tojson }};
+        console.log(data);
     </script>
     <div class="header">
         <h2 id="date">Games on {{ today }}</h2>
