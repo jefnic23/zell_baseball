@@ -220,14 +220,15 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
         pass
 
     odds = list(filter(lambda x: x.HomeTeamDetails.FullName == game["gameData"]['home_team_full'] or x.AwayTeamDetails.FullName == game["gameData"]['away_team_full'], fd))
+
     try:
-        game["betData"]['idfoevent'] = odds[0].Consensus.GameID
+        game["betData"]['idfoevent'] = odds[0].Consensus.GameId
         game["betData"]['idfoselection'] = odds[0].Consensus.GameOddId
         game["betData"]['over_under'] = odds[0].Consensus.OverUnder
         game["betData"]['over_line'] = odds[0].Consensus.OverPayout
         game["betData"]['under_line'] = odds[0].Consensus.UnderPayout
         game["betData"]['live_bet'] = True
-    except:
+    except AttributeError:
         pass
 
 
