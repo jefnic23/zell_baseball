@@ -228,7 +228,7 @@ def Game(g, fd, modifier, bankroll, bet_pct, pvb_modifier):
         game["betData"]['over_line'] = odds[0].Consensus.OverPayout
         game["betData"]['under_line'] = odds[0].Consensus.UnderPayout
         game["betData"]['live_bet'] = True
-    except AttributeError:
+    except:
         pass
 
 
