@@ -1,10 +1,11 @@
 from datetime import datetime
+
+from backend.models.betting_data import BettingData
 from backend.services.http_client import post_async
-from backend.models.betting_data import BettingData, betting_data_schema
 
 
-async def betting_data(date: datetime) -> BettingData:
-    """Gets the odds from bettingdata.com"""
+async def get_betting_data(date: datetime) -> BettingData:
+    """Gets the odds from bettingdata.com."""
 
     url = "https://bettingdata.com/MLB_Odds/Odds_Read"
     filters = {
@@ -18,10 +19,9 @@ async def betting_data(date: datetime) -> BettingData:
         "league": "mlb", 
         "widget_scope": 1
     }
-    payload = {'filters': filters}
-    req = await post_async(url, payload=payload)
+    req = await post_async(url, payload={'filters': filters})
     if req:
-        return betting_data_schema.load(req).Scores
+        return BettingData(**req).Scores
     else:
         print("Error getting betting data")
         return None

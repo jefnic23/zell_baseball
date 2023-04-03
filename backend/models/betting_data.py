@@ -1,38 +1,27 @@
-from typing import List
+from typing import List, Optional
 
-from marshmallow import EXCLUDE, Schema
-from marshmallow_dataclass import dataclass
-
-
-class BaseSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
+from pydantic import BaseModel
 
 
-@dataclass(base_schema=BaseSchema)
-class TeamDetails:
+class TeamDetails(BaseModel):
     FullName: str
 
 
-@dataclass(base_schema=BaseSchema)
-class Consensus:
-    GameId: int
-    GameOddId: int
-    OverUnder: float
-    OverPayout: int
-    UnderPayout: int
+class Odds(BaseModel):
+    SportsBookName: Optional[str]
+    GameOddId: Optional[int]
+    OverUnder: Optional[float]
+    OverPayout: Optional[int]
+    UnderPayout: Optional[int]
 
 
-@dataclass(base_schema=BaseSchema)
-class Scores:
+class Scores(BaseModel):
+    GameID: int
     AwayTeamDetails: TeamDetails
     HomeTeamDetails: TeamDetails
-    Consensus: Consensus
+    Consensus: Odds
+    GameOddWebs: List[Odds]
 
 
-@dataclass(base_schema=BaseSchema)
-class BettingData:
+class BettingData(BaseModel):
     Scores: List[Scores]
-
-
-betting_data_schema = BettingData.Schema()
