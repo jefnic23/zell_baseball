@@ -1,10 +1,11 @@
 from datetime import datetime
+from typing import List
 
-from backend.models.betting_data import BettingData
+from backend.models.betting_data import BettingData, Scores
 from backend.services.http_client import post_async
 
 
-async def get_betting_data(date: datetime) -> BettingData:
+async def get_betting_data(date: datetime) -> List[Scores]:
     """Gets the odds from bettingdata.com."""
 
     url = "https://bettingdata.com/MLB_Odds/Odds_Read"
