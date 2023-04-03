@@ -1,5 +1,5 @@
-from backend.models.betting_data import Scores
-from backend.models.mlb.game import Game
+from backend.schemas.betting_data import Scores
+from backend.schemas.game import Game
 
 
 class PredictionData:

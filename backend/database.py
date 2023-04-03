@@ -3,6 +3,7 @@ from sqlalchemy.orm import declarative_base
 
 from backend.config import settings
 
+
 Base = declarative_base()
 
 

@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import List
 
-from backend.models.mlb.game import Game
-from backend.models.mlb.schedule import Game as ScheduledGame
-from backend.models.mlb.schedule import Schedule
+from backend.schemas.game import Game
+from backend.schemas.schedule import Game as ScheduledGame
+from backend.schemas.schedule import Schedule
 from backend.services.http_client import get_async
 
 BASE_URL = "https://statsapi.mlb.com"

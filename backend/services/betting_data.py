@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from backend.models.betting_data import BettingData, Scores
+from backend.schemas.betting_data import BettingData, Scores
 from backend.services.http_client import post_async
 
 
