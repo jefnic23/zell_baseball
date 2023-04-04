@@ -20,9 +20,10 @@ class Database:
             class_=AsyncSession
         )
 
-    async def get_session(self) -> async_sessionmaker[AsyncSession]:
-        async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    async def get_session(self) -> AsyncSession:
+        async with self.session() as session:
+            async with session.begin():
+                yield session
 
 
 db = Database()

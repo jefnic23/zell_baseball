@@ -1,5 +1,5 @@
-from backend.models.mlb.game_data import GameData
-from backend.models.mlb.live_data import LiveData
+from backend.schemas.game_data import GameData
+from backend.schemas.live_data import LiveData
 
 from pydantic import BaseModel
 

@@ -30,7 +30,7 @@ class User(Base):
         )
 
     @staticmethod
-    async def verify_reset_password_token(token: str) -> 'User':
+    async def verify_reset_password_token(token: str) -> 'User' | None:
         try:
             id = jwt.decode(
                 token, 
@@ -38,7 +38,7 @@ class User(Base):
                 algorithms=['HS256']
             )['reset_password']
         except:  # noqa: E722
-            return
+            return None
         async with db.session() as session:
             query = await session.execute(select(User).where(User.id == id))
             return query.scalars().first()
@@ -48,67 +48,67 @@ class Batter(Base):
     __tablename__ = "batters"
 
     id = Mapped[int] = mapped_column(primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    stand = db.Column(db.String(), nullable=False)
-    woba_r = db.Column(db.Float, nullable=False)
-    woba_l = db.Column(db.Float, nullable=False)
-    woba = db.Column(db.Float, nullable=False)
+    name = Mapped[str] = mapped_column(nullable=False)
+    stand = Mapped[str] = mapped_column(nullable=False)
+    woba_r = Mapped[float] = mapped_column(nullable=False)
+    woba_l = Mapped[float] = mapped_column(nullable=False)
+    woba = Mapped[float] = mapped_column(nullable=False)
 
 
 class Fielding(Base):
     __tablename__ = "fielding"
 
     id = Mapped[int] = mapped_column(ForeignKey('batters.id'), primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    runs = db.Column(db.Float, nullable=False)
+    name = Mapped[str] = mapped_column(ForeignKey('batters.name'), nullable=False)
+    runs = Mapped[float] = mapped_column(nullable=False)
 
 
 class Woba(Base):
     __tablename__ = "woba"
 
-    woba = db.Column(db.Float, primary_key=True)
-    runs = db.Column(db.Float, nullable=False)
+    woba = Mapped[float] = mapped_column(primary_key=True)
+    runs = Mapped[float] = mapped_column(nullable=False)
 
 
 class Matchup(Base):
     __tablename__ = "matchups"
 
-    matchup = db.Column(db.String(), primary_key=True)
-    odds = db.Column(db.Float, nullable=False)
+    matchup = Mapped[str] = mapped_column(primary_key=True)
+    odds = Mapped[float] = mapped_column(nullable=False)
 
 
 class Misc(Base):
     __tablename__ = "misc"
 
-    name = db.Column(db.String(), primary_key=True)
-    value = db.Column(db.Float, nullable=False)
+    name = Mapped[str] = mapped_column(primary_key=True)
+    value = Mapped[float] = mapped_column(nullable=False)
 
 
 class Park(Base):
     __tablename__ = "parks"
 
-    park = db.Column(db.String(), primary_key=True)
-    runs = db.Column(db.Float, nullable=False)
-    over_threshold = db.Column(db.Float, nullable=False)
-    under_threshold = db.Column(db.Float, nullable=False)
-    handicap = db.Column(db.Float, nullable=False)
+    park = Mapped[str] = mapped_column(primary_key=True)
+    runs = Mapped[float] = mapped_column(nullable=False)
+    over_threshold = Mapped[float] = mapped_column(nullable=False)
+    under_threshold = Mapped[float] = mapped_column(nullable=False)
+    handicap = Mapped[float] = mapped_column(nullable=False)
 
 
 class Pitcher(Base):
     __tablename__ = "pitchers"
 
     id = Mapped[int] = mapped_column(primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    p_throws = db.Column(db.String(), nullable=False)
-    woba_r = db.Column(db.Float, nullable=False)
-    woba_l = db.Column(db.Float, nullable=False)
-    woba = db.Column(db.Float, nullable=False)
-    ips = db.Column(db.Float, nullable=False)
+    name = Mapped[str] = mapped_column(nullable=False)
+    p_throws = Mapped[str] = mapped_column(nullable=False)
+    woba_r = Mapped[float] = mapped_column(nullable=False)
+    woba_l = Mapped[float] = mapped_column(nullable=False)
+    woba = Mapped[float] = mapped_column(nullable=False)
+    ips = Mapped[float] = mapped_column(nullable=False)
 
 
 class Ump(Base):
     __tablename__ = "umps"
 
     id = Mapped[int] = mapped_column(primary_key=True)
-    name = db.Column(db.String(), unique=True, nullable=False)
-    runs = db.Column(db.Float, nullable=False)
+    name = Mapped[str] = mapped_column(unique=True, nullable=False)
+    runs = Mapped[float] = mapped_column(nullable=False)

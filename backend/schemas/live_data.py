@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel
 
 
@@ -14,8 +12,8 @@ class Officials(BaseModel):
     
 
 class Team(BaseModel):
-    battingOrder: List[int]
-    bullpen: List[int]
+    battingOrder: list[int]
+    bullpen: list[int]
 
 
 class Teams(BaseModel):
@@ -25,7 +23,7 @@ class Teams(BaseModel):
 
 class Boxscore(BaseModel):
     teams: Teams
-    officials: List[Officials]
+    officials: list[Officials]
 
 
 class LiveData(BaseModel):

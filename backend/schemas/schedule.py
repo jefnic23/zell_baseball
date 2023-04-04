@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel
 
 
@@ -34,8 +32,8 @@ class Game(BaseModel):
 
 class Date(BaseModel):
     date: str
-    games: List[Game]
+    games: list[Game]
 
 
 class Schedule(BaseModel):
-    dates: List[Date]
+    dates: list[Date]
