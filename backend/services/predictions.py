@@ -19,51 +19,33 @@ class Predictions:
         self.game_data = game.gameData
         self.live_data = game.liveData
         self.session = session
-        
-
-    @staticmethod
-    def get_temp(temp: int, innings: int) -> float:
-        '''Get run value based on game time temperature.'''
-        temp_ranges = {
-            range(0, 47): -0.225, 
-            range(47, 54): -0.15, 
-            range(54, 63): -0.075, 
-            range(63, 72): 0.0,
-            range(72, 80): 0.1, 
-            range(80, 88): 0.2
-        }
-        for temp_range, run_value in temp_ranges.items():
-            if temp in temp_range:
-                return round(run_value * (innings/9), 2)
-        return round(0.3 * (innings/9), 2)
 
 
-    @staticmethod
-    def get_wind(venue: str, wind_data: str, innings: int) -> float:
-        '''
-        Get run value based on game time wind speed and direction.
-        Only applies to Wrigley Field.
-        '''
-        speed, direction = wind_data.split(' mph, ')
-        wind = 0
-        if venue == "Chicago Cubs" and int(speed) >= 10:
-            wind_values = {"In": -0.15, "Out": 0.15}
-            wind = wind_values.get(direction, 0)
-            wind *= max(int(speed) - 9, 0)
-        return round(wind * (innings/9), 2)
+    def get_bullpen(
+        self, 
+        bullpen: list[Pitcher], 
+        lineup: list[Batter]
+    ) -> float:
+        '''Query Bullpen table by player id and return team bullpen run value.'''
+        bullpen_woba = [player.woba for player in bullpen]
+        offense_woba = [player.woba for player in lineup]
+        return self.odds_ratio(
+            (sum(offense_woba) / len(offense_woba)), 
+            (sum(bullpen_woba) / len(bullpen_woba)), 
+            'league'
+        )
+    
+
+    async def get_prediction_data(self) -> dict:
+        '''Get all prediction data for a given game.'''
+        pass
 
 
-    async def get_ump(self, id: int, innings: int) -> float:
-        '''Query Ump table by ump id and return run value.'''
-        try:
-            ump = await self.session.execute(select(Ump).where(Ump.id == id))
-            runs = ump.one().runs
-        except:  # noqa: E722
-            runs = 0
-        return round(runs * (innings/9), 2)
-
-
-    async def get_fielding(self, lineup: list[int], innings: int) -> float:
+    async def get_fielding(
+        self, 
+        lineup: list[int], 
+        innings: int
+    ) -> float:
         '''Query Fielding table by player id and return team defense run value.'''
         runs = 0
         fielders = await self.session.execute(
@@ -78,18 +60,26 @@ class Predictions:
         return round(runs * (innings/9), 2)
 
 
-    def get_bullpen(self, bullpen: list[Pitcher], lineup: list[Batter]) -> float:
-        '''Query Bullpen table by player id and return team bullpen run value.'''
-        bullpen_woba = [player.woba for player in bullpen]
-        offense_woba = [player.woba for player in lineup]
-        return self.odds_ratio(
-            (sum(offense_woba) / len(offense_woba)), 
-            (sum(bullpen_woba) / len(bullpen_woba)), 
-            'league'
-        )
+    async def get_ump(
+        self,
+        id: int, 
+        innings: int
+    ) -> float:
+        '''Query Ump table by ump id and return run value.'''
+        try:
+            ump = await self.session.execute(select(Ump).where(Ump.id == id))
+            runs = ump.one().runs
+        except:  # noqa: E722
+            runs = 0
+        return round(runs * (innings/9), 2)
 
 
-    async def odds_ratio(self, hitter: float, pitcher: float, matchup: int) -> float:
+    async def odds_ratio(
+        self, 
+        hitter: float, 
+        pitcher: float,
+        matchup: int
+    ) -> float:
         '''
         Calculate odds ratio of a batter/pitcher matchup.
         Query Matchups table by odds ratio and return run value.
@@ -112,6 +102,38 @@ class Predictions:
             return 0.1
 
 
+    def pvb(
+        self, 
+        pitcher: Pitcher, 
+        lineup: list[Batter]
+    ) -> float:
+        '''Queries Pitchers and Batters tables by player id and returns run value.'''
+        handedness_dict = {
+            ('S', 'R'): ('hitter.woba_l', 'pitcher.woba_r', 'LR'),
+            ('S', 'L'): ('hitter.woba_r', 'pitcher.woba_l', 'RL'),
+            ('L', 'L'): ('hitter.woba_l', 'pitcher.woba_l', 'LL'),
+            ('R', 'R'): ('hitter.woba_r', 'pitcher.woba_r', 'RR')
+        }
+        runs = sum(
+            self.oddsRatio(eval(hitter_woba), eval(pitcher_woba), matchup_id)
+            for hitter in lineup
+            for (hitter_stance, pitcher_throws), (hitter_woba, pitcher_woba, matchup_id)
+            in handedness_dict.items()
+            if hitter.stand == hitter_stance and pitcher.p_throws == pitcher_throws
+        )
+        return round(runs, 2) 
+
+
+    @staticmethod
+    def get_handicap(
+        home_team: Park, 
+        away_team: Park, 
+        innings: int
+    ) -> float:
+        '''Returns difference between home and away team handicaps'''
+        return round((home_team.handicap - away_team.handicap) * (innings/9), 2)
+    
+
     @staticmethod
     def get_innings(
         pitcher: Pitcher, 
@@ -126,35 +148,50 @@ class Predictions:
         a default value is returned.
         '''
         try:
-            innings = pitcher.ip / scheduled
-            return round(((pvb * innings) + (bullpen * (1 - innings))) * pvb_modifier, 2)
-        except:  # noqa: E722
-            innings = 4.8 / scheduled
-            return round(((pvb * innings) + (bullpen * (1 - innings))) * pvb_modifier, 2)
-
-
-    def pvb(self, pitcher: Pitcher, lineup: list[Batter]) -> float:
-        '''Queries Pitchers and Batters tables by player id and returns run value.'''
-        handedness_dict = {
-            ('S', 'R'): ('hitter.woba_l', 'pitcher.woba_r', 'LR'),
-            ('S', 'L'): ('hitter.woba_r', 'pitcher.woba_l', 'RL'),
-            ('L', 'L'): ('hitter.woba_l', 'pitcher.woba_l', 'LL'),
-            ('R', 'R'): ('hitter.woba_r', 'pitcher.woba_r', 'RR')
-        }
-        runs = sum(
-            self.oddsRatio(eval(hitter_woba), eval(pitcher_woba), matchup_id)
-            for hitter in lineup
-            for (hitter_stance, pitcher_throws), (hitter_woba, pitcher_woba, matchup_id) in handedness_dict.items()
-            if hitter.stand == hitter_stance and pitcher.p_throws == pitcher_throws
+            innings_per_start = pitcher.ip / scheduled
+        except (AttributeError, TypeError, ZeroDivisionError):
+            innings_per_start = 4.8 / scheduled
+        innings_weighted = (
+            (pvb * innings_per_start) + 
+            (bullpen * (1 - innings_per_start))
         )
-        return round(runs, 2)
+        return round(innings_weighted * pvb_modifier, 2)
 
 
     @staticmethod
-    def get_handicap(
-        home_team: Park, 
-        away_team: Park, 
+    def get_temp(
+        temp: int, 
         innings: int
     ) -> float:
-        '''Returns difference between home and away team handicaps'''
-        return round((home_team.handicap - away_team.handicap) * (innings/9), 2)
+        '''Get run value based on game time temperature.'''
+        temp_ranges = {
+            range(0, 47): -0.225, 
+            range(47, 54): -0.15, 
+            range(54, 63): -0.075, 
+            range(63, 72): 0.0,
+            range(72, 80): 0.1, 
+            range(80, 88): 0.2
+        }
+        for temp_range, run_value in temp_ranges.items():
+            if temp in temp_range:
+                return round(run_value * (innings/9), 2)
+        return round(0.3 * (innings/9), 2)
+
+
+    @staticmethod
+    def get_wind(
+        venue: str, 
+        wind_data: str, 
+        innings: int
+    ) -> float:
+        '''
+        Get run value based on game time wind speed and direction.
+        Only applies to Wrigley Field.
+        '''
+        speed, direction = wind_data.split(' mph, ')
+        wind = 0
+        if venue == "Chicago Cubs" and int(speed) >= 10:
+            wind_values = {"In": -0.15, "Out": 0.15}
+            wind = wind_values.get(direction, 0)
+            wind *= max(int(speed) - 9, 0)
+        return round(wind * (innings/9), 2)

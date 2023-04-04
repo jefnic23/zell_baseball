@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -20,8 +20,8 @@ class Scores(BaseModel):
     AwayTeamDetails: TeamDetails
     HomeTeamDetails: TeamDetails
     Consensus: Odds
-    GameOddWebs: List[Odds]
+    GameOddWebs: list[Odds]
 
 
 class BettingData(BaseModel):
-    Scores: List[Scores]
+    Scores: list[Scores]
