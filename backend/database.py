@@ -16,8 +16,7 @@ class Database:
         )
         self.session = async_sessionmaker(
             self.engine, 
-            expire_on_commit=False, 
-            class_=AsyncSession
+            expire_on_commit=False
         )
 
     async def get_session(self) -> AsyncSession:

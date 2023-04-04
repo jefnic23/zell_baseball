@@ -18,11 +18,11 @@ def create_app():
 
     app.include_router(games.router)
 
-    app.mount('/', StaticFiles(directory='build/'), name='static')
+    app.mount('/', StaticFiles(directory='frontend/src/'), name='static')
 
     @app.get('/')
     def index():
-        return app.send_static_file('index.html')
+        return app.send_static_file('app.html')
     
     return app
 

@@ -6,6 +6,7 @@ from backend.schemas.schedule import Game as ScheduledGame
 from backend.schemas.schedule import Schedule
 from backend.services.http_client import get_async
 
+
 BASE_URL = "https://statsapi.mlb.com"
 
 

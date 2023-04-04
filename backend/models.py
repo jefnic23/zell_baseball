@@ -30,7 +30,7 @@ class User(Base):
         )
 
     @staticmethod
-    async def verify_reset_password_token(token: str) -> 'User' | None:
+    async def verify_reset_password_token(token: str) -> 'User':
         try:
             id = jwt.decode(
                 token, 
@@ -47,68 +47,68 @@ class User(Base):
 class Batter(Base):
     __tablename__ = "batters"
 
-    id = Mapped[int] = mapped_column(primary_key=True)
-    name = Mapped[str] = mapped_column(nullable=False)
-    stand = Mapped[str] = mapped_column(nullable=False)
-    woba_r = Mapped[float] = mapped_column(nullable=False)
-    woba_l = Mapped[float] = mapped_column(nullable=False)
-    woba = Mapped[float] = mapped_column(nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    stand: Mapped[str] = mapped_column(nullable=False)
+    woba_r: Mapped[float] = mapped_column(nullable=False)
+    woba_l: Mapped[float] = mapped_column(nullable=False)
+    woba: Mapped[float] = mapped_column(nullable=False)
 
 
 class Fielding(Base):
     __tablename__ = "fielding"
 
-    id = Mapped[int] = mapped_column(ForeignKey('batters.id'), primary_key=True)
-    name = Mapped[str] = mapped_column(ForeignKey('batters.name'), nullable=False)
-    runs = Mapped[float] = mapped_column(nullable=False)
+    id: Mapped[int] = mapped_column(ForeignKey('batters.id'), primary_key=True)
+    name: Mapped[str] = mapped_column(ForeignKey('batters.name'), nullable=False)
+    runs: Mapped[float] = mapped_column(nullable=False)
 
 
 class Woba(Base):
     __tablename__ = "woba"
 
-    woba = Mapped[float] = mapped_column(primary_key=True)
-    runs = Mapped[float] = mapped_column(nullable=False)
+    woba: Mapped[float] = mapped_column(primary_key=True)
+    runs: Mapped[float] = mapped_column(nullable=False)
 
 
 class Matchup(Base):
     __tablename__ = "matchups"
 
-    matchup = Mapped[str] = mapped_column(primary_key=True)
-    odds = Mapped[float] = mapped_column(nullable=False)
+    matchup: Mapped[str] = mapped_column(primary_key=True)
+    odds: Mapped[float] = mapped_column(nullable=False)
 
 
 class Misc(Base):
     __tablename__ = "misc"
 
-    name = Mapped[str] = mapped_column(primary_key=True)
-    value = Mapped[float] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(primary_key=True)
+    value: Mapped[float] = mapped_column(nullable=False)
 
 
 class Park(Base):
     __tablename__ = "parks"
 
-    park = Mapped[str] = mapped_column(primary_key=True)
-    runs = Mapped[float] = mapped_column(nullable=False)
-    over_threshold = Mapped[float] = mapped_column(nullable=False)
-    under_threshold = Mapped[float] = mapped_column(nullable=False)
-    handicap = Mapped[float] = mapped_column(nullable=False)
+    park: Mapped[str] = mapped_column(primary_key=True)
+    runs: Mapped[float] = mapped_column(nullable=False)
+    over_threshold: Mapped[float] = mapped_column(nullable=False)
+    under_threshold: Mapped[float] = mapped_column(nullable=False)
+    handicap: Mapped[float] = mapped_column(nullable=False)
 
 
 class Pitcher(Base):
     __tablename__ = "pitchers"
 
-    id = Mapped[int] = mapped_column(primary_key=True)
-    name = Mapped[str] = mapped_column(nullable=False)
-    p_throws = Mapped[str] = mapped_column(nullable=False)
-    woba_r = Mapped[float] = mapped_column(nullable=False)
-    woba_l = Mapped[float] = mapped_column(nullable=False)
-    woba = Mapped[float] = mapped_column(nullable=False)
-    ips = Mapped[float] = mapped_column(nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    p_throws: Mapped[str] = mapped_column(nullable=False)
+    woba_r: Mapped[float] = mapped_column(nullable=False)
+    woba_l: Mapped[float] = mapped_column(nullable=False)
+    woba: Mapped[float] = mapped_column(nullable=False)
+    ips: Mapped[float] = mapped_column(nullable=False)
 
 
 class Ump(Base):
     __tablename__ = "umps"
 
-    id = Mapped[int] = mapped_column(primary_key=True)
-    name = Mapped[str] = mapped_column(unique=True, nullable=False)
-    runs = Mapped[float] = mapped_column(nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
+    runs: Mapped[float] = mapped_column(nullable=False)

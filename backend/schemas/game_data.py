@@ -15,6 +15,7 @@ class ProbablePitchers(BaseModel):
 
 class Team(BaseModel):
     abbreviation: str
+    name: str
 
 
 class Teams(BaseModel):

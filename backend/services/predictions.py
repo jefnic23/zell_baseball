@@ -1,8 +1,8 @@
-from fastapi import Depends
+import asyncio
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import db
 from backend.models import Batter, Fielding, Matchup, Park, Pitcher, Ump, Woba
 from backend.schemas.betting_data import Scores
 from backend.schemas.game import Game
@@ -13,12 +13,77 @@ class Predictions:
         self, 
         betting_data: Scores,
         game: Game,
-        session: AsyncSession = Depends(db.get_session)
+        session: AsyncSession
     ):
         self.betting_data = betting_data
         self.game_data = game.gameData
         self.live_data = game.liveData
         self.session = session
+
+
+    async def get_prediction_data(self) -> dict:
+        '''Get all prediction data for a given game.'''
+        
+        home_team_query = (
+            select(Park)
+            .where(Park.park == self.game_data.teams.home.name)
+        )
+        away_team_query = (
+            select(Park)
+            .where(Park.park == self.game_data.teams.away.name)
+        )
+        home_pitcher_query = (
+            select(Pitcher)
+            .where(Pitcher.id == self.game_data.probablePitchers.home.id)
+        )
+        away_pitcher_query = (
+            select(Pitcher)
+            .where(Pitcher.id == self.game_data.probablePitchers.away.id)
+        )
+        home_bullpen_query = (
+            select(Pitcher)
+            .where(Pitcher.id.in_(
+                [id for id in self.live_data.boxscore.teams.home.bullpen]
+            ))
+        )
+        away_bullpen_query = (
+            select(Pitcher)
+            .where(Pitcher.id.in_(
+                [id for id in self.live_data.boxscore.teams.away.bullpen]
+            ))
+        )
+        home_lineup_query = (
+            select(Batter)
+            .where(Batter.id.in_(
+                [id for id in self.live_data.boxscore.teams.home.battingOrder]
+            ))
+        )
+        away_lineup_query = (
+            select(Batter)
+            .where(Batter.id.in_(
+                [id for id in self.live_data.boxscore.teams.away.battingOrder]
+            ))
+        )
+
+        home_team = await self.session.execute(home_team_query)
+        away_team = await self.session.execute(away_team_query)
+        home_pitcher = await self.session.execute(home_pitcher_query)
+        away_pitcher = await self.session.execute(away_pitcher_query)
+        home_bullpen = await self.session.execute(home_bullpen_query)
+        away_bullpen = await self.session.execute(away_bullpen_query) 
+        home_lineup = await self.session.execute(home_lineup_query)
+        away_lineup = await self.session.execute(away_lineup_query)
+
+        return {
+            'home_team': home_team.scalar(),
+            'away_team': away_team.scalar(),
+            'home_pitcher': home_pitcher.scalar(),
+            'away_pitcher': away_pitcher.scalar(),
+            'home_bullpen': home_bullpen.scalars().all(),
+            'away_bullpen': away_bullpen.scalars().all(),
+            'home_lineup': home_lineup.scalars().all(),
+            'away_lineup': away_lineup.scalars().all()
+        }
 
 
     def get_bullpen(
@@ -34,11 +99,6 @@ class Predictions:
             (sum(bullpen_woba) / len(bullpen_woba)), 
             'league'
         )
-    
-
-    async def get_prediction_data(self) -> dict:
-        '''Get all prediction data for a given game.'''
-        pass
 
 
     async def get_fielding(
