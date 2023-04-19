@@ -279,7 +279,7 @@ function populateTables(game) {
         over_under, 
         over_120, 
         under_120,
-        predData.park_factor
+        game.predData.park_factor
     );
     createValues(
         row, 
@@ -291,7 +291,7 @@ function populateTables(game) {
         over_under, 
         over_100, 
         under_100,
-        predData.park_factor
+        game.predData.park_factor
     );
     return table.appendChild(row);
 }
