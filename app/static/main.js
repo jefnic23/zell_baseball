@@ -182,9 +182,9 @@ function createValues(row, gamePk, bet, value, prediction, total, over_under, ov
     let adjusted_park_factor = Math.round(park_factor * 2) / 2;
     let high_park_factor = adjusted_park_factor + 0.5;
     let low_park_factor = adjusted_park_factor - 0.5;
-    let is_high = over_under >= high_park_factor;
-    let is_low = over_under <= low_park_factor;
-    let is_neutral = (over_under > low_park_factor && over_under < high_park_factor);
+    let is_high = over_under >= high_park_factor && prediction >= high_park_factor;
+    let is_low = over_under <= low_park_factor && prediction <= low_park_factor;
+    let is_neutral = (over_under > low_park_factor && over_under < high_park_factor) && (prediction > low_park_factor && prediction < high_park_factor);
     if (bet !== "TBD" && bet !== "No Value") {
         td.innerHTML = `${bet}`;
         if ((prediction > over_under && is_high) || (prediction < over_under && is_low)) {
