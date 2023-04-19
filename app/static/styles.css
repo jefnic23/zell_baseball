@@ -215,6 +215,27 @@ tbody > tr:nth-child(odd) {
     text-shadow: 1px 1px black;
 }
 
+.betneutral {
+    background-color: yellow;
+    font-weight: bolder;
+    color: black;
+    text-shadow: 1px 1px black;
+}
+
+.betgood {
+    background-color: green;
+    font-weight: bolder;
+    color: white;
+    text-shadow: 1px 1px black;
+}
+
+.betbad {
+    background-color: red;
+    font-weight: bolder;
+    color: white;
+    text-shadow: 1px 1px black;
+}
+
 .bet-up {
     position: relative;
 }

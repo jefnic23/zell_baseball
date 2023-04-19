@@ -136,7 +136,7 @@ function createLines(row, idfoevent, over_under, over_line, under_line) {
     return row.appendChild(td);
 }
 
-function createTotal(row, total, market, thresholds) {
+function createTotal(row, total, market, thresholds, prediction, over_under, over_threshold, under_threshold) {
     let td = document.createElement("td");
     let total_div = document.createElement("div");
     total_div.innerHTML = total;
@@ -161,23 +161,38 @@ function createTotal(row, total, market, thresholds) {
             }
             tbl.appendChild(tr);
         }
+
+        if (prediction > over_under && total > over_threshold) {
+            td.classList.add("betover");
+        } 
+        if (over_under > prediction && total < 0-under_threshold) {
+            td.classList.add("betunder");
+        }
+
         span.appendChild(tbl);
         total_div.appendChild(span);
     }
     return row.appendChild(td);
 }
 
-function createValues(row, gamePk, bet, value, prediction, total, over_under, over_threshold, under_threshold) {
+function createValues(row, gamePk, bet, value, prediction, total, over_under, over_threshold, under_threshold, park_factor) {
     let td = document.createElement("td");
     td.setAttribute('id', `${gamePk}_${value}`);
+
+    let adjusted_park_factor = Math.round(park_factor * 2) / 2;
+    let high_park_factor = adjusted_park_factor + 0.5;
+    let low_park_factor = adjusted_park_factor - 0.5;
+    let is_high = over_under >= high_park_factor;
+    let is_low = over_under <= low_park_factor;
+    let is_neutral = (over_under > low_park_factor && over_under < high_park_factor);
     if (bet !== "TBD" && bet !== "No Value") {
-        if (prediction > over_under && total > over_threshold) {
-            td.innerHTML = `${bet}`
-            td.classList.add("betover");
-        } 
-        if (over_under > prediction && total < 0-under_threshold) {
-            td.innerHTML = `${bet}`
-            td.classList.add("betunder");
+        td.innerHTML = `${bet}`;
+        if ((prediction > over_under && is_high) || (prediction < over_under && is_low)) {
+            td.classList.add("betbad");
+        } else if (is_neutral) {
+            td.classList.add("betneutral");
+        } else {
+            td.classList.add("betgood");
         }
     } else {
         td.innerHTML = bet;
@@ -248,7 +263,11 @@ function populateTables(game) {
         row, 
         total,
         game.betData.idfoselection,
-        thresholds
+        thresholds,
+        prediction, 
+        over_under, 
+        over_100, 
+        under_100
     );
     createValues(
         row, 
@@ -259,7 +278,8 @@ function populateTables(game) {
         total, 
         over_under, 
         over_120, 
-        under_120
+        under_120,
+        predData.park_factor
     );
     createValues(
         row, 
@@ -270,7 +290,8 @@ function populateTables(game) {
         total, 
         over_under, 
         over_100, 
-        under_100
+        under_100,
+        predData.park_factor
     );
     return table.appendChild(row);
 }

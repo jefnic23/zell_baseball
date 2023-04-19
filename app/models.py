@@ -35,6 +35,7 @@ class User(UserMixin, db.Model):
             return
         return User.query.get(id)
 
+
 class Batters(db.Model):
     __tablename__ = "batters"
     id = db.Column(db.Integer, primary_key=True)
@@ -44,26 +45,31 @@ class Batters(db.Model):
     woba_l = db.Column(db.Float, nullable=False)
     woba = db.Column(db.Float, nullable=False)
 
+
 class Fielding(db.Model):
     __tablename__ = "fielding"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     runs = db.Column(db.Float, nullable=False)
 
+
 class Woba(db.Model):
     __tablename__ = "woba"
     woba = db.Column(db.Float, primary_key=True)
     runs = db.Column(db.Float, nullable=False)
+
 
 class Matchups(db.Model):
     __tablename__ = "matchups"
     matchup = db.Column(db.String(), primary_key=True)
     odds = db.Column(db.Float, nullable=False)
 
+
 class Misc(db.Model):
     __tablename__ = "misc"
     name = db.Column(db.String(), primary_key=True)
     value = db.Column(db.Float, nullable=False)
+
 
 class Parks(db.Model):
     __tablename__ = "parks"
@@ -72,6 +78,7 @@ class Parks(db.Model):
     over_threshold = db.Column(db.Float, nullable=False)
     under_threshold = db.Column(db.Float, nullable=False)
     handicap = db.Column(db.Float, nullable=False)
+
 
 class Pitchers(db.Model):
     __tablename__ = "pitchers"
@@ -82,6 +89,7 @@ class Pitchers(db.Model):
     woba_l = db.Column(db.Float, nullable=False)
     woba = db.Column(db.Float, nullable=False)
     ips = db.Column(db.Float, nullable=False)
+
 
 class Umps(db.Model):
     __tablename__ ="umps"
