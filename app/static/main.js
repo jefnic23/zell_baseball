@@ -187,7 +187,7 @@ function createValues(row, gamePk, bet, value, prediction, total, over_under, ov
     let is_neutral = (over_under > low_park_factor && over_under < high_park_factor) && (prediction > low_park_factor && prediction < high_park_factor);
     if (bet !== "TBD" && bet !== "No Value") {
         td.innerHTML = `${bet}`;
-        if ((prediction > over_under && is_high) || (prediction < over_under && is_low)) {
+        if (is_high || is_low) {
             td.classList.add("betbad");
         } else if (is_neutral) {
             td.classList.add("betneutral");
