@@ -180,8 +180,8 @@ function createValues(row, gamePk, bet, value, prediction, total, over_under, ov
     td.setAttribute('id', `${gamePk}_${value}`);
 
     let adjusted_park_factor = Math.round(park_factor * 2) / 2;
-    let high_park_factor = adjusted_park_factor + 0.5;
-    let low_park_factor = adjusted_park_factor - 0.5;
+    let high_park_factor = park_factor + 0.5;
+    let low_park_factor = park_factor - 0.5;
     let is_high = over_under >= high_park_factor && prediction >= high_park_factor;
     let is_low = over_under <= low_park_factor && prediction <= low_park_factor;
     let is_neutral = (over_under > low_park_factor && over_under < high_park_factor) && (prediction > low_park_factor && prediction < high_park_factor);
