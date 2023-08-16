@@ -18,7 +18,7 @@ def create_app():
 
     app.include_router(games.router)
 
-    app.mount('/', StaticFiles(directory='frontend/src/'), name='static')
+    app.mount('/', StaticFiles(directory='frontend/src/', html=True), name='static')
 
     @app.get('/')
     def index():
